@@ -12,7 +12,7 @@ app.use(express.json());
 
 
 // ======================================================
-// CLOUDFARE R2
+// CLOUDFLARE R2
 // ======================================================
 const s3 = new AWS.S3({
   endpoint: "https://68f733511c324bf0523779ef257f22ef.r2.cloudflarestorage.com",
@@ -94,10 +94,14 @@ app.post("/generate", async (req, res) => {
   let browser;
 
   try {
-    // ✅ FIX DEFINITIVO PARA RAILWAY
+    // ==================================================
+    // FIX DEFINITIVO DO PLAYWRIGHT NO RAILWAY
+    // ==================================================
+    const executablePath = chromium.executablePath();
+
     browser = await chromium.launch({
       headless: true,
-      channel: "chromium",
+      executablePath,
     });
 
     // ================= DESKTOP (primeira dobra)
