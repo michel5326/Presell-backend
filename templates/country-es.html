@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Afiliados</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* IMAGENS INJETADAS PELO BACKEND */
+            --desktop-bg-image: url('{{DESKTOP_PRINT}}');
+            --mobile-bg-image: url('{{MOBILE_PRINT}}');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+        }
+
+        .background-container {
+            position: fixed;
+            inset: 0;
+            background-image: var(--desktop-bg-image);
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.8);
+            z-index: -1;
+        }
+
+        @media (max-width: 768px) {
+            .background-container {
+                background-image: var(--mobile-bg-image);
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        .overlay.show {
+            opacity: 1;
+        }
+
+        .popup {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            transform: scale(0.7);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .overlay.show .popup {
+            transform: scale(1);
+        }
+
+        .popup h2 {
+            color: #1f2937;
+            margin-bottom: 6px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .popup p {
+            color: #6b7280;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .country-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .country-option {
+            border: 2px solid #d9d9d9;
+            border-radius: 8px;
+            padding: 12px;
+            background: #f9f9f9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-height: 80px;
+        }
+
+        .country-option:hover {
+            border-color: #4285f4;
+            background: #f0f7ff;
+            transform: translateY(-2px);
+        }
+
+        .country-option.selected {
+            border-color: #4285f4;
+            background: #e8f0fe;
+        }
+
+        .country-flag {
+            width: 40px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .country-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .country-loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px;
+            font-size: 13px;
+            color: #4285f4;
+        }
+
+        .loading-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #4285f4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="background-container"></div>
+
+<div class="overlay" id="countryOverlay">
+    <div class="popup">
+        <h2>Selecciona tu país</h2>
+        <p>Por favor, elige tu país para continuar</p>
+
+        <div class="country-grid" id="countryGrid">
+            <div class="country-option">
+                <img src="https://flagcdn.com/w320/es.png" class="country-flag">
+                <div class="country-name">España</div>
+            </div>
+            <div class="country-option">
+                <img src="https://flagcdn.com/w320/us.png" class="country-flag">
+                <div class="country-name">Estados Unidos</div>
+            </div>
+            <div class="country-option">
+                <img src="https://flagcdn.com/w320/au.png" class="country-flag">
+                <div class="country-name">Australia</div>
+            </div>
+            <div class="country-option">
+                <img src="https://flagcdn.com/w320/gb.png" class="country-flag">
+                <div class="country-name">Reino Unido</div>
+            </div>
+        </div>
+
+        <div class="country-loading" id="countryLoading">
+            <div class="loading-spinner"></div>
+            <span>Verificando...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+
+    const overlay = document.getElementById('countryOverlay');
+    const options = document.querySelectorAll('.country-option');
+    const grid = document.getElementById('countryGrid');
+    const loading = document.getElementById('countryLoading');
+
+    let clicked = false;
+
+    function redirect() {
+        if (clicked) return;
+        clicked = true;
+        window.location.href = AFFILIATE_LINK;
+    }
+
+    options.forEach(opt => {
+        opt.addEventListener('click', () => {
+            options.forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            setTimeout(() => {
+                grid.style.display = 'none';
+                loading.style.display = 'flex';
+                setTimeout(redirect, 1200);
+            }, 300);
+        });
+    });
+
+    window.addEventListener('load', () => {
+        overlay.classList.add('show');
+    });
+</script>
+
+</body>
+</html>

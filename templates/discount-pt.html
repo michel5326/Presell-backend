@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oferta Especial</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --desktop-bg-image: url('{{DESKTOP_PRINT}}');
+  --mobile-bg-image: url('{{MOBILE_PRINT}}');
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:Poppins,sans-serif}
+
+.background-container{
+  position:fixed;inset:0;
+  background-image:var(--desktop-bg-image);
+  background-size:cover;
+  background-position:center;
+  filter:brightness(.8);
+  z-index:-1;
+}
+@media(max-width:768px){
+  .background-container{background-image:var(--mobile-bg-image)}
+}
+
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;justify-content:center;align-items:center;
+  opacity:0;transition:.4s
+}
+.overlay.show{opacity:1}
+
+.popup{
+  background:#fff;border-radius:16px;
+  padding:25px;max-width:320px;width:90%;
+  text-align:center;transform:scale(.8);transition:.4s
+}
+.overlay.show .popup{transform:scale(1)}
+
+.pricing{
+  background:#f8f9fa;padding:20px;
+  border-radius:12px;margin:20px 0
+}
+.line{display:flex;justify-content:space-between;margin-bottom:10px}
+.old{text-decoration:line-through;color:#e74c3c}
+.new{font-size:22px;font-weight:700;color:#27ae60}
+
+.timer{display:flex;justify-content:center;gap:10px;margin:20px 0}
+.unit{background:#f8f9fa;padding:10px;border-radius:8px;min-width:60px}
+.unit span{display:block;font-weight:700}
+
+button{
+  width:100%;padding:15px;border:none;
+  border-radius:50px;background:#ff5e3a;
+  color:#fff;font-size:16px;font-weight:600;
+  cursor:pointer
+}
+</style>
+</head>
+
+<body>
+<div class="background-container"></div>
+
+<div class="overlay" id="overlay">
+  <div class="popup">
+    <h2>{{PLAN_TITLE}}</h2>
+
+    <div class="pricing">
+      <div class="line">
+        <span>Original:</span>
+        <span class="old">$<span id="anchor"></span></span>
+      </div>
+      <div class="line">
+        <span>Seu preço:</span>
+        <span class="new">$<span id="price"></span></span>
+      </div>
+      <div class="line">
+        <span>Por unidade:</span>
+        <span>$<span id="unit"></span></span>
+      </div>
+    </div>
+
+    <div class="timer">
+      <div class="unit"><span id="m">00</span>Min</div>
+      <div class="unit"><span id="s">00</span>Seg</div>
+    </div>
+
+    <button id="cta">Obter Desconto</button>
+  </div>
+</div>
+
+<script>
+const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+const ANCHOR_PRICE = {{ANCHOR_PRICE}};
+const YOUR_PRICE = {{YOUR_PRICE}};
+let time = {{OFFER_MINUTES}} * 60;
+let clicked = false;
+
+document.getElementById('anchor').textContent = ANCHOR_PRICE;
+document.getElementById('price').textContent = YOUR_PRICE;
+document.getElementById('unit').textContent = (YOUR_PRICE / 6).toFixed(2);
+
+const m = document.getElementById('m');
+const s = document.getElementById('s');
+const btn = document.getElementById('cta');
+
+setInterval(()=>{
+  if(time<=0){
+    btn.textContent='Expirado';
+    btn.style.opacity=.5;
+    btn.onclick=null;
+    return;
+  }
+  m.textContent=String(Math.floor(time/60)).padStart(2,'0');
+  s.textContent=String(time%60).padStart(2,'0');
+  time--;
+},1000);
+
+btn.onclick=()=>{
+  if(clicked) return;
+  clicked=true;
+  location.href=AFFILIATE_LINK;
+};
+
+window.onload=()=>document.getElementById('overlay').classList.add('show');
+</script>
+</body>
+</html>

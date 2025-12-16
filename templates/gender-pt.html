@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Page</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* IMAGENS INJETADAS PELO BACKEND */
+            --desktop-bg-image: url('{{DESKTOP_PRINT}}');
+            --mobile-bg-image: url('{{MOBILE_PRINT}}');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+        }
+
+        .background-container {
+            position: fixed;
+            inset: 0;
+            background-image: var(--desktop-bg-image);
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.8);
+            z-index: -1;
+        }
+
+        @media (max-width: 768px) {
+            .background-container {
+                background-image: var(--mobile-bg-image);
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        .overlay.show {
+            opacity: 1;
+        }
+
+        .popup {
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            transform: scale(0.7);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .overlay.show .popup {
+            transform: scale(1);
+        }
+
+        .popup h2 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .popup p {
+            color: #bdc3c7;
+            margin-bottom: 25px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .gender-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .gender-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .gender-btn:hover {
+            transform: translateY(-4px);
+        }
+
+        .prefer-not-link a {
+            color: #95a5a6;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .prefer-not-link a:hover {
+            color: #ecf0f1;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .gender-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-container"></div>
+
+    <div class="overlay" id="genderOverlay">
+        <div class="popup">
+            <h2>👋 Bem-vindo!</h2>
+            <p>Para continuar, por favor selecione uma opção abaixo.</p>
+
+            <div class="gender-buttons">
+                <button class="gender-btn">♂️ Masculino</button>
+                <button class="gender-btn">♀️ Feminino</button>
+            </div>
+
+            <p class="prefer-not-link">
+                <a href="#">Prefiro não dizer</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+
+        const overlay = document.getElementById('genderOverlay');
+        const buttons = document.querySelectorAll('.gender-btn');
+        const preferNotLink = document.querySelector('.prefer-not-link a');
+
+        let hasClicked = false;
+
+        function handleRedirect() {
+            if (hasClicked) return;
+            hasClicked = true;
+            window.location.href = AFFILIATE_LINK;
+        }
+
+        buttons.forEach(btn => btn.addEventListener('click', handleRedirect));
+        preferNotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleRedirect();
+        });
+
+        window.addEventListener('load', () => {
+            overlay.classList.add('show');
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Afiliados</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* IMAGENS INJETADAS PELO BACKEND */
+            --desktop-bg-image: url('{{DESKTOP_PRINT}}');
+            --mobile-bg-image: url('{{MOBILE_PRINT}}');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+        }
+
+        .background-container {
+            position: fixed;
+            inset: 0;
+            background-image: var(--desktop-bg-image);
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.8);
+            z-index: -1;
+        }
+
+        @media (max-width: 768px) {
+            .background-container {
+                background-image: var(--mobile-bg-image);
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        .overlay.show {
+            opacity: 1;
+        }
+
+        .popup {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            transform: scale(0.7);
+            transition: all 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+
+        .overlay.show .popup {
+            transform: scale(1);
+        }
+
+        .popup h2 {
+            color: #1f2937;
+            margin-bottom: 6px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .popup p {
+            color: #6b7280;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .captcha-box {
+            border: 2px solid #d9d9d9;
+            border-radius: 3px;
+            background: #f9f9f9;
+            display: flex;
+            align-items: stretch;
+            cursor: pointer;
+            min-height: 68px;
+        }
+
+        .captcha-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+        }
+
+        .captcha-checkbox {
+            width: 24px;
+            height: 24px;
+            appearance: none;
+            border: 2px solid #c1c1c1;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .captcha-checkbox:checked {
+            background: #4285f4;
+            border-color: #4285f4;
+        }
+
+        .captcha-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .captcha-text {
+            font-size: 13px;
+            color: #222;
+        }
+
+        .captcha-loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px;
+            font-size: 13px;
+            color: #4285f4;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #4285f4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="background-container"></div>
+
+<div class="overlay" id="captchaOverlay">
+    <div class="popup">
+        <h2>Verificação de Segurança</h2>
+        <p>Complete a verificação para continuar</p>
+
+        <div class="captcha-box" id="captchaBox">
+            <div class="captcha-main">
+                <input type="checkbox" class="captcha-checkbox" id="captchaCheck">
+                <div class="captcha-text">Não sou um robô</div>
+            </div>
+        </div>
+
+        <div class="captcha-loading" id="captchaLoading">
+            <div class="spinner"></div>
+            <span>Verificando...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+
+    const overlay = document.getElementById('captchaOverlay');
+    const box = document.getElementById('captchaBox');
+    const check = document.getElementById('captchaCheck');
+    const loading = document.getElementById('captchaLoading');
+
+    let clicked = false;
+
+    function redirect() {
+        if (clicked) return;
+        clicked = true;
+        window.location.href = AFFILIATE_LINK;
+    }
+
+    check.addEventListener('change', () => {
+        if (check.checked) {
+            box.style.display = 'none';
+            loading.style.display = 'flex';
+            setTimeout(redirect, 1200);
+        }
+    });
+
+    box.addEventListener('click', () => {
+        check.checked = !check.checked;
+        check.dispatchEvent(new Event('change'));
+    });
+
+    window.addEventListener('load', () => {
+        overlay.classList.add('show');
+    });
+</script>
+
+</body>
+</html>
