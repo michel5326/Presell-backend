@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "postinstall": "npx playwright install chromium"
+    "start": "npx playwright install chromium && node index.js"
   },
   "keywords": [],
   "author": "",
