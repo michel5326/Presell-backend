@@ -26,6 +26,7 @@ const BUCKET = "presell-prints";
 const PUBLIC_BASE_URL =
   "https://pub-47ce05af429144d2aba2d027ba5c3f66.r2.dev";
 
+
 // ======================================================
 // HELPERS
 // ======================================================
@@ -45,9 +46,7 @@ function findTemplate(templateId) {
 
   for (const name of possibilities) {
     const fullPath = path.join(templatesDir, name);
-    if (fs.existsSync(fullPath)) {
-      return fullPath;
-    }
+    if (fs.existsSync(fullPath)) return fullPath;
   }
 
   return null;
@@ -67,6 +66,7 @@ async function uploadToR2(localPath, remoteKey) {
 
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
+
 
 // ======================================================
 // ROTA PRINCIPAL
@@ -94,7 +94,11 @@ app.post("/generate", async (req, res) => {
   let browser;
 
   try {
-    browser = await chromium.launch({ headless: true });
+    // ✅ FIX DEFINITIVO PARA RAILWAY
+    browser = await chromium.launch({
+      headless: true,
+      channel: "chromium",
+    });
 
     // ================= DESKTOP (primeira dobra)
     const desktopPage = await browser.newPage({
@@ -136,7 +140,7 @@ app.post("/generate", async (req, res) => {
 
     await mobilePage.close();
 
-    // ================= UPLOAD
+    // ================= UPLOAD R2
     const desktopUrl = await uploadToR2(
       desktopFile,
       `desktop/${desktopFile}`
@@ -174,6 +178,7 @@ app.post("/generate", async (req, res) => {
     if (browser) await browser.close();
   }
 });
+
 
 // ======================================================
 app.listen(3000, () => {
