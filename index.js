@@ -1,4 +1,4 @@
-process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+process.env.PLAYWRIGHT_BROWSERS_PATH = "/root/.cache/ms-playwright";
 
 const express = require("express");
 const { chromium, devices } = require("playwright");
@@ -95,13 +95,13 @@ app.post("/generate", async (req, res) => {
 
   try {
     // ==================================================
-    // FIX DEFINITIVO DO PLAYWRIGHT NO RAILWAY
+    // FIX DEFINITIVO PLAYWRIGHT + RAILWAY
     // ==================================================
-    const executablePath = chromium.executablePath();
-
     browser = await chromium.launch({
       headless: true,
-      executablePath,
+      executablePath:
+        "/root/.cache/ms-playwright/chromium-1200/chrome-linux/chrome",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     // ================= DESKTOP (primeira dobra)
