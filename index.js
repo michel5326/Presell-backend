@@ -1,3 +1,5 @@
+process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+
 const express = require("express");
 const { chromium, devices } = require("playwright");
 const AWS = require("aws-sdk");
@@ -7,6 +9,7 @@ const { v4: uuid } = require("uuid");
 
 const app = express();
 app.use(express.json());
+
 
 // ======================================================
 // CLOUDFARE R2
