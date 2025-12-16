@@ -1,19 +1,16 @@
 {
   "name": "sars-backend",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
-  "scripts": {
-    "start": "npx playwright install chromium && node index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
+    "@sparticuz/chromium": "^123.0.0",
     "aws-sdk": "^2.1693.0",
     "express": "^5.2.1",
-    "playwright": "^1.57.0",
+    "puppeteer-core": "^22.8.2",
     "uuid": "^13.0.0"
   }
 }
