@@ -1,5 +1,3 @@
-process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
-
 const express = require("express");
 const { chromium, devices } = require("playwright");
 const AWS = require("aws-sdk");
@@ -11,7 +9,7 @@ const app = express();
 app.use(express.json());
 
 // ======================================================
-// CLOUDFLARE R2 (IGUAL AO SEU)
+// CLOUDFLARE R2
 // ======================================================
 const s3 = new AWS.S3({
   endpoint: "https://68f733511c324bf0523779ef257f22ef.r2.cloudflarestorage.com",
@@ -90,12 +88,9 @@ app.post("/generate", async (req, res) => {
   let browser;
 
   try {
-    // ✅ PLAYWRIGHT PURO — FUNCIONA NO RAILWAY
-    browser = await chromium.launch({
-      headless: true,
-    });
+    browser = await chromium.launch({ headless: true });
 
-    // ================= DESKTOP (primeira dobra)
+    // ================= DESKTOP
     const page = await browser.newPage({
       viewport: { width: 1366, height: 768 },
     });
@@ -114,7 +109,7 @@ app.post("/generate", async (req, res) => {
 
     await page.close();
 
-    // ================= MOBILE (primeira dobra)
+    // ================= MOBILE
     const iphone = devices["iPhone 12"];
 
     const pageMobile = await browser.newPage({
@@ -179,6 +174,7 @@ app.post("/generate", async (req, res) => {
 });
 
 // ======================================================
-app.listen(3000, () => {
-  console.log("🚀 API rodando na porta 3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 API rodando na porta ${PORT}`);
 });
