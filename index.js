@@ -50,37 +50,20 @@ function findTemplate(templateId) {
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
 
-  await s3
-    .putObject({
-      Bucket: BUCKET,
-      Key: remoteKey,
-      Body: buffer,
-      ContentType: "image/png",
-    })
-    .promise();
+  await s3.putObject({
+    Bucket: BUCKET,
+    Key: remoteKey,
+    Body: buffer,
+    ContentType: "image/png",
+  }).promise();
 
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
 
 // ======================================================
-// ROTA PRINCIPAL
+// JOB EM BACKGROUND (PLAYWRIGHT)
 // ======================================================
-app.post("/generate", async (req, res) => {
-  const { templateId, productUrl, affiliateUrl } = req.body;
-
-  if (!templateId || !productUrl || !affiliateUrl) {
-    return res.status(400).json({
-      error: "templateId, productUrl e affiliateUrl são obrigatórios",
-    });
-  }
-
-  const templatePath = findTemplate(templateId);
-  if (!templatePath) {
-    return res.status(404).json({
-      error: "Template não encontrado",
-    });
-  }
-
+async function runJob({ templateId, productUrl, affiliateUrl }) {
   const id = uuid();
   const desktopFile = `desktop-${id}.png`;
   const mobileFile = `mobile-${id}.png`;
@@ -88,12 +71,17 @@ app.post("/generate", async (req, res) => {
   let browser;
 
   try {
+    console.log("▶️ Job iniciado:", id);
+
+    const templatePath = findTemplate(templateId);
+    if (!templatePath) throw new Error("Template não encontrado");
+
     browser = await chromium.launch({
       headless: true,
       timeout: 30000,
     });
 
-    // ================= DESKTOP
+    // DESKTOP
     const page = await browser.newPage({
       viewport: { width: 1366, height: 768 },
     });
@@ -106,19 +94,12 @@ app.post("/generate", async (req, res) => {
     await page.waitForSelector("body", { timeout: 5000 });
     await page.waitForTimeout(800);
 
-    await page.screenshot({
-      path: desktopFile,
-      fullPage: false,
-    });
-
+    await page.screenshot({ path: desktopFile, fullPage: false });
     await page.close();
 
-    // ================= MOBILE
+    // MOBILE
     const iphone = devices["iPhone 12"];
-
-    const pageMobile = await browser.newPage({
-      ...iphone,
-    });
+    const pageMobile = await browser.newPage({ ...iphone });
 
     await pageMobile.goto(productUrl, {
       waitUntil: "domcontentloaded",
@@ -128,54 +109,56 @@ app.post("/generate", async (req, res) => {
     await pageMobile.waitForSelector("body", { timeout: 5000 });
     await pageMobile.waitForTimeout(800);
 
-    await pageMobile.screenshot({
-      path: mobileFile,
-      fullPage: false,
-    });
-
+    await pageMobile.screenshot({ path: mobileFile, fullPage: false });
     await pageMobile.close();
 
-    // ================= UPLOAD R2
-    const desktopUrl = await uploadToR2(
-      desktopFile,
-      `desktop/${desktopFile}`
-    );
-
-    const mobileUrl = await uploadToR2(
-      mobileFile,
-      `mobile/${mobileFile}`
-    );
+    // UPLOAD
+    const desktopUrl = await uploadToR2(desktopFile, `desktop/${desktopFile}`);
+    const mobileUrl = await uploadToR2(mobileFile, `mobile/${mobileFile}`);
 
     safeUnlink(desktopFile);
     safeUnlink(mobileFile);
 
-    // ================= TEMPLATE
     let html = fs.readFileSync(templatePath, "utf8");
-
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    return res
-      .status(200)
-      .set("Content-Type", "text/html; charset=utf-8")
-      .send(html);
+    console.log("✅ Job finalizado:", id);
+    // por enquanto só logamos o sucesso
 
   } catch (err) {
+    console.error("❌ Job erro:", err.message);
     safeUnlink(desktopFile);
     safeUnlink(mobileFile);
-
-    return res.status(500).json({
-      error: err.message,
-    });
   } finally {
     if (browser) {
-      try {
-        await browser.close();
-      } catch {}
+      try { await browser.close(); } catch {}
     }
   }
+}
+
+// ======================================================
+// ROTA (RESPONDE RÁPIDO)
+// ======================================================
+app.post("/generate", (req, res) => {
+  const { templateId, productUrl, affiliateUrl } = req.body;
+
+  if (!templateId || !productUrl || !affiliateUrl) {
+    return res.status(400).json({ error: "Campos obrigatórios ausentes" });
+  }
+
+  const jobId = uuid();
+
+  setImmediate(() => {
+    runJob({ templateId, productUrl, affiliateUrl });
+  });
+
+  return res.status(200).json({
+    status: "processing",
+    jobId,
+  });
 });
 
 // ======================================================
