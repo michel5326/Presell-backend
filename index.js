@@ -96,11 +96,11 @@ app.post("/generate", async (req, res) => {
     });
 
     await page.goto(productUrl, {
-      waitUntil: "networkidle",
-      timeout: 60000,
-    });
+  waitUntil: "domcontentloaded",
+  timeout: 30000,
+});
 
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(800);
 
     await page.screenshot({
       path: desktopFile,
@@ -117,11 +117,12 @@ app.post("/generate", async (req, res) => {
     });
 
     await pageMobile.goto(productUrl, {
-      waitUntil: "networkidle",
-      timeout: 60000,
-    });
+  waitUntil: "domcontentloaded",
+  timeout: 30000,
+});
 
-    await pageMobile.waitForTimeout(1200);
+
+    await pageMobile.waitForTimeout(800);
 
     await pageMobile.screenshot({
       path: mobileFile,
