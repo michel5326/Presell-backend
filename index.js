@@ -1,18 +1,17 @@
+process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+
 const express = require("express");
+const { chromium, devices } = require("playwright");
 const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
 const { v4: uuid } = require("uuid");
 
-const chromium = require("@sparticuz/chromium");
-const puppeteer = require("puppeteer-core");
-
 const app = express();
 app.use(express.json());
 
-
 // ======================================================
-// CLOUDFLARE R2
+// CLOUDFLARE R2 (IGUAL AO SEU)
 // ======================================================
 const s3 = new AWS.S3({
   endpoint: "https://68f733511c324bf0523779ef257f22ef.r2.cloudflarestorage.com",
@@ -26,7 +25,6 @@ const BUCKET = "presell-prints";
 const PUBLIC_BASE_URL =
   "https://pub-47ce05af429144d2aba2d027ba5c3f66.r2.dev";
 
-
 // ======================================================
 // HELPERS
 // ======================================================
@@ -38,23 +36,33 @@ function safeUnlink(file) {
 
 function findTemplate(templateId) {
   const templatesDir = path.join(process.cwd(), "templates");
-  const file = path.join(templatesDir, `template-${templateId}.html`);
-  return fs.existsSync(file) ? file : null;
+
+  const candidates = [
+    `template-${templateId}.html`,
+    `${templateId}.html`,
+  ];
+
+  for (const name of candidates) {
+    const full = path.join(templatesDir, name);
+    if (fs.existsSync(full)) return full;
+  }
+  return null;
 }
 
 async function uploadToR2(localPath, remoteKey) {
-  const fileBuffer = fs.readFileSync(localPath);
+  const buffer = fs.readFileSync(localPath);
 
-  await s3.putObject({
-    Bucket: BUCKET,
-    Key: remoteKey,
-    Body: fileBuffer,
-    ContentType: "image/png",
-  }).promise();
+  await s3
+    .putObject({
+      Bucket: BUCKET,
+      Key: remoteKey,
+      Body: buffer,
+      ContentType: "image/png",
+    })
+    .promise();
 
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
-
 
 // ======================================================
 // ROTA PRINCIPAL
@@ -63,12 +71,16 @@ app.post("/generate", async (req, res) => {
   const { templateId, productUrl, affiliateUrl } = req.body;
 
   if (!templateId || !productUrl || !affiliateUrl) {
-    return res.status(400).json({ error: "Parâmetros obrigatórios faltando" });
+    return res.status(400).json({
+      error: "templateId, productUrl e affiliateUrl são obrigatórios",
+    });
   }
 
   const templatePath = findTemplate(templateId);
   if (!templatePath) {
-    return res.status(404).json({ error: "Template não encontrado" });
+    return res.status(404).json({
+      error: "Template não encontrado",
+    });
   }
 
   const id = uuid();
@@ -78,47 +90,95 @@ app.post("/generate", async (req, res) => {
   let browser;
 
   try {
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+    // ✅ PLAYWRIGHT PURO — FUNCIONA NO RAILWAY
+    browser = await chromium.launch({
+      headless: true,
     });
 
-    // DESKTOP
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1366, height: 768 });
-    await page.goto(productUrl, { waitUntil: "networkidle2" });
-    await page.screenshot({ path: desktopFile });
+    // ================= DESKTOP (primeira dobra)
+    const page = await browser.newPage({
+      viewport: { width: 1366, height: 768 },
+    });
+
+    await page.goto(productUrl, {
+      waitUntil: "networkidle",
+      timeout: 60000,
+    });
+
+    await page.waitForTimeout(1200);
+
+    await page.screenshot({
+      path: desktopFile,
+      fullPage: false,
+    });
+
     await page.close();
 
-    // MOBILE
-    const pageMobile = await browser.newPage();
-    await pageMobile.setViewport({ width: 390, height: 844, isMobile: true });
-    await pageMobile.goto(productUrl, { waitUntil: "networkidle2" });
-    await pageMobile.screenshot({ path: mobileFile });
+    // ================= MOBILE (primeira dobra)
+    const iphone = devices["iPhone 12"];
+
+    const pageMobile = await browser.newPage({
+      ...iphone,
+    });
+
+    await pageMobile.goto(productUrl, {
+      waitUntil: "networkidle",
+      timeout: 60000,
+    });
+
+    await pageMobile.waitForTimeout(1200);
+
+    await pageMobile.screenshot({
+      path: mobileFile,
+      fullPage: false,
+    });
+
     await pageMobile.close();
 
-    const desktopUrl = await uploadToR2(desktopFile, `desktop/${desktopFile}`);
-    const mobileUrl = await uploadToR2(mobileFile, `mobile/${mobileFile}`);
+    // ================= UPLOAD R2
+    const desktopUrl = await uploadToR2(
+      desktopFile,
+      `desktop/${desktopFile}`
+    );
+
+    const mobileUrl = await uploadToR2(
+      mobileFile,
+      `mobile/${mobileFile}`
+    );
 
     safeUnlink(desktopFile);
     safeUnlink(mobileFile);
 
+    // ================= TEMPLATE
     let html = fs.readFileSync(templatePath, "utf8");
+
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    res.set("Content-Type", "text/html; charset=utf-8").send(html);
+    return res
+      .status(200)
+      .set("Content-Type", "text/html; charset=utf-8")
+      .send(html);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    safeUnlink(desktopFile);
+    safeUnlink(mobileFile);
+
+    return res.status(500).json({
+      error: err.message,
+    });
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      try {
+        await browser.close();
+      } catch {}
+    }
   }
 });
 
+// ======================================================
 app.listen(3000, () => {
-  console.log("🚀 API rodando");
+  console.log("🚀 API rodando na porta 3000");
 });

@@ -4,13 +4,13 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "postinstall": "npx playwright install --with-deps"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^123.0.0",
     "aws-sdk": "^2.1693.0",
     "express": "^5.2.1",
-    "puppeteer-core": "^22.8.2",
+    "playwright": "^1.57.0",
     "uuid": "^13.0.0"
   }
 }
