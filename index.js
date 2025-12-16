@@ -88,7 +88,10 @@ app.post("/generate", async (req, res) => {
   let browser;
 
   try {
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: true,
+      timeout: 30000,
+    });
 
     // ================= DESKTOP
     const page = await browser.newPage({
@@ -96,10 +99,11 @@ app.post("/generate", async (req, res) => {
     });
 
     await page.goto(productUrl, {
-  waitUntil: "domcontentloaded",
-  timeout: 30000,
-});
+      waitUntil: "domcontentloaded",
+      timeout: 20000,
+    });
 
+    await page.waitForSelector("body", { timeout: 5000 });
     await page.waitForTimeout(800);
 
     await page.screenshot({
@@ -117,11 +121,11 @@ app.post("/generate", async (req, res) => {
     });
 
     await pageMobile.goto(productUrl, {
-  waitUntil: "domcontentloaded",
-  timeout: 30000,
-});
+      waitUntil: "domcontentloaded",
+      timeout: 20000,
+    });
 
-
+    await pageMobile.waitForSelector("body", { timeout: 5000 });
     await pageMobile.waitForTimeout(800);
 
     await pageMobile.screenshot({
