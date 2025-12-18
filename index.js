@@ -60,7 +60,12 @@ app.post("/generate", async (req, res) => {
     return res.status(403).json({ error: "forbidden" });
   }
 
-  const { templateId, productUrl, affiliateUrl } = req.body;
+  const {
+    templateId,
+    productUrl,
+    affiliateUrl,
+    trackingScript, // 👈 NOVO (opcional)
+  } = req.body;
 
   if (!templateId || !productUrl || !affiliateUrl) {
     return res.status(400).json({ error: "Missing fields" });
@@ -120,6 +125,14 @@ app.post("/generate", async (req, res) => {
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
+
+    // ================= TRACKING (OPCIONAL)
+    if (trackingScript && typeof trackingScript === "string") {
+      html = html.replace(
+        "</body>",
+        `${trackingScript}\n</body>`
+      );
+    }
 
     return res
       .status(200)
