@@ -66,6 +66,13 @@ app.post("/generate", async (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
   }
 
+  const templatePath = findTemplate(templateId);
+  if (!templatePath) {
+    return res.status(404).json({
+      error: `Template '${templateId}.html' não encontrado`,
+    });
+  }
+
   const id = uuid();
   const desktopFile = `desktop-${id}.png`;
   const mobileFile = `mobile-${id}.png`;
@@ -75,7 +82,7 @@ app.post("/generate", async (req, res) => {
   try {
     browser = await chromium.launch({ headless: true });
 
-    // DESKTOP
+    // ================= DESKTOP
     const page = await browser.newPage({
       viewport: { width: 1366, height: 768 },
     });
@@ -85,7 +92,7 @@ app.post("/generate", async (req, res) => {
     await page.screenshot({ path: desktopFile, fullPage: false });
     await page.close();
 
-    // MOBILE
+    // ================= MOBILE
     const iphone = devices["iPhone 12"];
     const pageMobile = await browser.newPage({ ...iphone });
 
@@ -94,6 +101,7 @@ app.post("/generate", async (req, res) => {
     await pageMobile.screenshot({ path: mobileFile, fullPage: false });
     await pageMobile.close();
 
+    // ================= UPLOAD R2
     const desktopUrl = await uploadToR2(
       desktopFile,
       `desktop/${desktopFile}`
@@ -106,18 +114,26 @@ app.post("/generate", async (req, res) => {
     safeUnlink(desktopFile);
     safeUnlink(mobileFile);
 
-    let html = fs.readFileSync(findTemplate(templateId), "utf8");
+    // ================= TEMPLATE
+    let html = fs.readFileSync(templatePath, "utf8");
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    return res.status(200).send(html);
+    return res
+      .status(200)
+      .set("Content-Type", "text/html; charset=utf-8")
+      .send(html);
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      try {
+        await browser.close();
+      } catch {}
+    }
   }
 });
 
