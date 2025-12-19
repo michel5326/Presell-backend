@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Affiliate Page</title>
+    <title>Page d'Affiliation</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
 
     <style>
         :root {
-            /* DYNAMIC IMAGES (INJECTED BY BACKEND) */
+            /* IMAGENS DINÂMICAS (INJETADAS PELO BACKEND) */
             --desktop-bg-image: url('{{DESKTOP_PRINT}}');
             --mobile-bg-image: url('{{MOBILE_PRINT}}');
             
@@ -114,14 +114,14 @@
             margin-bottom: 24px;
         }
 
-        .gender-options {
+        .age-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
             margin-bottom: 20px;
         }
 
-        .gender-option {
+        .age-option {
             background: #f8f9fa;
             border: 2px solid #e9ecef;
             border-radius: 12px;
@@ -138,28 +138,28 @@
             touch-action: manipulation;
         }
 
-        .gender-option:hover {
+        .age-option:hover {
             border-color: var(--primary-color);
             background: #f0f7ff;
             transform: translateY(-3px);
         }
 
-        .gender-option.selected {
+        .age-option.selected {
             border-color: var(--primary-color);
             background: #e8f0fe;
             box-shadow: 0 6px 15px rgba(66, 133, 244, 0.25);
         }
 
-        .gender-option.loading {
+        .age-option.loading {
             pointer-events: none;
         }
 
-        .gender-icon {
+        .age-icon {
             font-size: 28px;
             color: var(--primary-color);
         }
 
-        .gender-label {
+        .age-label {
             font-size: 16px;
             font-weight: 500;
             color: var(--secondary-color);
@@ -178,7 +178,7 @@
             transition: opacity 0.3s ease;
         }
 
-        .gender-option.loading .loading-overlay {
+        .age-option.loading .loading-overlay {
             opacity: 1;
         }
 
@@ -216,20 +216,20 @@
                 margin-bottom: 20px;
             }
             
-            .gender-options {
+            .age-options {
                 gap: 14px;
             }
             
-            .gender-option {
+            .age-option {
                 padding: 18px;
                 min-height: 75px;
             }
             
-            .gender-icon {
+            .age-icon {
                 font-size: 26px;
             }
             
-            .gender-label {
+            .age-label {
                 font-size: 15px;
             }
         }
@@ -248,11 +248,11 @@
                 font-size: 14px;
             }
             
-            .gender-options {
+            .age-options {
                 gap: 12px;
             }
             
-            .gender-option {
+            .age-option {
                 padding: 16px;
                 min-height: 70px;
             }
@@ -263,41 +263,32 @@
 
 <div class="background-container"></div>
 
-<div class="overlay" id="genderOverlay">
+<div class="overlay" id="ageOverlay">
     <div class="popup">
         <div class="popup-header">
-            <h2 class="popup-title">Select Your Gender</h2>
+            <h2 class="popup-title">Vérification d'âge</h2>
         </div>
 
         <p class="popup-message">
-            To personalize your experience, please select your gender below.
+            Pour continuer, veuillez vérifier votre âge.
         </p>
 
-        <div class="gender-options">
-            <div class="gender-option" data-gender="male">
-                <i class="fas fa-mars gender-icon"></i>
-                <span class="gender-label">Male</span>
+        <div class="age-options">
+            <div class="age-option" data-age="over18">
+                <i class="fas fa-user-check age-icon"></i>
+                <span class="age-label">Plus de 18 ans</span>
                 <div class="loading-overlay">
                     <div class="loading-spinner"></div>
-                    <div class="loading-text">Verifying...</div>
+                    <div class="loading-text">Vérification en cours...</div>
                 </div>
             </div>
-            <div class="gender-option" data-gender="female">
-                <i class="fas fa-venus gender-icon"></i>
-                <span class="gender-label">Female</span>
+            <div class="age-option" data-age="under18">
+                <i class="fas fa-user-times age-icon"></i>
+                <span class="age-label">Moins de 18 ans</span>
                 <div class="loading-overlay">
                     <div class="loading-spinner"></div>
-                    <div class="loading-text">Verifying...</div>
+                    <div class="loading-text">Vérification en cours...</div>
                 </div>
-            </div>
-        </div>
-
-        <div class="gender-option" data-gender="prefer-not" style="grid-column: 1 / -1;">
-            <i class="fas fa-question-circle" style="color: #6c757d; font-size: 28px;"></i>
-            <span class="gender-label" style="color: #6c757d;">Prefer not to say</span>
-            <div class="loading-overlay">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">Verifying...</div>
             </div>
         </div>
     </div>
@@ -306,20 +297,20 @@
 <script>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
-    const overlay = document.getElementById('genderOverlay');
-    const genderOptions = document.querySelectorAll('.gender-option');
-    let selectedGender = null;
+    const overlay = document.getElementById('ageOverlay');
+    const ageOptions = document.querySelectorAll('.age-option');
+    let selectedAge = null;
 
-    function handleSelection(gender) {
-        selectedGender = gender;
+    function handleSelection(age) {
+        selectedAge = age;
         
         // Remove selected and loading classes from all options
-        genderOptions.forEach(option => {
+        ageOptions.forEach(option => {
             option.classList.remove('selected', 'loading');
         });
         
         // Add selected and loading classes to chosen option
-        const selectedOption = document.querySelector(`[data-gender="${gender}"]`);
+        const selectedOption = document.querySelector(`[data-age="${age}"]`);
         selectedOption.classList.add('selected', 'loading');
         
         // Redirect after loading animation
@@ -328,9 +319,9 @@
         }, 1500);
     }
 
-    genderOptions.forEach(option => {
+    ageOptions.forEach(option => {
         option.addEventListener('click', () => {
-            handleSelection(option.dataset.gender);
+            handleSelection(option.dataset.age);
         });
     });
 

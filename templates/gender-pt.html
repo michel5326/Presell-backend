@@ -2,35 +2,49 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Affiliate Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Página de Afiliados</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            /* IMAGENS INJETADAS PELO BACKEND */
+            /* IMAGENS DINÂMICAS (INJETADAS PELO BACKEND) */
             --desktop-bg-image: url('{{DESKTOP_PRINT}}');
             --mobile-bg-image: url('{{MOBILE_PRINT}}');
+            
+            --primary-color: #4285f4;
+            --secondary-color: #333;
+            --background-color: #ffffff;
+            --text-color: #666;
+            --border-radius: 12px;
+            --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            --gradient: linear-gradient(135deg, #4285f4, #34a853);
+            --success-color: #27ae60;
+            --mobile-padding: 16px;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: manipulation;
         }
 
         html, body {
             height: 100%;
             width: 100%;
             overflow: hidden;
+            font-family: 'Poppins', sans-serif;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #121212;
+            background-color: #f5f5f5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .background-container {
@@ -39,7 +53,7 @@
             background-image: var(--desktop-bg-image);
             background-size: cover;
             background-position: center;
-            filter: brightness(0.8);
+            filter: brightness(0.7);
             z-index: -1;
         }
 
@@ -52,13 +66,14 @@
         .overlay {
             position: fixed;
             inset: 0;
-            background-color: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
             opacity: 0;
-            transition: opacity 0.6s ease-in-out;
+            transition: opacity 0.8s ease;
+            padding: var(--mobile-padding);
         }
 
         .overlay.show {
@@ -66,122 +81,264 @@
         }
 
         .popup {
-            background: linear-gradient(145deg, #2c3e50, #34495e);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 380px;
-            width: 90%;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
             text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-            transform: scale(0.7);
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: var(--shadow);
+            transform: scale(0.9);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .overlay.show .popup {
             transform: scale(1);
         }
 
-        .popup h2 {
-            color: #fff;
-            margin-bottom: 15px;
-            font-size: 26px;
-            font-weight: 700;
+        .popup-header {
+            margin-bottom: 20px;
         }
 
-        .popup p {
-            color: #bdc3c7;
-            margin-bottom: 25px;
-            font-size: 15px;
-            line-height: 1.6;
+        .popup-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 12px;
         }
 
-        .gender-buttons {
+        .popup-message {
+            font-size: 16px;
+            color: var(--text-color);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .gender-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 15px;
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
-        .gender-btn {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-            border: none;
-            padding: 15px 20px;
+        .gender-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
             border-radius: 12px;
+            padding: 20px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            min-height: 80px;
+            touch-action: manipulation;
         }
 
-        .gender-btn:hover {
-            transform: translateY(-4px);
+        .gender-option:hover {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+            transform: translateY(-3px);
         }
 
-        .prefer-not-link a {
-            color: #95a5a6;
+        .gender-option.selected {
+            border-color: var(--primary-color);
+            background: #e8f0fe;
+            box-shadow: 0 6px 15px rgba(66, 133, 244, 0.25);
+        }
+
+        .gender-option.loading {
+            pointer-events: none;
+        }
+
+        .gender-icon {
+            font-size: 28px;
+            color: var(--primary-color);
+        }
+
+        .gender-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gender-option.loading .loading-overlay {
+            opacity: 1;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid var(--success-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
             font-size: 14px;
-            text-decoration: none;
+            color: var(--success-color);
+            font-weight: 500;
         }
 
-        .prefer-not-link a:hover {
-            color: #ecf0f1;
-            text-decoration: underline;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
+        /* Mobile optimizations - KEEPING 2 COLUMN LAYOUT */
         @media (max-width: 480px) {
-            .gender-buttons {
-                grid-template-columns: 1fr;
+            .popup {
+                padding: 20px var(--mobile-padding);
+            }
+            
+            .popup-title {
+                font-size: 20px;
+            }
+            
+            .popup-message {
+                font-size: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .gender-options {
+                gap: 14px;
+            }
+            
+            .gender-option {
+                padding: 18px;
+                min-height: 75px;
+            }
+            
+            .gender-icon {
+                font-size: 26px;
+            }
+            
+            .gender-label {
+                font-size: 15px;
+            }
+        }
+
+        /* Very small screens - STILL 2 COLUMNS */
+        @media (max-width: 360px) {
+            .popup {
+                padding: 16px var(--mobile-padding);
+            }
+            
+            .popup-title {
+                font-size: 18px;
+            }
+            
+            .popup-message {
+                font-size: 14px;
+            }
+            
+            .gender-options {
+                gap: 12px;
+            }
+            
+            .gender-option {
+                padding: 16px;
+                min-height: 70px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="background-container"></div>
+<div class="background-container"></div>
 
-    <div class="overlay" id="genderOverlay">
-        <div class="popup">
-            <h2>👋 Bem-vindo!</h2>
-            <p>Para continuar, por favor selecione uma opção abaixo.</p>
+<div class="overlay" id="genderOverlay">
+    <div class="popup">
+        <div class="popup-header">
+            <h2 class="popup-title">Selecione seu Gênero</h2>
+        </div>
 
-            <div class="gender-buttons">
-                <button class="gender-btn">♂️ Masculino</button>
-                <button class="gender-btn">♀️ Feminino</button>
+        <p class="popup-message">
+            Para personalizar sua experiência, por favor selecione seu gênero abaixo.
+        </p>
+
+        <div class="gender-options">
+            <div class="gender-option" data-gender="male">
+                <i class="fas fa-mars gender-icon"></i>
+                <span class="gender-label">Masculino</span>
+                <div class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Verificando...</div>
+                </div>
             </div>
+            <div class="gender-option" data-gender="female">
+                <i class="fas fa-venus gender-icon"></i>
+                <span class="gender-label">Feminino</span>
+                <div class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Verificando...</div>
+                </div>
+            </div>
+        </div>
 
-            <p class="prefer-not-link">
-                <a href="#">Prefiro não dizer</a>
-            </p>
+        <div class="gender-option" data-gender="prefer-not" style="grid-column: 1 / -1;">
+            <i class="fas fa-question-circle" style="color: #6c757d; font-size: 28px;"></i>
+            <span class="gender-label" style="color: #6c757d;">Prefiro não dizer</span>
+            <div class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Verificando...</div>
+            </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+<script>
+    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
-        const overlay = document.getElementById('genderOverlay');
-        const buttons = document.querySelectorAll('.gender-btn');
-        const preferNotLink = document.querySelector('.prefer-not-link a');
+    const overlay = document.getElementById('genderOverlay');
+    const genderOptions = document.querySelectorAll('.gender-option');
+    let selectedGender = null;
 
-        let hasClicked = false;
-
-        function handleRedirect() {
-            if (hasClicked) return;
-            hasClicked = true;
+    function handleSelection(gender) {
+        selectedGender = gender;
+        
+        // Remove selected and loading classes from all options
+        genderOptions.forEach(option => {
+            option.classList.remove('selected', 'loading');
+        });
+        
+        // Add selected and loading classes to chosen option
+        const selectedOption = document.querySelector(`[data-gender="${gender}"]`);
+        selectedOption.classList.add('selected', 'loading');
+        
+        // Redirect after loading animation
+        setTimeout(() => {
             window.location.href = AFFILIATE_LINK;
-        }
+        }, 1500);
+    }
 
-        buttons.forEach(btn => btn.addEventListener('click', handleRedirect));
-        preferNotLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            handleRedirect();
+    genderOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            handleSelection(option.dataset.gender);
         });
+    });
 
-        window.addEventListener('load', () => {
-            overlay.classList.add('show');
-        });
-    </script>
+    // Ensure fade-in effect works properly with a small delay
+    setTimeout(() => {
+        overlay.classList.add('show');
+    }, 100);
+</script>
 
 </body>
 </html>
