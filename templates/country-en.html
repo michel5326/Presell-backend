@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Affiliate Page</title>
+    <title>Página de Afiliados</title>
 
     <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
 
     <style>
         :root {
-            /* IMAGES INJECTÉES PAR LE BACKEND -->
+            /* IMÁGENES INYECTADAS POR EL BACKEND */
             --desktop-bg-image: url('{{DESKTOP_PRINT}}');
             --mobile-bg-image: url('{{MOBILE_PRINT}}');
         }
@@ -176,20 +176,23 @@
         }
     </style>
 </head>
-
 <body>
 
 <div class="background-container"></div>
 
 <div class="overlay" id="countryOverlay">
     <div class="popup">
-        <h2>Select Your Country</h2>
-        <p>Please choose your country to continue</p>
+        <h2>Selecciona tu país</h2>
+        <p>Por favor, elige tu país para continuar</p>
 
         <div class="country-grid" id="countryGrid">
             <div class="country-option">
+                <img src="https://flagcdn.com/w320/es.png" class="country-flag" loading="lazy" decoding="async">
+                <div class="country-name">España</div>
+            </div>
+            <div class="country-option">
                 <img src="https://flagcdn.com/w320/us.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">United States</div>
+                <div class="country-name">Estados Unidos</div>
             </div>
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/au.png" class="country-flag" loading="lazy" decoding="async">
@@ -197,17 +200,13 @@
             </div>
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/gb.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">United Kingdom</div>
-            </div>
-            <div class="country-option">
-                <img src="https://flagcdn.com/w320/ca.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">Canada</div>
+                <div class="country-name">Reino Unido</div>
             </div>
         </div>
 
         <div class="country-loading" id="countryLoading">
             <div class="loading-spinner"></div>
-            <span>Verifying...</span>
+            <span>Verificando...</span>
         </div>
     </div>
 </div>
