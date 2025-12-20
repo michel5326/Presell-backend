@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Página de Afiliados</title>
+
+    <!-- Preconnect fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts (already optimized with display=swap) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Preload background images (performance / LCP) -->
+    <link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+    <link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
+
+    <style>
+        :root {
+            /* DYNAMIC IMAGES (INJECTED BY BACKEND) */
+            --desktop-bg-image: url('{{DESKTOP_PRINT}}');
+            --mobile-bg-image: url('{{MOBILE_PRINT}}');
+
+            --primary-color: #4285f4;
+            --secondary-color: #333;
+            --background-color: #ffffff;
+            --text-color: #666;
+            --border-radius: 12px;
+            --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            --gradient: linear-gradient(135deg, #4285f4, #34a853);
+            --success-color: #27ae60;
+            --mobile-padding: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Background optimized for fast paint */
+        .background-container {
+            position: fixed;
+            inset: 0;
+            background-color: #000; /* fallback instant paint */
+            background-image: var(--desktop-bg-image);
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7);
+            z-index: -1;
+            will-change: transform;
+        }
+
+        @media (max-width: 768px) {
+            .background-container {
+                background-image: var(--mobile-bg-image);
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            padding: var(--mobile-padding);
+            contain: layout paint;
+        }
+
+        .overlay.show {
+            opacity: 1;
+        }
+
+        .popup {
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transform: scale(0.9);
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform;
+        }
+
+        .overlay.show .popup {
+            transform: scale(1);
+        }
+
+        .popup-header {
+            margin-bottom: 20px;
+        }
+
+        .popup-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 12px;
+        }
+
+        .popup-message {
+            font-size: 16px;
+            color: var(--text-color);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .age-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .age-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            min-height: 80px;
+            touch-action: manipulation;
+            contain: layout paint;
+        }
+
+        .age-option:hover {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+            transform: translateY(-3px);
+        }
+
+        .age-option.selected {
+            border-color: var(--primary-color);
+            background: #e8f0fe;
+            box-shadow: 0 6px 15px rgba(66, 133, 244, 0.25);
+        }
+
+        .age-option.loading {
+            pointer-events: none;
+        }
+
+        .age-icon {
+            font-size: 28px;
+            color: var(--primary-color);
+        }
+
+        .age-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .age-option.loading .loading-overlay {
+            opacity: 1;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid var(--success-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mobile optimizations - KEEPING 2 COLUMN LAYOUT */
+        @media (max-width: 480px) {
+            .popup {
+                padding: 20px var(--mobile-padding);
+            }
+
+            .popup-title {
+                font-size: 20px;
+            }
+
+            .popup-message {
+                font-size: 15px;
+                margin-bottom: 20px;
+            }
+
+            .age-options {
+                gap: 14px;
+            }
+
+            .age-option {
+                padding: 18px;
+                min-height: 75px;
+            }
+
+            .age-icon {
+                font-size: 26px;
+            }
+
+            .age-label {
+                font-size: 15px;
+            }
+        }
+
+        /* Very small screens - STILL 2 COLUMNS */
+        @media (max-width: 360px) {
+            .popup {
+                padding: 16px var(--mobile-padding);
+            }
+
+            .popup-title {
+                font-size: 18px;
+            }
+
+            .popup-message {
+                font-size: 14px;
+            }
+
+            .age-options {
+                gap: 12px;
+            }
+
+            .age-option {
+                padding: 16px;
+                min-height: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="background-container"></div>
+
+<div class="overlay" id="ageOverlay">
+    <div class="popup">
+        <div class="popup-header">
+            <h2 class="popup-title">Selecione sua faixa etária</h2>
+        </div>
+
+        <p class="popup-message">
+            Por favor, selecione sua faixa etária para continuar.
+        </p>
+
+        <div class="age-options">
+            <div class="age-option" data-age="18-25">
+                <i class="fas fa-user age-icon"></i>
+                <span class="age-label">18-25 anos</span>
+                <div class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Processando...</div>
+                </div>
+            </div>
+            <div class="age-option" data-age="26-35">
+                <i class="fas fa-user age-icon"></i>
+                <span class="age-label">26-35 anos</span>
+                <div class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Processando...</div>
+                </div>
+            </div>
+            <div class="age-option" data-age="36-45">
+                <i class="fas fa-user age-icon"></i>
+                <span class="age-label">36-45 anos</span>
+                <div class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Processando...</div>
+                </div>
+            </div>
+            <div class="age-option" data-age="46+">
+                <i class="fas fa-user age-icon"></i>
+                <span class="age-label">46+ anos</span>
+                <div class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Processando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer>
+    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+
+    const overlay = document.getElementById('ageOverlay');
+    const ageOptions = document.querySelectorAll('.age-option');
+
+    function handleSelection(age) {
+        ageOptions.forEach(option => {
+            option.classList.remove('selected', 'loading');
+        });
+
+        const selectedOption = document.querySelector(`[data-age="${age}"]`);
+        selectedOption.classList.add('selected', 'loading');
+
+        setTimeout(() => {
+            window.location.href = AFFILIATE_LINK;
+        }, 1500);
+    }
+
+    ageOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            handleSelection(option.dataset.age);
+        });
+    });
+
+    setTimeout(() => {
+        overlay.classList.add('show');
+    }, 100);
+</script>
+
+</body>
+</html>
