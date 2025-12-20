@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors"); // ✅ NOVO
 const { chromium, devices } = require("playwright");
 const AWS = require("aws-sdk");
 const fs = require("fs");
@@ -6,6 +7,24 @@ const path = require("path");
 const { v4: uuid } = require("uuid");
 
 const app = express();
+
+// ======================================================
+// ✅ CORS — TEM QUE VIR ANTES DAS ROTAS
+// ======================================================
+app.use(
+  cors({
+    origin: [
+      "https://clickpage.vercel.app",
+      "https://clickpage.lovable.app",
+    ],
+    methods: ["POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-worker-token"],
+  })
+);
+
+// garante preflight
+app.options("*", cors());
+
 app.use(express.json());
 
 const WORKER_TOKEN = process.env.WORKER_TOKEN;
@@ -42,12 +61,14 @@ function findTemplate(templateId) {
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
 
-  await s3.putObject({
-    Bucket: BUCKET,
-    Key: remoteKey,
-    Body: buffer,
-    ContentType: "image/png",
-  }).promise();
+  await s3
+    .putObject({
+      Bucket: BUCKET,
+      Key: remoteKey,
+      Body: buffer,
+      ContentType: "image/png",
+    })
+    .promise();
 
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
@@ -64,7 +85,7 @@ app.post("/generate", async (req, res) => {
     templateId,
     productUrl,
     affiliateUrl,
-    trackingScript, // 👈 NOVO (opcional)
+    trackingScript,
   } = req.body;
 
   if (!templateId || !productUrl || !affiliateUrl) {
@@ -87,7 +108,7 @@ app.post("/generate", async (req, res) => {
   try {
     browser = await chromium.launch({ headless: true });
 
-    // ================= DESKTOP
+    // DESKTOP
     const page = await browser.newPage({
       viewport: { width: 1366, height: 768 },
     });
@@ -97,7 +118,7 @@ app.post("/generate", async (req, res) => {
     await page.screenshot({ path: desktopFile, fullPage: false });
     await page.close();
 
-    // ================= MOBILE
+    // MOBILE
     const iphone = devices["iPhone 12"];
     const pageMobile = await browser.newPage({ ...iphone });
 
@@ -106,7 +127,7 @@ app.post("/generate", async (req, res) => {
     await pageMobile.screenshot({ path: mobileFile, fullPage: false });
     await pageMobile.close();
 
-    // ================= UPLOAD R2
+    // UPLOAD R2
     const desktopUrl = await uploadToR2(
       desktopFile,
       `desktop/${desktopFile}`
@@ -119,26 +140,21 @@ app.post("/generate", async (req, res) => {
     safeUnlink(desktopFile);
     safeUnlink(mobileFile);
 
-    // ================= TEMPLATE
+    // TEMPLATE
     let html = fs.readFileSync(templatePath, "utf8");
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    // ================= TRACKING (OPCIONAL)
     if (trackingScript && typeof trackingScript === "string") {
-      html = html.replace(
-        "</body>",
-        `${trackingScript}\n</body>`
-      );
+      html = html.replace("</body>", `${trackingScript}\n</body>`);
     }
 
     return res
       .status(200)
       .set("Content-Type", "text/html; charset=utf-8")
       .send(html);
-
   } catch (err) {
     return res.status(500).json({ error: err.message });
   } finally {
