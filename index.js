@@ -23,7 +23,6 @@ app.use(
 );
 
 // garante preflight
-app.options("*", cors());
 
 app.use(express.json());
 
