@@ -1,5 +1,5 @@
 const express = require("express");
-const cors = require("cors"); // ✅ NOVO
+const cors = require("cors");
 const { chromium, devices } = require("playwright");
 const AWS = require("aws-sdk");
 const fs = require("fs");
@@ -9,7 +9,7 @@ const { v4: uuid } = require("uuid");
 const app = express();
 
 // ======================================================
-// ✅ CORS — TEM QUE VIR ANTES DAS ROTAS
+// CORS
 // ======================================================
 app.use(
   cors({
@@ -21,8 +21,6 @@ app.use(
     allowedHeaders: ["Content-Type", "x-worker-token"],
   })
 );
-
-// garante preflight
 
 app.use(express.json());
 
@@ -85,6 +83,8 @@ app.post("/generate", async (req, res) => {
     productUrl,
     affiliateUrl,
     trackingScript,
+    texts,
+    numbers,
   } = req.body;
 
   if (!templateId || !productUrl || !affiliateUrl) {
@@ -141,11 +141,32 @@ app.post("/generate", async (req, res) => {
 
     // TEMPLATE
     let html = fs.readFileSync(templatePath, "utf8");
+
+    // core replacements
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
+    // TEXT placeholders (strings)
+    if (texts && typeof texts === "object") {
+      for (const [key, value] of Object.entries(texts)) {
+        if (typeof value === "string") {
+          html = html.replaceAll(`{{${key}}}`, value);
+        }
+      }
+    }
+
+    // NUMBER placeholders (raw numbers)
+    if (numbers && typeof numbers === "object") {
+      for (const [key, value] of Object.entries(numbers)) {
+        if (typeof value === "number") {
+          html = html.replaceAll(`{{${key}}}`, String(value));
+        }
+      }
+    }
+
+    // tracking
     if (trackingScript && typeof trackingScript === "string") {
       html = html.replace("</body>", `${trackingScript}\n</body>`);
     }
