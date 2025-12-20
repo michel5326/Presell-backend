@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page d’Affiliation</title>
+    <title>Affiliate Page</title>
 
     <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
 
     <style>
         :root {
-            /* IMAGES INJECTÉES PAR LE BACKEND */
+            /* IMAGES INJECTÉES PAR LE BACKEND -->
             --desktop-bg-image: url('{{DESKTOP_PRINT}}');
             --mobile-bg-image: url('{{MOBILE_PRINT}}');
         }
@@ -176,27 +176,28 @@
         }
     </style>
 </head>
+
 <body>
 
 <div class="background-container"></div>
 
 <div class="overlay" id="countryOverlay">
     <div class="popup">
-        <h2>Sélectionnez votre pays</h2>
-        <p>Veuillez choisir votre pays pour continuer</p>
+        <h2>Select Your Country</h2>
+        <p>Please choose your country to continue</p>
 
         <div class="country-grid" id="countryGrid">
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/us.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">États-Unis</div>
+                <div class="country-name">United States</div>
             </div>
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/au.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">Australie</div>
+                <div class="country-name">Australia</div>
             </div>
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/gb.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">Royaume-Uni</div>
+                <div class="country-name">United Kingdom</div>
             </div>
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/ca.png" class="country-flag" loading="lazy" decoding="async">
@@ -206,7 +207,7 @@
 
         <div class="country-loading" id="countryLoading">
             <div class="loading-spinner"></div>
-            <span>Vérification...</span>
+            <span>Verifying...</span>
         </div>
     </div>
 </div>
