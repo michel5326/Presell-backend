@@ -5,17 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Página de Afiliados</title>
 
+    <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Preload background images (performance / LCP) -->
+    <link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+    <link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
 
     <style>
         :root {
             /* IMAGENS DINÂMICAS (INJETADAS PELO BACKEND) */
             --desktop-bg-image: url('{{DESKTOP_PRINT}}');
             --mobile-bg-image: url('{{MOBILE_PRINT}}');
-            
+
             --primary-color: #4285f4;
             --secondary-color: #333;
             --background-color: #ffffff;
@@ -47,14 +56,17 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Background optimized for fast paint */
         .background-container {
             position: fixed;
             inset: 0;
+            background-color: #000;
             background-image: var(--desktop-bg-image);
             background-size: cover;
             background-position: center;
             filter: brightness(0.7);
             z-index: -1;
+            will-change: transform;
         }
 
         @media (max-width: 768px) {
@@ -74,6 +86,7 @@
             opacity: 0;
             transition: opacity 0.8s ease;
             padding: var(--mobile-padding);
+            contain: layout paint;
         }
 
         .overlay.show {
@@ -89,7 +102,8 @@
             text-align: center;
             box-shadow: var(--shadow);
             transform: scale(0.9);
-            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            will-change: transform;
         }
 
         .overlay.show .popup {
@@ -136,6 +150,7 @@
             overflow: hidden;
             min-height: 80px;
             touch-action: manipulation;
+            contain: layout paint;
         }
 
         .age-option:hover {
@@ -206,29 +221,29 @@
             .popup {
                 padding: 20px var(--mobile-padding);
             }
-            
+
             .popup-title {
                 font-size: 20px;
             }
-            
+
             .popup-message {
                 font-size: 15px;
                 margin-bottom: 20px;
             }
-            
+
             .age-options {
                 gap: 14px;
             }
-            
+
             .age-option {
                 padding: 18px;
                 min-height: 75px;
             }
-            
+
             .age-icon {
                 font-size: 26px;
             }
-            
+
             .age-label {
                 font-size: 15px;
             }
@@ -239,19 +254,19 @@
             .popup {
                 padding: 16px var(--mobile-padding);
             }
-            
+
             .popup-title {
                 font-size: 18px;
             }
-            
+
             .popup-message {
                 font-size: 14px;
             }
-            
+
             .age-options {
                 gap: 12px;
             }
-            
+
             .age-option {
                 padding: 16px;
                 min-height: 70px;
@@ -294,26 +309,20 @@
     </div>
 </div>
 
-<script>
+<script defer>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
     const overlay = document.getElementById('ageOverlay');
     const ageOptions = document.querySelectorAll('.age-option');
-    let selectedAge = null;
 
     function handleSelection(age) {
-        selectedAge = age;
-        
-        // Remove selected and loading classes from all options
         ageOptions.forEach(option => {
             option.classList.remove('selected', 'loading');
         });
-        
-        // Add selected and loading classes to chosen option
+
         const selectedOption = document.querySelector(`[data-age="${age}"]`);
         selectedOption.classList.add('selected', 'loading');
-        
-        // Redirect after loading animation
+
         setTimeout(() => {
             window.location.href = AFFILIATE_LINK;
         }, 1500);
@@ -325,7 +334,6 @@
         });
     });
 
-    // Ensure fade-in effect works properly with a small delay
     setTimeout(() => {
         overlay.classList.add('show');
     }, 100);

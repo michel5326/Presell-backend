@@ -2,72 +2,158 @@
 <html lang="en-US">
 <head>
 <meta charset="UTF-8">
+
+<!-- Viewport otimizado -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Special Offer</title>
 
+<!-- Preconnect para fontes -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Fonte com display swap (já estava correto) -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<style>
-:root {
-  --desktop-bg-image: url('{{DESKTOP_PRINT}}');
-  --mobile-bg-image: url('{{MOBILE_PRINT}}');
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;font-family:Poppins,sans-serif}
+<!-- Preload das imagens principais (melhora LCP e percepção de velocidade) -->
+<link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+<link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
 
+<style>
+:root{
+  --desktop-bg-image:url('{{DESKTOP_PRINT}}');
+  --mobile-bg-image:url('{{MOBILE_PRINT}}');
+}
+
+/* Reset otimizado */
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* Evita reflow desnecessário */
+html,body{
+  height:100%;
+  font-family:Poppins,sans-serif;
+  overflow:hidden;
+}
+
+/* Background fixo otimizado */
 .background-container{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   background-image:var(--desktop-bg-image);
   background-size:cover;
   background-position:center;
   filter:brightness(.8);
   z-index:-1;
+  will-change:transform;
 }
+
 @media(max-width:768px){
-  .background-container{background-image:var(--mobile-bg-image)}
+  .background-container{
+    background-image:var(--mobile-bg-image);
+  }
 }
 
+/* Overlay já preparado para evitar flash */
 .overlay{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.6);
-  display:flex;justify-content:center;align-items:center;
-  opacity:0;transition:.4s
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .35s ease;
 }
-.overlay.show{opacity:1}
 
+.overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* Popup com tamanho estável (reduz CLS) */
 .popup{
-  background:#fff;border-radius:16px;
-  padding:25px;max-width:320px;width:90%;
-  text-align:center;transform:scale(.8);transition:.4s
+  background:#fff;
+  border-radius:16px;
+  padding:25px;
+  max-width:320px;
+  width:90%;
+  text-align:center;
+  transform:scale(.9);
+  transition:transform .35s ease;
+  will-change:transform;
 }
-.overlay.show .popup{transform:scale(1)}
 
+.overlay.show .popup{
+  transform:scale(1);
+}
+
+/* Pricing box */
 .pricing{
-  background:#f8f9fa;padding:20px;
-  border-radius:12px;margin:20px 0
+  background:#f8f9fa;
+  padding:20px;
+  border-radius:12px;
+  margin:20px 0;
 }
-.line{display:flex;justify-content:space-between;margin-bottom:10px}
-.old{text-decoration:line-through;color:#e74c3c}
-.new{font-size:22px;font-weight:700;color:#27ae60}
 
-.timer{display:flex;justify-content:center;gap:10px;margin:20px 0}
-.unit{background:#f8f9fa;padding:10px;border-radius:8px;min-width:60px}
-.unit span{display:block;font-weight:700}
+.line{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
 
+.old{
+  text-decoration:line-through;
+  color:#e74c3c;
+}
+
+.new{
+  font-size:22px;
+  font-weight:700;
+  color:#27ae60;
+}
+
+/* Timer */
+.timer{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:20px 0;
+}
+
+.unit{
+  background:#f8f9fa;
+  padding:10px;
+  border-radius:8px;
+  min-width:60px;
+}
+
+.unit span{
+  display:block;
+  font-weight:700;
+}
+
+/* Botão */
 button{
-  width:100%;padding:15px;border:none;
-  border-radius:50px;background:#ff5e3a;
-  color:#fff;font-size:16px;font-weight:600;
-  cursor:pointer
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:50px;
+  background:#ff5e3a;
+  color:#fff;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
+
+<!-- Background -->
 <div class="background-container"></div>
 
+<!-- Popup -->
 <div class="overlay" id="overlay">
   <div class="popup">
     <h2>{{PLAN_TITLE}}</h2>
@@ -129,7 +215,11 @@ btn.onclick=()=>{
   location.href=AFFILIATE_LINK;
 };
 
-window.onload=()=>document.getElementById('overlay').classList.add('show');
+/* Mostra popup após load completo para evitar flicker */
+window.onload=()=>{
+  document.getElementById('overlay').classList.add('show');
+};
 </script>
+
 </body>
 </html>

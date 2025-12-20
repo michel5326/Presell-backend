@@ -1,17 +1,22 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página de Afiliados</title>
+    <title>Page d’Affiliation</title>
 
+    <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Preload background images (performance / LCP) -->
+    <link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+    <link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
+
     <style>
         :root {
-            /* IMAGENS INJETADAS PELO BACKEND */
+            /* IMAGES INJECTÉES PAR LE BACKEND */
             --desktop-bg-image: url('{{DESKTOP_PRINT}}');
             --mobile-bg-image: url('{{MOBILE_PRINT}}');
         }
@@ -20,6 +25,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: manipulation;
         }
 
         html, body {
@@ -31,8 +37,11 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #121212;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Background optimized for fast paint */
         .background-container {
             position: fixed;
             inset: 0;
@@ -41,6 +50,7 @@
             background-position: center;
             filter: brightness(0.8);
             z-index: -1;
+            will-change: transform;
         }
 
         @media (max-width: 768px) {
@@ -59,6 +69,7 @@
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.6s ease-in-out;
+            contain: layout paint;
         }
 
         .overlay.show {
@@ -66,7 +77,7 @@
         }
 
         .popup {
-            background: white;
+            background: #ffffff;
             border-radius: 8px;
             padding: 24px;
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
@@ -75,7 +86,8 @@
             text-align: center;
             border: 1px solid #e0e0e0;
             transform: scale(0.7);
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+            will-change: transform;
         }
 
         .overlay.show .popup {
@@ -113,6 +125,7 @@
             align-items: center;
             gap: 8px;
             min-height: 80px;
+            contain: layout paint;
         }
 
         .country-option:hover {
@@ -169,36 +182,36 @@
 
 <div class="overlay" id="countryOverlay">
     <div class="popup">
-        <h2>Selecciona tu país</h2>
-        <p>Por favor, elige tu país para continuar</p>
+        <h2>Sélectionnez votre pays</h2>
+        <p>Veuillez choisir votre pays pour continuer</p>
 
         <div class="country-grid" id="countryGrid">
             <div class="country-option">
-                <img src="https://flagcdn.com/w320/us.png" class="country-flag">
-                <div class="country-name">Estados Unidos</div>
+                <img src="https://flagcdn.com/w320/us.png" class="country-flag" loading="lazy" decoding="async">
+                <div class="country-name">États-Unis</div>
             </div>
             <div class="country-option">
-                <img src="https://flagcdn.com/w320/au.png" class="country-flag">
-                <div class="country-name">Australia</div>
+                <img src="https://flagcdn.com/w320/au.png" class="country-flag" loading="lazy" decoding="async">
+                <div class="country-name">Australie</div>
             </div>
             <div class="country-option">
-                <img src="https://flagcdn.com/w320/gb.png" class="country-flag">
-                <div class="country-name">Reino Unido</div>
+                <img src="https://flagcdn.com/w320/gb.png" class="country-flag" loading="lazy" decoding="async">
+                <div class="country-name">Royaume-Uni</div>
             </div>
             <div class="country-option">
-                <img src="https://flagcdn.com/w320/ca.png" class="country-flag">
-                <div class="country-name">Canadá</div>
+                <img src="https://flagcdn.com/w320/ca.png" class="country-flag" loading="lazy" decoding="async">
+                <div class="country-name">Canada</div>
             </div>
         </div>
 
         <div class="country-loading" id="countryLoading">
             <div class="loading-spinner"></div>
-            <span>Verificando...</span>
+            <span>Vérification...</span>
         </div>
     </div>
 </div>
 
-<script>
+<script defer>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
     const overlay = document.getElementById('countryOverlay');
@@ -218,6 +231,7 @@
         opt.addEventListener('click', () => {
             options.forEach(o => o.classList.remove('selected'));
             opt.classList.add('selected');
+
             setTimeout(() => {
                 grid.style.display = 'none';
                 loading.style.display = 'flex';

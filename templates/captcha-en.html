@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Affiliate Page</title>
 
+    <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Preload background images (performance / LCP) -->
+    <link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+    <link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
 
     <style>
         :root {
@@ -20,6 +27,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: manipulation;
         }
 
         html, body {
@@ -31,16 +39,21 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #121212;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Background optimized for fast paint */
         .background-container {
             position: fixed;
             inset: 0;
+            background-color: #000;
             background-image: var(--desktop-bg-image);
             background-size: cover;
             background-position: center;
             filter: brightness(0.8);
             z-index: -1;
+            will-change: transform;
         }
 
         @media (max-width: 768px) {
@@ -59,6 +72,7 @@
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.6s ease-in-out;
+            contain: layout paint;
         }
 
         .overlay.show {
@@ -66,7 +80,7 @@
         }
 
         .popup {
-            background: white;
+            background: #ffffff;
             border-radius: 8px;
             padding: 24px;
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
@@ -75,7 +89,8 @@
             text-align: center;
             border: 1px solid #e0e0e0;
             transform: scale(0.7);
-            transition: all 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+            transition: transform 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+            will-change: transform;
         }
 
         .overlay.show .popup {
@@ -103,6 +118,7 @@
             align-items: stretch;
             cursor: pointer;
             min-height: 68px;
+            contain: layout paint;
         }
 
         .captcha-main {
@@ -133,7 +149,7 @@
             position: absolute;
             top: 2px;
             left: 5px;
-            color: white;
+            color: #ffffff;
             font-size: 16px;
             font-weight: bold;
         }
@@ -190,7 +206,7 @@
     </div>
 </div>
 
-<script>
+<script defer>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
     const overlay = document.getElementById('captchaOverlay');
