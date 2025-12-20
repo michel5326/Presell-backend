@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página de Afiliados</title>
+    <title>Affiliate Page</title>
 
     <!-- Preconnect fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Preload background images (performance / LCP) -->
+    <!-- Preload background images -->
     <link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
     <link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
 
     <style>
         :root {
-            /* IMÁGENES INYECTADAS POR EL BACKEND */
+            /* IMAGES INJECTED BY BACKEND */
             --desktop-bg-image: url('{{DESKTOP_PRINT}}');
             --mobile-bg-image: url('{{MOBILE_PRINT}}');
         }
@@ -41,7 +41,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Background container */
+        /* Background */
         .background-container {
             position: fixed;
             inset: 0;
@@ -183,40 +183,41 @@
 
 <div class="overlay" id="countryOverlay">
     <div class="popup">
-        <h2>Selecciona tu país</h2>
-        <p>Por favor, elige tu país para continuar</p>
+        <h2>Select your country</h2>
+        <p>Please choose your country to continue</p>
 
         <div class="country-grid" id="countryGrid">
-            <div class="country-option">
-                <img src="https://flagcdn.com/w320/es.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">España</div>
-            </div>
+            <!-- USA FIRST -->
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/us.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">Estados Unidos</div>
+                <div class="country-name">United States</div>
             </div>
+
+            <div class="country-option">
+                <img src="https://flagcdn.com/w320/gb.png" class="country-flag" loading="lazy" decoding="async">
+                <div class="country-name">United Kingdom</div>
+            </div>
+
             <div class="country-option">
                 <img src="https://flagcdn.com/w320/au.png" class="country-flag" loading="lazy" decoding="async">
                 <div class="country-name">Australia</div>
             </div>
+
             <div class="country-option">
-                <img src="https://flagcdn.com/w320/gb.png" class="country-flag" loading="lazy" decoding="async">
-                <div class="country-name">Reino Unido</div>
+                <img src="https://flagcdn.com/w320/ca.png" class="country-flag" loading="lazy" decoding="async">
+                <div class="country-name">Canada</div>
             </div>
         </div>
 
         <div class="country-loading" id="countryLoading">
             <div class="loading-spinner"></div>
-            <span>Verificando...</span>
+            <span>Verifying...</span>
         </div>
     </div>
 </div>
 
 <script defer>
-    /* ===== BACKGROUND FAILSAFE (CRITICAL FIX) =====
-       If backend fails to inject CSS url() properly, we still set background via JS.
-       Placeholders are kept intact.
-    */
+    /* ===== BACKGROUND FAILSAFE ===== */
     const DESKTOP_BG = "{{DESKTOP_PRINT}}";
     const MOBILE_BG  = "{{MOBILE_PRINT}}";
 
@@ -226,7 +227,6 @@
         const isMobile = window.innerWidth <= 768;
         const url = isMobile ? MOBILE_BG : DESKTOP_BG;
 
-        // Only apply if placeholder was replaced (avoid url('{{DESKTOP_PRINT}}'))
         if (url && !url.includes("{{")) {
             bg.style.backgroundImage = `url('${url}')`;
         }
@@ -235,7 +235,7 @@
     applyBackground();
     window.addEventListener('resize', applyBackground);
 
-    /* ===== ORIGINAL LOGIC (UNCHANGED) ===== */
+    /* ===== ORIGINAL LOGIC ===== */
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
     const overlay = document.getElementById('countryOverlay');
