@@ -2,22 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-
-<!-- Viewport -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oferta Especial - Tempo Limitado</title>
 
-<title>Oferta Especial</title>
-
-<!-- Preconnect fontes -->
+<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<!-- Fonte -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- Preload imagens principais (LCP) -->
-<link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
-<link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
 
 <style>
 :root{
@@ -29,11 +20,11 @@
 
 html,body{
   height:100%;
+  width:100%;
   overflow:hidden;
   font-family:Poppins,sans-serif;
 }
 
-/* Background */
 .background-container{
   position:fixed;
   inset:0;
@@ -42,7 +33,6 @@ html,body{
   background-position:center;
   filter:brightness(.8);
   z-index:-1;
-  will-change:transform;
 }
 
 @media(max-width:768px){
@@ -51,7 +41,6 @@ html,body{
   }
 }
 
-/* Overlay sem flash */
 .overlay{
   position:fixed;
   inset:0;
@@ -61,7 +50,7 @@ html,body{
   align-items:center;
   opacity:0;
   pointer-events:none;
-  transition:opacity .35s ease;
+  transition:opacity .4s ease;
 }
 
 .overlay.show{
@@ -69,7 +58,6 @@ html,body{
   pointer-events:auto;
 }
 
-/* Popup estável (CLS) */
 .popup{
   background:#fff;
   border-radius:16px;
@@ -78,19 +66,17 @@ html,body{
   width:90%;
   text-align:center;
   transform:scale(.9);
-  transition:transform .35s ease;
-  will-change:transform;
+  transition:transform .4s ease;
 }
 
 .overlay.show .popup{
   transform:scale(1);
 }
 
-/* Pricing */
 .pricing{
   background:#f8f9fa;
-  padding:20px;
   border-radius:12px;
+  padding:20px;
   margin:20px 0;
 }
 
@@ -111,7 +97,6 @@ html,body{
   color:#27ae60;
 }
 
-/* Timer */
 .timer{
   display:flex;
   justify-content:center;
@@ -131,7 +116,6 @@ html,body{
   font-weight:700;
 }
 
-/* Botão */
 button{
   width:100%;
   padding:15px;
@@ -157,15 +141,15 @@ button{
     <div class="pricing">
       <div class="line">
         <span>Original:</span>
-        <span class="old">$<span id="anchor"></span></span>
+        <span class="old">R$ <span id="anchor">0</span></span>
       </div>
       <div class="line">
         <span>Seu preço:</span>
-        <span class="new">$<span id="price"></span></span>
+        <span class="new">R$ <span id="price">0</span></span>
       </div>
       <div class="line">
         <span>Por unidade:</span>
-        <span>$<span id="unit"></span></span>
+        <span>R$ <span id="unit">0.00</span></span>
       </div>
     </div>
 
@@ -174,46 +158,67 @@ button{
       <div class="unit"><span id="s">00</span>Seg</div>
     </div>
 
-    <button id="cta">Obter Desconto</button>
+    <button id="cta">Obter desconto</button>
   </div>
 </div>
 
 <script>
+/* ===== SAFE VALUES FROM BACKEND ===== */
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-const ANCHOR_PRICE = {{ANCHOR_PRICE}};
-const YOUR_PRICE = {{YOUR_PRICE}};
-let time = {{OFFER_MINUTES}} * 60;
-let clicked = false;
 
-document.getElementById('anchor').textContent = ANCHOR_PRICE;
-document.getElementById('price').textContent = YOUR_PRICE;
-document.getElementById('unit').textContent = (YOUR_PRICE / 6).toFixed(2);
+const ANCHOR_PRICE  = Number({{ANCHOR_PRICE}}) || 0;
+const YOUR_PRICE    = Number({{YOUR_PRICE}}) || 0;
+const OFFER_MINUTES = Number({{OFFER_MINUTES}}) || 5;
 
+/* ===== ELEMENTS ===== */
+const overlay = document.getElementById('overlay');
+const anchorEl = document.getElementById('anchor');
+const priceEl  = document.getElementById('price');
+const unitEl   = document.getElementById('unit');
 const m = document.getElementById('m');
 const s = document.getElementById('s');
 const btn = document.getElementById('cta');
 
-setInterval(()=>{
-  if(time<=0){
-    btn.textContent='Expirado';
-    btn.style.opacity=.5;
-    btn.onclick=null;
-    return;
-  }
-  m.textContent=String(Math.floor(time/60)).padStart(2,'0');
-  s.textContent=String(time%60).padStart(2,'0');
-  time--;
-},1000);
+/* ===== STATE ===== */
+let time = OFFER_MINUTES * 60;
+let clicked = false;
+let timerInterval = null;
 
-btn.onclick=()=>{
+/* ===== SHOW POPUP FIRST ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  overlay.classList.add('show');
+});
+
+/* ===== INIT VALUES ===== */
+anchorEl.textContent = ANCHOR_PRICE;
+priceEl.textContent  = YOUR_PRICE;
+unitEl.textContent   = YOUR_PRICE ? (YOUR_PRICE / 6).toFixed(2) : '0.00';
+
+/* ===== TIMER ===== */
+function startTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+    if(time <= 0){
+      btn.textContent = 'Expirado';
+      btn.style.opacity = 0.5;
+      btn.onclick = null;
+      clearInterval(timerInterval);
+      return;
+    }
+    m.textContent = String(Math.floor(time / 60)).padStart(2,'0');
+    s.textContent = String(time % 60).padStart(2,'0');
+    time--;
+  },1000);
+}
+
+startTimer();
+
+/* ===== CTA ===== */
+btn.onclick = () => {
   if(clicked) return;
-  clicked=true;
-  location.href=AFFILIATE_LINK;
-};
-
-/* Exibe após load completo (sem flicker) */
-window.onload=()=>{
-  document.getElementById('overlay').classList.add('show');
+  clicked = true;
+  window.location.href = AFFILIATE_LINK;
 };
 </script>
 
