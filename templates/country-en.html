@@ -41,7 +41,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Background optimized for fast paint */
+        /* Background container */
         .background-container {
             position: fixed;
             inset: 0;
@@ -178,7 +178,8 @@
 </head>
 <body>
 
-<div class="background-container"></div>
+<!-- Background -->
+<div class="background-container" id="bg"></div>
 
 <div class="overlay" id="countryOverlay">
     <div class="popup">
@@ -212,6 +213,29 @@
 </div>
 
 <script defer>
+    /* ===== BACKGROUND FAILSAFE (CRITICAL FIX) =====
+       If backend fails to inject CSS url() properly, we still set background via JS.
+       Placeholders are kept intact.
+    */
+    const DESKTOP_BG = "{{DESKTOP_PRINT}}";
+    const MOBILE_BG  = "{{MOBILE_PRINT}}";
+
+    const bg = document.getElementById('bg');
+
+    function applyBackground() {
+        const isMobile = window.innerWidth <= 768;
+        const url = isMobile ? MOBILE_BG : DESKTOP_BG;
+
+        // Only apply if placeholder was replaced (avoid url('{{DESKTOP_PRINT}}'))
+        if (url && !url.includes("{{")) {
+            bg.style.backgroundImage = `url('${url}')`;
+        }
+    }
+
+    applyBackground();
+    window.addEventListener('resize', applyBackground);
+
+    /* ===== ORIGINAL LOGIC (UNCHANGED) ===== */
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
     const overlay = document.getElementById('countryOverlay');
