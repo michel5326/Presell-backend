@@ -5,7 +5,7 @@ const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
 const { v4: uuid } = require("uuid");
-const { createClient } = require("@supabase/supabase-js"); // 👈 NOVO
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 
@@ -19,7 +19,11 @@ app.use(
       "https://clickpage.lovable.app",
     ],
     methods: ["POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "x-worker-token"],
+    allowedHeaders: [
+      "Content-Type",
+      "x-worker-token",
+      "x-admin-token", // 👈 ADICIONADO
+    ],
   })
 );
 
@@ -28,7 +32,7 @@ app.use(express.json());
 const WORKER_TOKEN = process.env.WORKER_TOKEN;
 
 // ======================================================
-// SUPABASE ADMIN (NOVO)
+// SUPABASE ADMIN
 // ======================================================
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
@@ -67,20 +71,28 @@ function findTemplate(templateId) {
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
 
-  await s3.putObject({
-    Bucket: BUCKET,
-    Key: remoteKey,
-    Body: buffer,
-    ContentType: "image/png",
-  }).promise();
+  await s3
+    .putObject({
+      Bucket: BUCKET,
+      Key: remoteKey,
+      Body: buffer,
+      ContentType: "image/png",
+    })
+    .promise();
 
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
 
 // ======================================================
-// 🔐 ADMIN TEST ROUTE — CREATE USER (NOVO)
+// 🔐 ADMIN TEST ROUTE — CREATE USER (PROTEGIDA)
 // ======================================================
 app.post("/admin/create-user", async (req, res) => {
+  const adminToken = req.headers["x-admin-token"];
+
+  if (!adminToken || adminToken !== process.env.ADMIN_TOKEN) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   const { email } = req.body;
 
   if (!email) {
