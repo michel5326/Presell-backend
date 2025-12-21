@@ -22,7 +22,7 @@ app.use(
     allowedHeaders: [
       "Content-Type",
       "x-worker-token",
-      "x-admin-token", // 👈 ADICIONADO
+      "x-user-email", // 👈 ADICIONADO
     ],
   })
 );
