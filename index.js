@@ -285,6 +285,43 @@ app.post("/webhooks/kiwify", async (req, res) => {
     }
 
     console.log(`✅ Usuário criado e email enviado: ${email}`);
+    // 5. Calcular acesso por 6 meses
+const accessUntil = new Date();
+accessUntil.setMonth(accessUntil.getMonth() + 6);
+
+// 6. Buscar usuário criado para obter o ID
+const { data: usersData, error: listError } =
+  await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+
+if (listError) {
+  console.log("❌ Erro ao listar usuários:", listError.message);
+  return res.status(500).json({ error: "failed to list users" });
+}
+
+const createdUser = usersData.users.find(
+  (user) => user.email === email
+);
+
+if (!createdUser) {
+  console.log("❌ Usuário criado não encontrado:", email);
+  return res.status(500).json({ error: "user not found after creation" });
+}
+
+// 7. Salvar acesso na tabela user_access
+const { error: accessError } = await supabaseAdmin
+  .from("user_access")
+  .insert({
+    user_id: createdUser.id,
+    email,
+    access_until: accessUntil.toISOString(),
+  });
+
+if (accessError) {
+  console.log("❌ Erro ao salvar acesso:", accessError.message);
+} else {
+  console.log(`🕒 Acesso liberado até ${accessUntil.toISOString()}`);
+}
+
 
     return res.status(200).json({ created: true });
   } catch (err) {
