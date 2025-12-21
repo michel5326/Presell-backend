@@ -8,6 +8,7 @@
     "postinstall": "npx playwright install --with-deps"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
     "aws-sdk": "^2.1693.0",
     "cors": "^2.8.5",
     "express": "^5.2.1",
