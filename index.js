@@ -223,6 +223,13 @@ app.post("/generate", async (req, res) => {
 
 // ======================================================
 const PORT = process.env.PORT || 3000;
+// ======================================================
+// STRIPE WEBHOOK (PLACEHOLDER — AINDA NÃO ATIVO)
+// ======================================================
+app.post("/webhooks/stripe", (req, res) => {
+  return res.status(200).json({ received: true });
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 WORKER rodando na porta ${PORT}`);
 });
