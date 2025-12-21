@@ -230,7 +230,7 @@ app.post("/webhooks/stripe", (req, res) => {
   return res.status(200).json({ received: true });
 });
 // ======================================================
-// KIWIFY WEBHOOK — CREATE USER IF NOT EXISTS
+// KIWIFY WEBHOOK — CREATE USER IF NOT EXISTS (FIXED)
 // ======================================================
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
@@ -253,11 +253,21 @@ app.post("/webhooks/kiwify", async (req, res) => {
       return res.status(200).json({ error: "email not found" });
     }
 
-    // 3. Verificar se usuário já existe no Supabase
-    const { data: existingUser } =
-      await supabaseAdmin.auth.admin.getUserByEmail(email);
+    // 3. Listar usuários e verificar se já existe
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      perPage: 1000,
+    });
 
-    if (existingUser?.user) {
+    if (error) {
+      console.log("❌ Erro ao listar usuários:", error.message);
+      return res.status(500).json({ error: "failed to list users" });
+    }
+
+    const userExists = data.users.some(
+      (user) => user.email === email
+    );
+
+    if (userExists) {
       console.log(`ℹ️ Usuário já existe: ${email}`);
       return res.status(200).json({ already_exists: true });
     }
@@ -282,6 +292,7 @@ app.post("/webhooks/kiwify", async (req, res) => {
     return res.status(500).json({ error: "internal error" });
   }
 });
+
 
 
 
