@@ -230,14 +230,59 @@ app.post("/webhooks/stripe", (req, res) => {
   return res.status(200).json({ received: true });
 });
 // ======================================================
-// KIWIFY WEBHOOK (PLACEHOLDER — AINDA NÃO ATIVO)
+// KIWIFY WEBHOOK — CREATE USER IF NOT EXISTS
 // ======================================================
-app.post("/webhooks/kiwify", (req, res) => {
-  console.log("📩 Webhook Kiwify recebido");
-  console.log(req.body);
+app.post("/webhooks/kiwify", async (req, res) => {
+  try {
+    const eventType = req.body?.webhook_event_type;
+    const orderStatus = req.body?.order_status;
 
-  return res.status(200).json({ received: true });
+    // 1. Só processa venda aprovada
+    if (eventType !== "order_approved" || orderStatus !== "paid") {
+      return res.status(200).json({ ignored: true });
+    }
+
+    // 2. Extrair email do cliente
+    const email =
+      req.body?.Customer?.email ||
+      req.body?.customer?.email ||
+      null;
+
+    if (!email) {
+      console.log("❌ Webhook Kiwify sem email");
+      return res.status(200).json({ error: "email not found" });
+    }
+
+    // 3. Verificar se usuário já existe no Supabase
+    const { data: existingUser } =
+      await supabaseAdmin.auth.admin.getUserByEmail(email);
+
+    if (existingUser?.user) {
+      console.log(`ℹ️ Usuário já existe: ${email}`);
+      return res.status(200).json({ already_exists: true });
+    }
+
+    // 4. Criar usuário SEM senha
+    const { error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+      });
+
+    if (createError) {
+      console.log("❌ Erro ao criar usuário:", createError.message);
+      return res.status(500).json({ error: "failed to create user" });
+    }
+
+    console.log(`✅ Usuário criado e email enviado: ${email}`);
+
+    return res.status(200).json({ created: true });
+  } catch (err) {
+    console.log("❌ Erro no webhook Kiwify:", err.message);
+    return res.status(500).json({ error: "internal error" });
+  }
 });
+
 
 
 
