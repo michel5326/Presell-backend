@@ -126,6 +126,31 @@ app.post("/generate", async (req, res) => {
   if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
     return res.status(403).json({ error: "forbidden" });
   }
+    // 🔒 Access control by email
+  const userEmail = req.headers["x-user-email"];
+
+  if (!userEmail) {
+    return res.status(401).json({ error: "user email missing" });
+  }
+
+  const { data: accessData, error: accessError } =
+    await supabaseAdmin
+      .from("user_access")
+      .select("access_until")
+      .eq("email", userEmail)
+      .single();
+
+  if (accessError || !accessData) {
+    return res.status(403).json({ error: "access not found" });
+  }
+
+  const now = new Date();
+  const accessUntil = new Date(accessData.access_until);
+
+  if (accessUntil < now) {
+    return res.status(403).json({ error: "access expired" });
+  }
+
 
   const {
     templateId,
