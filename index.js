@@ -230,12 +230,15 @@ app.post("/webhooks/stripe", (req, res) => {
   return res.status(200).json({ received: true });
 });
 // ======================================================
-// MERCADO PAGO WEBHOOK (PLACEHOLDER — AINDA NÃO ATIVO)
+// KIWIFY WEBHOOK (PLACEHOLDER — AINDA NÃO ATIVO)
 // ======================================================
-app.post("/webhooks/mercadopago", (req, res) => {
-  console.log("📩 Webhook Mercado Pago recebido");
+app.post("/webhooks/kiwify", (req, res) => {
+  console.log("📩 Webhook Kiwify recebido");
+  console.log(req.body);
+
   return res.status(200).json({ received: true });
 });
+
 
 
 app.listen(PORT, () => {
