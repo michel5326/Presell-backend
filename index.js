@@ -5,6 +5,7 @@ const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
 const { v4: uuid } = require("uuid");
+const { createClient } = require("@supabase/supabase-js"); // 👈 NOVO
 
 const app = express();
 
@@ -25,6 +26,14 @@ app.use(
 app.use(express.json());
 
 const WORKER_TOKEN = process.env.WORKER_TOKEN;
+
+// ======================================================
+// SUPABASE ADMIN (NOVO)
+// ======================================================
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 // ======================================================
 // CLOUDFLARE R2
@@ -58,20 +67,48 @@ function findTemplate(templateId) {
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
 
-  await s3
-    .putObject({
-      Bucket: BUCKET,
-      Key: remoteKey,
-      Body: buffer,
-      ContentType: "image/png",
-    })
-    .promise();
+  await s3.putObject({
+    Bucket: BUCKET,
+    Key: remoteKey,
+    Body: buffer,
+    ContentType: "image/png",
+  }).promise();
 
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
 
 // ======================================================
-// ROUTE
+// 🔐 ADMIN TEST ROUTE — CREATE USER (NOVO)
+// ======================================================
+app.post("/admin/create-user", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "email required" });
+  }
+
+  // senha simples só para teste
+  const password = Math.random().toString(36).slice(-10) + "A1!";
+
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.status(200).json({
+    success: true,
+    email,
+    password, // ⚠️ só para teste agora
+  });
+});
+
+// ======================================================
+// CLICKPAGE GENERATE ROUTE (INALTERADO)
 // ======================================================
 app.post("/generate", async (req, res) => {
   if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
@@ -107,7 +144,6 @@ app.post("/generate", async (req, res) => {
   try {
     browser = await chromium.launch({ headless: true });
 
-    // DESKTOP
     const page = await browser.newPage({
       viewport: { width: 1366, height: 768 },
     });
@@ -117,7 +153,6 @@ app.post("/generate", async (req, res) => {
     await page.screenshot({ path: desktopFile, fullPage: false });
     await page.close();
 
-    // MOBILE
     const iphone = devices["iPhone 12"];
     const pageMobile = await browser.newPage({ ...iphone });
 
@@ -126,29 +161,19 @@ app.post("/generate", async (req, res) => {
     await pageMobile.screenshot({ path: mobileFile, fullPage: false });
     await pageMobile.close();
 
-    // UPLOAD R2
-    const desktopUrl = await uploadToR2(
-      desktopFile,
-      `desktop/${desktopFile}`
-    );
-    const mobileUrl = await uploadToR2(
-      mobileFile,
-      `mobile/${mobileFile}`
-    );
+    const desktopUrl = await uploadToR2(desktopFile, `desktop/${desktopFile}`);
+    const mobileUrl = await uploadToR2(mobileFile, `mobile/${mobileFile}`);
 
     safeUnlink(desktopFile);
     safeUnlink(mobileFile);
 
-    // TEMPLATE
     let html = fs.readFileSync(templatePath, "utf8");
 
-    // core replacements
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    // TEXT placeholders (strings)
     if (texts && typeof texts === "object") {
       for (const [key, value] of Object.entries(texts)) {
         if (typeof value === "string") {
@@ -157,7 +182,6 @@ app.post("/generate", async (req, res) => {
       }
     }
 
-    // NUMBER placeholders (raw numbers)
     if (numbers && typeof numbers === "object") {
       for (const [key, value] of Object.entries(numbers)) {
         if (typeof value === "number") {
@@ -166,7 +190,6 @@ app.post("/generate", async (req, res) => {
       }
     }
 
-    // tracking
     if (trackingScript && typeof trackingScript === "string") {
       html = html.replace("</body>", `${trackingScript}\n</body>`);
     }
