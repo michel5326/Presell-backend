@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>{{PAGE_TITLE}}</title>
+  <meta name="description" content="{{META_DESCRIPTION}}" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1a30;
+      --text:#eaf2ff;
+      --muted:rgba(234,242,255,.72);
+      --line:rgba(255,255,255,.10);
+      --accent:#2563eb;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --shadow:0 14px 36px rgba(0,0,0,.35);
+      --radius:18px;
+      --max:1080px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background: radial-gradient(1200px 700px at 20% 0%, rgba(37,99,235,.25), transparent 55%),
+                  radial-gradient(1100px 600px at 85% 10%, rgba(34,197,94,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.55;
+    }
+    a{color:inherit;text-decoration:none}
+
+    .wrap{max-width:var(--max);margin:0 auto;padding:18px}
+
+    /* Top bar */
+    .topbar{
+      position:sticky;top:0;z-index:20;
+      background:rgba(11,18,32,.75);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .topbar .inner{
+      max-width:var(--max);
+      margin:0 auto;
+      padding:12px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .brand-dot{
+      width:10px;height:10px;border-radius:999px;
+      background:var(--accent);
+    }
+    .pill{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      font-size:12px;
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+
+    .cta{
+      padding:12px 16px;
+      border-radius:14px;
+      background:var(--accent);
+      color:#fff;
+      font-weight:800;
+      box-shadow:0 12px 24px rgba(37,99,235,.25);
+      white-space:nowrap;
+    }
+
+    /* Hero */
+    .hero{padding:26px 0 14px}
+    .grid{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:18px;
+    }
+    @media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+    .card{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .pad{padding:18px}
+
+    h1{
+      font-size:clamp(28px,3.2vw,44px);
+      line-height:1.15;
+      margin:0 0 10px;
+      font-weight:900;
+    }
+    .lead{
+      color:var(--muted);
+      margin:0 0 14px;
+      font-size:15.5px;
+    }
+
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+    .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+    }
+
+    .kpis{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:14px;
+    }
+    @media(max-width:520px){.kpis{grid-template-columns:1fr}}
+    .kpi{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:16px;
+      padding:12px;
+    }
+    .kpi .big{font-weight:900;font-size:18px}
+    .kpi .small{font-size:12px;color:var(--muted)}
+
+    .hr{height:1px;background:var(--line);margin:14px 0}
+
+    h2{font-size:18px;margin:0 0 8px;font-weight:900}
+    p{margin:0 0 10px}
+    ul{margin:0;padding-left:18px;color:var(--muted)}
+    li{margin:6px 0}
+
+    .callout{
+      border:1px solid rgba(34,197,94,.25);
+      background:rgba(34,197,94,.08);
+      border-radius:16px;
+      padding:12px;
+    }
+    .warn{
+      border-color:rgba(245,158,11,.25);
+      background:rgba(245,158,11,.08);
+    }
+    .danger{
+      border-color:rgba(239,68,68,.25);
+      background:rgba(239,68,68,.08);
+    }
+
+    .imgbox{
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      background:rgba(255,255,255,.02);
+    }
+    .imgbox img{display:block;width:100%;height:auto}
+
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+    /* Footer */
+    footer{
+      padding:28px 0 40px;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    footer a{color:var(--muted);border-bottom:1px dotted rgba(255,255,255,.25)}
+  </style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="inner">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>{{SITE_BRAND}}</span>
+      <span class="pill">Updated: {{UPDATED_DATE}}</span>
+    </div>
+    <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
+      {{CTA_BUTTON_TEXT}}
+    </a>
+  </div>
+</div>
+
+<!-- HERO -->
+<main class="wrap hero">
+  <div class="grid">
+
+    <!-- LEFT -->
+    <section class="card">
+      <div class="pad">
+        <span class="pill">{{CATEGORY_TAG}}</span>
+
+        <h1>{{HEADLINE_MAIN}}</h1>
+        <p class="lead">{{SUBHEADLINE_MAIN}}</p>
+
+        <div class="badges">
+          <span class="badge">✓ {{BADGE_1}}</span>
+          <span class="badge">✓ {{BADGE_2}}</span>
+          <span class="badge">✓ {{BADGE_3}}</span>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="big">{{RATING_SCORE}} / 5</div>
+            <div class="small">Average user rating</div>
+          </div>
+          <div class="kpi">
+            <div class="big">{{GUARANTEE_DAYS}} days</div>
+            <div class="small">Money-back guarantee</div>
+          </div>
+          <div class="kpi">
+            <div class="big">{{ONE_LINE_VERDICT}}</div>
+            <div class="small">Quick summary</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>{{WHAT_IS_TITLE}}</h2>
+        <p class="lead">{{WHAT_IS_TEXT}}</p>
+
+        <div class="hr"></div>
+
+        <h2>{{HOW_IT_WORKS_TITLE}}</h2>
+        <ul>
+          <li><strong>{{HOW_STEP_1_TITLE}}:</strong> {{HOW_STEP_1_TEXT}}</li>
+          <li><strong>{{HOW_STEP_2_TITLE}}:</strong> {{HOW_STEP_2_TEXT}}</li>
+          <li><strong>{{HOW_STEP_3_TITLE}}:</strong> {{HOW_STEP_3_TEXT}}</li>
+        </ul>
+
+        <div class="hr"></div>
+
+        <h2>Pros & Cons</h2>
+        <div class="grid">
+          <div class="callout">
+            <ul>
+              <li>{{PRO_1}}</li>
+              <li>{{PRO_2}}</li>
+              <li>{{PRO_3}}</li>
+            </ul>
+          </div>
+          <div class="callout warn">
+            <ul>
+              <li>{{CON_1}}</li>
+              <li>{{CON_2}}</li>
+              <li>{{CON_3}}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>{{SCAM_ALERT_TITLE}}</h2>
+        <div class="callout warn">
+          {{SCAM_ALERT_TEXT}}
+        </div>
+
+        <div class="hr"></div>
+
+        <h2>{{GUARANTEE_TITLE}}</h2>
+        <div class="callout">
+          {{GUARANTEE_TEXT}}
+        </div>
+
+        <div class="btnrow">
+          <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
+            {{CTA_BUTTON_TEXT}}
+          </a>
+        </div>
+
+        <p class="lead" style="margin-top:10px">{{DISCLAIMER_TEXT}}</p>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="card">
+      <div class="pad">
+        <h2>{{PROOF_TITLE}}</h2>
+        <p class="lead">{{PROOF_TEXT}}</p>
+
+        <div class="imgbox">
+          <img src="{{DESKTOP_PRINT}}" alt="Desktop preview" loading="lazy">
+        </div>
+
+        <div class="imgbox" style="margin-top:12px">
+          <img src="{{MOBILE_PRINT}}" alt="Mobile preview" loading="lazy">
+        </div>
+
+        <div class="btnrow">
+          <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
+            {{CTA_BUTTON_TEXT}}
+          </a>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <footer>
+    <div class="hr"></div>
+    <div>{{FOOTER_DISCLAIMER}}</div>
+    <div style="margin-top:10px">
+      <a href="{{PRIVACY_URL}}">Privacy</a> ·
+      <a href="{{TERMS_URL}}">Terms</a> ·
+      <a href="{{CONTACT_URL}}">Contact</a>
+    </div>
+  </footer>
+</main>
+
+</body>
+</html>
