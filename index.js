@@ -2,13 +2,12 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const { chromium, devices } = require("playwright");
+const { chromium } = require("playwright");
 const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
-const { v4: uuid } = require("uuid");
 const { createClient } = require("@supabase/supabase-js");
-const OpenAI = require("openai");
+const fetch = require("node-fetch");
 
 const app = express();
 
@@ -35,13 +34,6 @@ app.use(express.json());
 const WORKER_TOKEN = process.env.WORKER_TOKEN;
 
 // ======================================================
-// OPENAI (ÚNICA INSTÂNCIA — CORRETA)
-// ======================================================
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// ======================================================
 // SUPABASE ADMIN
 // ======================================================
 const supabaseAdmin = createClient(
@@ -50,105 +42,134 @@ const supabaseAdmin = createClient(
 );
 
 // ======================================================
-// CLOUDFLARE R2
-// ======================================================
-const s3 = new AWS.S3({
-  endpoint: process.env.R2_ENDPOINT,
-  accessKeyId: process.env.R2_ACCESS_KEY,
-  secretAccessKey: process.env.R2_SECRET_KEY,
-  signatureVersion: "v4",
-  region: "auto",
-});
-
-const BUCKET = process.env.R2_BUCKET;
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL;
-
-// ======================================================
 // HELPERS
 // ======================================================
-function safeUnlink(file) {
-  try {
-    if (fs.existsSync(file)) fs.unlinkSync(file);
-  } catch {}
-}
-
 function findTemplate(templateId) {
   const file = path.join(process.cwd(), "templates", `${templateId}.html`);
   return fs.existsSync(file) ? file : null;
 }
 
-async function uploadToR2(localPath, remoteKey) {
-  const buffer = fs.readFileSync(localPath);
+// ======================================================
+// DEEPSEEK
+// ======================================================
+async function callDeepSeek(messages) {
+  const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      messages,
+      temperature: 0.3,
+    }),
+  });
 
-  await s3.putObject({
-    Bucket: BUCKET,
-    Key: remoteKey,
-    Body: buffer,
-    ContentType: "image/png",
-  }).promise();
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
 
-  return `${PUBLIC_BASE_URL}/${remoteKey}`;
+  const data = await response.json();
+  return JSON.parse(data.choices[0].message.content);
 }
 
 // ======================================================
-// PROMPTS IA
+// IMAGE SCRAPING (HTML → IMAGES)
+// ======================================================
+async function scrapeImages(url) {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1200);
+
+  const result = await page.evaluate(() => {
+    const imgs = Array.from(document.images)
+      .filter(img => {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        const src = img.src || "";
+        return w >= 250 && h >= 250 && src.startsWith("http");
+      })
+      .map(img => ({
+        src: img.src,
+        context: img.closest("section,div")?.innerText?.toLowerCase() || ""
+      }));
+
+    const productImage = imgs[0]?.src || "";
+
+    const filterGroup = (keywords, limit) =>
+      imgs
+        .filter(i => keywords.some(k => i.context.includes(k)))
+        .slice(0, limit)
+        .map(i => `<img src="${i.src}" alt="">`)
+        .join("");
+
+    const wrap = html =>
+      html ? `<div class="image-grid">${html}</div>` : "";
+
+    return {
+      productImage,
+      ingredientImages: wrap(filterGroup(
+        ["ingredient", "formula", "blend"], 6
+      )),
+      bonusImages: wrap(filterGroup(
+        ["bonus", "free", "gift"], 4
+      )),
+      testimonialImages: wrap(filterGroup(
+        ["review", "testimonial", "customer"], 4
+      )),
+    };
+  });
+
+  await browser.close();
+  return result;
+}
+
+// ======================================================
+// PROMPTS
 // ======================================================
 function getPrompt(templateId) {
   if (templateId === "review") {
     return `
-You are a senior direct-response copywriter.
+Return ONLY valid JSON.
 
-Generate a JSON ONLY (no explanations, no markdown) for a HIGH-CONVERTING product REVIEW presell.
+Keys:
+HEADLINE
+SUBHEADLINE
+INTRO
+WHY_IT_WORKS
+BENEFITS_LIST
+SOCIAL_PROOF
+GUARANTEE
 
-Goals:
-- Maximize CTR
-- Confirm buying decision
-- Be compliant and Google-safe
-
-Return exactly:
-
-{
-  "texts": {
-    "HEADLINE": "",
-    "SUBHEADLINE": "",
-    "INTRO": "",
-    "WHY_IT_WORKS": "",
-    "BENEFITS_LIST": "",
-    "SOCIAL_PROOF": "",
-    "GUARANTEE": "",
-    "FINAL_CTA": ""
-  }
-}
+Rules:
+- Neutral BOFU tone
+- Google Ads safe
+- BENEFITS_LIST must be <li> items only
 `;
   }
 
   if (templateId === "robusta") {
     return `
-You are a senior conversion copywriter.
+Return ONLY valid JSON.
 
-Generate a JSON ONLY (no explanations, no markdown) for a LONG-FORM ROBUST presell.
-
-Goals:
-- Remove objections
-- Build trust
-- Maximize conversion
-
-Return exactly:
-
-{
-  "texts": {
-    "HEADLINE": "",
-    "SUBHEADLINE": "",
-    "PROBLEM": "",
-    "MECHANISM": "",
-    "BENEFITS": "",
-    "INGREDIENTS": "",
-    "SOCIAL_PROOF": "",
-    "SCAM_ALERT": "",
-    "GUARANTEE": "",
-    "FINAL_CTA": ""
-  }
-}
+Keys:
+HEADLINE_MAIN
+SUBHEADLINE_MAIN
+PRIMARY_PROBLEM_TEXT
+POSITIONING_STATEMENT
+WHY_DIFFERENT_1
+WHY_DIFFERENT_2
+WHY_DIFFERENT_3
+MECHANISM_STEP_1
+MECHANISM_STEP_2
+MECHANISM_STEP_3
+SOCIAL_PROOF_NOTE
+SCAM_ALERT_TEXT
+GUARANTEE_TEXT
+DISCLAIMER_TEXT
 `;
   }
 
@@ -195,52 +216,26 @@ app.post("/generate", async (req, res) => {
       return res.status(400).json({ error: "Invalid templateId" });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: prompt },
-        { role: "user", content: `Product URL: ${productUrl}` },
-      ],
-      temperature: 0.7,
-    });
+    // IA
+    const aiData = await callDeepSeek([
+      { role: "system", content: prompt },
+      { role: "user", content: `Product URL: ${productUrl}` },
+    ]);
 
-    const aiData = JSON.parse(completion.choices[0].message.content);
+    // IMAGES
+    const images = await scrapeImages(productUrl);
 
-    const id = uuid();
-    const desktopFile = `desktop-${id}.png`;
-    const mobileFile = `mobile-${id}.png`;
-
-    const browser = await chromium.launch({ headless: true });
-
-    const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
-    await page.goto(productUrl, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: desktopFile });
-    await page.close();
-
-    const iphone = devices["iPhone 12"];
-    const pageMobile = await browser.newPage({ ...iphone });
-    await pageMobile.goto(productUrl, { waitUntil: "domcontentloaded" });
-    await pageMobile.waitForTimeout(800);
-    await pageMobile.screenshot({ path: mobileFile });
-    await pageMobile.close();
-
-    await browser.close();
-
-    const desktopUrl = await uploadToR2(desktopFile, `desktop/${desktopFile}`);
-    const mobileUrl = await uploadToR2(mobileFile, `mobile/${mobileFile}`);
-
-    safeUnlink(desktopFile);
-    safeUnlink(mobileFile);
-
+    // HTML
     let html = fs.readFileSync(templatePath, "utf8");
 
     html = html
-      .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
-      .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
-      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
+      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
+      .replaceAll("{{PRODUCT_IMAGE}}", images.productImage)
+      .replaceAll("{{INGREDIENT_IMAGES}}", images.ingredientImages)
+      .replaceAll("{{BONUS_IMAGES}}", images.bonusImages)
+      .replaceAll("{{TESTIMONIAL_IMAGES}}", images.testimonialImages);
 
-    for (const [key, value] of Object.entries(aiData.texts)) {
+    for (const [key, value] of Object.entries(aiData)) {
       html = html.replaceAll(`{{${key}}}`, value);
     }
 

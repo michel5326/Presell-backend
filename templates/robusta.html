@@ -39,7 +39,6 @@
 
     .wrap{max-width:var(--max);margin:0 auto;padding:18px}
 
-    /* Top bar */
     .topbar{
       position:sticky;top:0;z-index:20;
       background:rgba(7,11,20,.75);
@@ -56,6 +55,7 @@
       gap:12px;
       flex-wrap:wrap;
     }
+
     .brand{
       display:flex;
       align-items:center;
@@ -66,6 +66,7 @@
       width:10px;height:10px;border-radius:999px;
       background:var(--accent);
     }
+
     .pill{
       padding:6px 10px;
       border-radius:999px;
@@ -75,6 +76,7 @@
       background:rgba(255,255,255,.03);
       white-space:nowrap;
     }
+
     .cta{
       padding:12px 16px;
       border-radius:14px;
@@ -85,8 +87,6 @@
       white-space:nowrap;
     }
 
-    /* Layout */
-    .hero{padding:24px 0 14px}
     .grid{
       display:grid;
       grid-template-columns:1.1fr .9fr;
@@ -108,37 +108,36 @@
       margin:0 0 10px;
       font-weight:950;
     }
-    h2{
-      font-size:18px;
-      margin:0 0 8px;
-      font-weight:900;
-    }
+    h2{font-size:18px;font-weight:900;margin-top:28px}
     p{margin:0 0 10px}
     ul{margin:0;padding-left:18px;color:var(--muted)}
     li{margin:6px 0}
 
-    .lead{
-      color:var(--muted);
-      font-size:15.5px;
-    }
+    .lead{color:var(--muted);font-size:15.5px}
 
-    .kpis{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      margin-top:14px;
-    }
-    @media(max-width:520px){.kpis{grid-template-columns:1fr}}
-    .kpi{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
+    .product-image{
+      width:100%;
+      max-width:420px;
+      margin:18px auto;
+      display:block;
       border-radius:16px;
-      padding:12px;
+      border:1px solid var(--line);
+      background:#000;
     }
-    .kpi .big{font-weight:950;font-size:18px}
-    .kpi .small{font-size:12px;color:var(--muted)}
 
-    .hr{height:1px;background:var(--line);margin:14px 0}
+    .image-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:14px;
+      margin-top:16px;
+    }
+
+    .image-grid img{
+      width:100%;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#000;
+    }
 
     .callout{
       border:1px solid rgba(37,99,235,.25);
@@ -146,31 +145,14 @@
       border-radius:16px;
       padding:12px;
     }
-    .warn{
-      border-color:rgba(245,158,11,.25);
-      background:rgba(245,158,11,.08);
-    }
-    .danger{
-      border-color:rgba(239,68,68,.25);
-      background:rgba(239,68,68,.08);
-    }
-
-    .imgbox{
-      border:1px solid var(--line);
-      border-radius:16px;
-      overflow:hidden;
-      background:rgba(255,255,255,.02);
-    }
-    .imgbox img{display:block;width:100%;height:auto}
-
-    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .warn{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.08)}
+    .danger{border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.08)}
 
     footer{
       padding:28px 0 40px;
       color:var(--muted);
       font-size:12.5px;
     }
-    footer a{color:var(--muted);border-bottom:1px dotted rgba(255,255,255,.25)}
   </style>
 </head>
 
@@ -190,54 +172,31 @@
   </div>
 </div>
 
-<!-- HERO -->
-<main class="wrap hero">
+<main class="wrap">
   <div class="grid">
 
-    <!-- LEFT: CORE DECISION CONTENT -->
+    <!-- LEFT -->
     <section class="card">
       <div class="pad">
+
         <span class="pill">{{DECISION_STAGE_LINE}}</span>
 
         <h1>{{HEADLINE_MAIN}}</h1>
         <p class="lead">{{SUBHEADLINE_MAIN}}</p>
 
-        <div class="kpis">
-          <div class="kpi">
-            <div class="big">{{RATING_SCORE}} / 5</div>
-            <div class="small">Average user rating</div>
-          </div>
-          <div class="kpi">
-            <div class="big">{{GUARANTEE_DAYS}} days</div>
-            <div class="small">Money-back policy</div>
-          </div>
-          <div class="kpi">
-            <div class="big">Official site</div>
-            <div class="small">Avoid counterfeits</div>
-          </div>
-        </div>
+        <!-- PRODUCT IMAGE -->
+        <img src="{{PRODUCT_IMAGE}}" class="product-image" alt="Product image">
 
         <div class="hr"></div>
 
-        <!-- PROBLEM / POSITIONING -->
         <h2>{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p class="lead">
-          {{PRIMARY_PROBLEM_TEXT}}
-        </p>
+        <p class="lead">{{PRIMARY_PROBLEM_TEXT}}</p>
+        <p class="lead">{{POSITIONING_STATEMENT}}</p>
 
-        <p class="lead">
-          {{POSITIONING_STATEMENT}}
-        </p>
+        <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
+          {{CTA_BUTTON_TEXT}}
+        </a>
 
-        <div class="btnrow">
-          <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
-            {{CTA_BUTTON_TEXT}}
-          </a>
-        </div>
-
-        <div class="hr"></div>
-
-        <!-- WHY DIFFERENT -->
         <h2>{{WHY_DIFFERENT_TITLE}}</h2>
         <ul>
           <li>{{WHY_DIFFERENT_1}}</li>
@@ -245,9 +204,6 @@
           <li>{{WHY_DIFFERENT_3}}</li>
         </ul>
 
-        <div class="hr"></div>
-
-        <!-- MECHANISM -->
         <h2>{{MECHANISM_TITLE}}</h2>
         <ul>
           <li>{{MECHANISM_STEP_1}}</li>
@@ -255,22 +211,9 @@
           <li>{{MECHANISM_STEP_3}}</li>
         </ul>
 
-        <div class="hr"></div>
+        <!-- INGREDIENT IMAGES -->
+        {{INGREDIENT_IMAGES}}
 
-        <!-- INGREDIENTS -->
-        <h2>{{INGREDIENTS_TITLE}}</h2>
-        <div class="callout">
-          <ul>
-            <li><strong>{{INGREDIENT_1}}</strong> — {{INGREDIENT_1_ROLE}}</li>
-            <li><strong>{{INGREDIENT_2}}</strong> — {{INGREDIENT_2_ROLE}}</li>
-            <li><strong>{{INGREDIENT_3}}</strong> — {{INGREDIENT_3_ROLE}}</li>
-            <li><strong>{{INGREDIENT_4}}</strong> — {{INGREDIENT_4_ROLE}}</li>
-          </ul>
-        </div>
-
-        <div class="hr"></div>
-
-        <!-- WHO IT'S FOR -->
         <h2>{{WHO_SHOULD_USE_TITLE}}</h2>
         <ul>
           <li>{{WHO_SHOULD_1}}</li>
@@ -278,7 +221,7 @@
           <li>{{WHO_SHOULD_3}}</li>
         </ul>
 
-        <h2 style="margin-top:16px">{{WHO_SHOULD_NOT_TITLE}}</h2>
+        <h2>{{WHO_SHOULD_NOT_TITLE}}</h2>
         <div class="callout danger">
           <ul>
             <li>{{WHO_NOT_1}}</li>
@@ -287,96 +230,42 @@
           </ul>
         </div>
 
-        <div class="hr"></div>
+        <!-- TESTIMONIAL IMAGES -->
+        {{TESTIMONIAL_IMAGES}}
 
-        <!-- SOCIAL PROOF -->
-        <h2>{{SOCIAL_PROOF_TITLE}}</h2>
-        <p class="lead">{{SOCIAL_PROOF_NOTE}}</p>
-
-        <div class="hr"></div>
-
-        <!-- SAFETY -->
-        <h2>{{SAFETY_TITLE}}</h2>
-        <ul>
-          <li>{{SAFETY_1}}</li>
-          <li>{{SAFETY_2}}</li>
-          <li>{{SAFETY_3}}</li>
-        </ul>
-
-        <div class="hr"></div>
-
-        <!-- SCAM ALERT -->
         <h2>{{SCAM_ALERT_TITLE}}</h2>
-        <div class="callout warn">
-          {{SCAM_ALERT_TEXT}}
-        </div>
+        <div class="callout warn">{{SCAM_ALERT_TEXT}}</div>
 
-        <div class="hr"></div>
-
-        <!-- GUARANTEE -->
         <h2>{{GUARANTEE_TITLE}}</h2>
-        <div class="callout">
-          {{GUARANTEE_TEXT}}
-        </div>
+        <div class="callout">{{GUARANTEE_TEXT}}</div>
 
-        <div class="hr"></div>
+        <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
+          {{CTA_BUTTON_TEXT}}
+        </a>
 
-        <!-- FINAL CTA -->
-        <h2>{{CTA_DECISION_TITLE}}</h2>
-        <p class="lead">{{CTA_DECISION_TEXT}}</p>
+        <p class="lead">{{DISCLAIMER_TEXT}}</p>
 
-        <div class="btnrow">
-          <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
-            {{CTA_BUTTON_TEXT}}
-          </a>
-          <span class="pill">Official ordering page</span>
-        </div>
-
-        <p class="lead" style="margin-top:10px">{{DISCLAIMER_TEXT}}</p>
       </div>
     </section>
 
-    <!-- RIGHT: VISUAL CONFIRMATION -->
+    <!-- RIGHT -->
     <aside class="card">
       <div class="pad">
-        <h2>{{PROOF_TITLE}}</h2>
-        <p class="lead">{{PROOF_TEXT}}</p>
-
-        <div class="imgbox">
-          <img src="{{DESKTOP_PRINT}}" alt="Desktop preview" loading="lazy">
-        </div>
-
-        <div class="imgbox" style="margin-top:12px">
-          <img src="{{MOBILE_PRINT}}" alt="Mobile preview" loading="lazy">
-        </div>
-
-        <div class="hr"></div>
 
         <h2>{{BONUS_TITLE}}</h2>
-        <ul>
-          <li>{{BONUS_1}}</li>
-          <li>{{BONUS_2}}</li>
-          <li>{{BONUS_3}}</li>
-        </ul>
+        {{BONUS_IMAGES}}
 
-        <div class="btnrow">
-          <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
-            {{CTA_BUTTON_TEXT}}
-          </a>
-        </div>
+        <a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
+          {{CTA_BUTTON_TEXT}}
+        </a>
+
       </div>
     </aside>
 
   </div>
 
   <footer>
-    <div class="hr"></div>
     <div>{{FOOTER_DISCLAIMER}}</div>
-    <div style="margin-top:10px">
-      <a href="{{PRIVACY_URL}}">Privacy</a> ·
-      <a href="{{TERMS_URL}}">Terms</a> ·
-      <a href="{{CONTACT_URL}}">Contact</a>
-    </div>
   </footer>
 </main>
 
