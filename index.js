@@ -226,18 +226,17 @@ app.post("/generate", async (req, res) => {
     // ======================
     // IA
     // ======================
-    const languageInstruction = `Write all output strictly in ${language}.`;
-
     const aiData = await callDeepSeek([
-      {
-        role: "system",
-        content: `${prompt}\n\n${languageInstruction}`,
-      },
-      {
-        role: "user",
-        content: `Product URL: ${productUrl}`,
-      },
-    ]);
+  {
+    role: "system",
+    content: `${prompt}\n\nWrite all output strictly in ${language}.`,
+  },
+  {
+    role: "user",
+    content: `Product URL: ${productUrl}`,
+  },
+]);
+
 
     // ======================
     // IMAGES
