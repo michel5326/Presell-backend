@@ -15,10 +15,7 @@ const app = express();
 // ======================================================
 app.use(
   cors({
-    origin: [
-      "https://clickpage.vercel.app",
-      "https://clickpage.lovable.app",
-    ],
+    origin: "*",
     methods: ["POST", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
@@ -27,6 +24,7 @@ app.use(
     ],
   })
 );
+
 
 app.use(express.json());
 
