@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
@@ -11,7 +10,7 @@ const fetch = require("node-fetch");
 const app = express();
 
 // ======================================================
-// CORS
+// CORS (ABERTO — PROTEÇÃO É TOKEN + SUPABASE)
 // ======================================================
 app.use(
   cors({
@@ -24,7 +23,6 @@ app.use(
     ],
   })
 );
-
 
 app.use(express.json());
 
@@ -47,81 +45,48 @@ function findTemplate(templateId) {
 }
 
 // ======================================================
-// DEEPSEEK
+// DEEPSEEK (TIMEOUT + JSON SAFE)
 // ======================================================
 async function callDeepSeek(messages) {
-  const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      messages,
-      temperature: 0.3,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000); // 12s máx
 
-  if (!response.ok) {
-    throw new Error(await response.text());
+  try {
+    const response = await fetch(
+      "https://api.deepseek.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages,
+          temperature: 0.3,
+        }),
+        signal: controller.signal,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const data = await response.json();
+    const raw = data.choices[0].message.content.trim();
+
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+
+    if (start === -1 || end === -1) {
+      throw new Error("AI did not return valid JSON");
+    }
+
+    return JSON.parse(raw.slice(start, end + 1));
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await response.json();
-  return JSON.parse(data.choices[0].message.content);
-}
-
-// ======================================================
-// IMAGE SCRAPING (HTML → IMAGES)
-// ======================================================
-async function scrapeImages(url) {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
-
-  await page.goto(url, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(1200);
-
-  const result = await page.evaluate(() => {
-    const imgs = Array.from(document.images)
-      .filter(img => {
-        const w = img.naturalWidth;
-        const h = img.naturalHeight;
-        const src = img.src || "";
-        return w >= 250 && h >= 250 && src.startsWith("http");
-      })
-      .map(img => ({
-        src: img.src,
-        context: img.closest("section,div")?.innerText?.toLowerCase() || ""
-      }));
-
-    const productImage = imgs[0]?.src || "";
-
-    const filterGroup = (keywords, limit) =>
-      imgs
-        .filter(i => keywords.some(k => i.context.includes(k)))
-        .slice(0, limit)
-        .map(i => `<img src="${i.src}" alt="">`)
-        .join("");
-
-    const wrap = html =>
-      html ? `<div class="image-grid">${html}</div>` : "";
-
-    return {
-      productImage,
-      ingredientImages: wrap(
-        filterGroup(["ingredient", "formula", "blend"], 6)
-      ),
-      bonusImages: wrap(
-        filterGroup(["bonus", "free", "gift"], 4)
-      ),
-      testimonialImages: wrap(
-        filterGroup(["review", "testimonial", "customer"], 4)
-      ),
-    };
-  });
-
-  await browser.close();
-  return result;
 }
 
 // ======================================================
@@ -178,7 +143,9 @@ DISCLAIMER_TEXT
 // ======================================================
 app.post("/generate", async (req, res) => {
   try {
+    // --------------------
     // SECURITY
+    // --------------------
     if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
       return res.status(403).json({ error: "forbidden" });
     }
@@ -198,7 +165,9 @@ app.post("/generate", async (req, res) => {
       return res.status(403).json({ error: "access expired" });
     }
 
+    // --------------------
     // INPUT
+    // --------------------
     const {
       templateId,
       productUrl,
@@ -221,41 +190,39 @@ app.post("/generate", async (req, res) => {
       return res.status(400).json({ error: "Invalid templateId" });
     }
 
-    // ======================
-    // IA
-    // ======================
-    const aiData = await callDeepSeek([
-  {
-    role: "system",
-    content: `${prompt}\n\nWrite all output strictly in ${language}.`,
-  },
-  {
-    role: "user",
-    content: `Product URL: ${productUrl}`,
-  },
-]);
+    // --------------------
+    // IA (NUNCA BLOQUEIA HTML)
+    // --------------------
+    let aiData = {};
+    try {
+      aiData = await callDeepSeek([
+        {
+          role: "system",
+          content: `${prompt}\n\nWrite all output strictly in ${language}.`,
+        },
+        {
+          role: "user",
+          content: `Product URL: ${productUrl}`,
+        },
+      ]);
+    } catch (e) {
+      console.log("⚠️ AI failed, continuing without AI content");
+      aiData = {};
+    }
 
+    // --------------------
+    // IMAGES (DESATIVADO EM PRODUÇÃO)
+    // --------------------
+    const images = {
+      productImage: "",
+      ingredientImages: "",
+      bonusImages: "",
+      testimonialImages: "",
+    };
 
-    // ======================
-    // IMAGES
-    // ======================
-    let images = {
-  productImage: "",
-  ingredientImages: "",
-  bonusImages: "",
-  testimonialImages: "",
-};
-
-try {
-  images = await scrapeImages(productUrl);
-} catch (e) {
-  console.log("⚠️ Image scraping failed, continuing without images");
-}
-
-
-    // ======================
-    // HTML
-    // ======================
+    // --------------------
+    // HTML BUILD
+    // --------------------
     let html = fs.readFileSync(templatePath, "utf8");
 
     html = html
@@ -279,7 +246,8 @@ try {
       .send(html);
 
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("❌ GENERATE ERROR:", err.message);
+    return res.status(500).json({ error: "internal_error" });
   }
 });
 
