@@ -3,7 +3,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { chromium } = require("playwright");
-const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
@@ -111,15 +110,15 @@ async function scrapeImages(url) {
 
     return {
       productImage,
-      ingredientImages: wrap(filterGroup(
-        ["ingredient", "formula", "blend"], 6
-      )),
-      bonusImages: wrap(filterGroup(
-        ["bonus", "free", "gift"], 4
-      )),
-      testimonialImages: wrap(filterGroup(
-        ["review", "testimonial", "customer"], 4
-      )),
+      ingredientImages: wrap(
+        filterGroup(["ingredient", "formula", "blend"], 6)
+      ),
+      bonusImages: wrap(
+        filterGroup(["bonus", "free", "gift"], 4)
+      ),
+      testimonialImages: wrap(
+        filterGroup(["review", "testimonial", "customer"], 4)
+      ),
     };
   });
 
@@ -181,6 +180,7 @@ DISCLAIMER_TEXT
 // ======================================================
 app.post("/generate", async (req, res) => {
   try {
+    // SECURITY
     if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
       return res.status(403).json({ error: "forbidden" });
     }
@@ -200,7 +200,14 @@ app.post("/generate", async (req, res) => {
       return res.status(403).json({ error: "access expired" });
     }
 
-    const { templateId, productUrl, affiliateUrl, trackingScript } = req.body;
+    // INPUT
+    const {
+      templateId,
+      productUrl,
+      affiliateUrl,
+      trackingScript,
+      language = "en",
+    } = req.body;
 
     if (!templateId || !productUrl || !affiliateUrl) {
       return res.status(400).json({ error: "Missing fields" });
@@ -216,16 +223,30 @@ app.post("/generate", async (req, res) => {
       return res.status(400).json({ error: "Invalid templateId" });
     }
 
+    // ======================
     // IA
+    // ======================
+    const languageInstruction = `Write all output strictly in ${language}.`;
+
     const aiData = await callDeepSeek([
-      { role: "system", content: prompt },
-      { role: "user", content: `Product URL: ${productUrl}` },
+      {
+        role: "system",
+        content: `${prompt}\n\n${languageInstruction}`,
+      },
+      {
+        role: "user",
+        content: `Product URL: ${productUrl}`,
+      },
     ]);
 
+    // ======================
     // IMAGES
+    // ======================
     const images = await scrapeImages(productUrl);
 
+    // ======================
     // HTML
+    // ======================
     let html = fs.readFileSync(templatePath, "utf8");
 
     html = html
