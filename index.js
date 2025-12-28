@@ -241,7 +241,19 @@ app.post("/generate", async (req, res) => {
     // ======================
     // IMAGES
     // ======================
-    const images = await scrapeImages(productUrl);
+    let images = {
+  productImage: "",
+  ingredientImages: "",
+  bonusImages: "",
+  testimonialImages: "",
+};
+
+try {
+  images = await scrapeImages(productUrl);
+} catch (e) {
+  console.log("⚠️ Image scraping failed, continuing without images");
+}
+
 
     // ======================
     // HTML
