@@ -70,7 +70,6 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
-// 🔥 ESTAVA FALTANDO — AGORA VOLTOU
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
 
@@ -82,6 +81,35 @@ async function uploadToR2(localPath, remoteKey) {
   }).promise();
 
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
+}
+
+// ======================================================
+// IMAGE EXTRACTION (OG / TWITTER)
+// ======================================================
+async function extractMainImage(productUrl) {
+  try {
+    const res = await fetch(productUrl, { timeout: 10000 });
+    if (!res.ok) return "";
+
+    const html = await res.text();
+
+    // og:image
+    let match = html.match(
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
+    );
+    if (match && match[1]) return match[1];
+
+    // twitter:image
+    match = html.match(
+      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
+    );
+    if (match && match[1]) return match[1];
+
+    return "";
+  } catch (err) {
+    console.log("⚠️ Image extraction failed:", err.message);
+    return "";
+  }
 }
 
 // ======================================================
@@ -187,6 +215,8 @@ Be concise, clear and conversion-focused.
     language
   );
 
+  const productImage = await extractMainImage(productUrl);
+
   const data = {
     HEADLINE: aiData?.HEADLINE || SAFE,
     SUBHEADLINE: aiData?.SUBHEADLINE || SAFE,
@@ -206,7 +236,7 @@ Be concise, clear and conversion-focused.
 
   html = html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
-    .replaceAll("{{PRODUCT_IMAGE}}", "")
+    .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", "")
     .replaceAll("{{BONUS_IMAGES}}", "")
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
