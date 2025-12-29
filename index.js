@@ -105,7 +105,6 @@ async function extractMainImage(productUrl) {
     let match = html.match(
       /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
     );
-
     let imageUrl = match?.[1] || "";
 
     // ---------- 2️⃣ twitter:image ----------
@@ -116,14 +115,21 @@ async function extractMainImage(productUrl) {
       imageUrl = match?.[1] || "";
     }
 
-    // ---------- 3️⃣ fallback <img> ----------
+    // ---------- 3️⃣ smart <img> fallback ----------
     if (!imageUrl) {
       const imgMatches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
-      for (const m of imgMatches) {
-        const src = m[1];
+      const PRIORITY_WORDS = [
+        "product",
+        "prod",
+        "intro",
+        "hero",
+        "main",
+      ];
 
-        // ignora lixo comum
+      for (const m of imgMatches) {
+        const src = m[1].toLowerCase();
+
         if (
           !src ||
           src.startsWith("data:") ||
@@ -133,14 +139,21 @@ async function extractMainImage(productUrl) {
           continue;
         }
 
-        imageUrl = src;
-        break;
+        if (PRIORITY_WORDS.some(word => src.includes(word))) {
+          imageUrl = m[1];
+          break;
+        }
+      }
+
+      // fallback final: primeira imagem válida
+      if (!imageUrl && imgMatches.length > 0) {
+        imageUrl = imgMatches[0][1];
       }
     }
 
     if (!imageUrl) return "";
 
-    // ---------- normaliza URL ----------
+    // ---------- normalize URL ----------
     if (imageUrl.startsWith("//")) {
       imageUrl = baseUrl.protocol + imageUrl;
     } else if (imageUrl.startsWith("/")) {
@@ -155,6 +168,7 @@ async function extractMainImage(productUrl) {
     return "";
   }
 }
+
 
 
 
