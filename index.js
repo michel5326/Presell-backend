@@ -70,6 +70,20 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
+// 🔥 ESTAVA FALTANDO — AGORA VOLTOU
+async function uploadToR2(localPath, remoteKey) {
+  const buffer = fs.readFileSync(localPath);
+
+  await s3.putObject({
+    Bucket: BUCKET,
+    Key: remoteKey,
+    Body: buffer,
+    ContentType: "image/png",
+  }).promise();
+
+  return `${PUBLIC_BASE_URL}/${remoteKey}`;
+}
+
 // ======================================================
 // DEEPSEEK — SAFE CALL
 // ======================================================
