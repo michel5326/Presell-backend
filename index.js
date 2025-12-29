@@ -84,7 +84,7 @@ async function uploadToR2(localPath, remoteKey) {
 }
 
 // ======================================================
-// IMAGE EXTRACTION (OG / TWITTER)
+// IMAGE — MAIN PRODUCT
 // ======================================================
 async function extractMainImage(productUrl) {
   try {
@@ -93,7 +93,6 @@ async function extractMainImage(productUrl) {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
       },
-      redirect: "follow",
     });
 
     if (!res.ok) return "";
@@ -109,141 +108,143 @@ async function extractMainImage(productUrl) {
       return url;
     };
 
-    // 1️⃣ og:image
-    let match = html.match(
-      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
-    );
-    let imageUrl = normalize(match?.[1] || "");
-    if (imageUrl) return imageUrl;
+    let match = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    if (match) return normalize(match[1]);
 
-    // 2️⃣ twitter:image
-    match = html.match(
-      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
-    );
-    imageUrl = normalize(match?.[1] || "");
-    if (imageUrl) return imageUrl;
+    match = html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
+    if (match) return normalize(match[1]);
 
-    // 3️⃣ <img> com blacklist universal
-    const BLOCKED_WORDS = [
-      "logo",
-      "favicon",
-      "icon",
-      "sprite",
-      "order",
-      "order-now",
-      "buy",
-      "cta",
-      "button",
-      "checkout",
-      "cart",
-      "seal",
-      "badge",
-      "star",
+    const BLOCKED = [
+      "logo","favicon","icon","sprite","order","buy","cta","button",
+      "checkout","cart","badge","seal","star","banner","bg","hero"
     ];
 
-    const imgs = [...html.matchAll(/<img\b[^>]+src=["']([^"']+)["']/gi)];
+    const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
     for (const m of imgs) {
-      const srcRaw = m[1];
-      const src = normalize(srcRaw);
-      if (!src) continue;
-
+      const src = normalize(m[1]);
       const low = src.toLowerCase();
 
       if (
+        !src ||
         low.startsWith("data:") ||
         low.endsWith(".svg") ||
-        low.endsWith(".gif")
+        low.endsWith(".gif") ||
+        BLOCKED.some(w => low.includes(w))
       ) continue;
 
-      if (BLOCKED_WORDS.some(w => low.includes(w))) continue;
-
-      // passou por tudo → imagem candidata
       return src;
     }
 
-    // fallback final
-    if (imgs.length > 0) {
-      return normalize(imgs[0][1]);
-    }
-
     return "";
-  } catch (err) {
-    console.log("⚠️ Image extraction failed:", err.message);
+  } catch {
     return "";
   }
 }
 
+// ======================================================
+// IMAGE — INGREDIENTS (ATÉ 3)
+// ======================================================
+async function extractIngredientImages(productUrl) {
+  try {
+    const res = await fetch(productUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+      },
+    });
+
+    if (!res.ok) return "";
+
+    const html = await res.text();
+    const baseUrl = new URL(productUrl);
+
+    const normalize = (url) => {
+      if (!url) return "";
+      if (url.startsWith("//")) return baseUrl.protocol + url;
+      if (url.startsWith("/")) return baseUrl.origin + url;
+      if (!url.startsWith("http")) return baseUrl.origin + "/" + url;
+      return url;
+    };
+
+    const INCLUDE = [
+      "ingredient","ingredients","formula","blend","extract","component"
+    ];
+
+    const EXCLUDE = [
+      "logo","icon","order","buy","cta","button","checkout",
+      "banner","bg","hero","seal","badge"
+    ];
+
+    const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
+    const out = [];
+
+    for (const m of imgs) {
+      if (out.length >= 3) break;
+
+      const src = normalize(m[1]);
+      const low = src.toLowerCase();
+
+      if (
+        !src ||
+        low.startsWith("data:") ||
+        low.endsWith(".svg") ||
+        low.endsWith(".gif") ||
+        !INCLUDE.some(w => low.includes(w)) ||
+        EXCLUDE.some(w => low.includes(w))
+      ) continue;
+
+      out.push(`<img src="${src}" alt="Ingredient" loading="lazy">`);
+    }
+
+    if (!out.length) return "";
+
+    return `<div class="image-grid">\n${out.join("\n")}\n</div>`;
+  } catch {
+    return "";
+  }
+}
 
 // ======================================================
 // DEEPSEEK — SAFE CALL
 // ======================================================
-async function callDeepSeekSafe(prompt, language = "en") {
+async function callDeepSeekSafe(prompt, language) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
 
   try {
-    const response = await fetch(
-      "https://api.deepseek.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          temperature: 0.3,
-          messages: [
-            {
-              role: "system",
-              content: `
-Return ONLY valid JSON.
-
-Keys:
-HEADLINE
-SUBHEADLINE
-INTRO
-WHY_IT_WORKS
-BENEFITS_LIST
-SOCIAL_PROOF
-GUARANTEE
-FINAL_CTA
-
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        temperature: 0.3,
+        messages: [
+          {
+            role: "system",
+            content: `Return ONLY valid JSON.
+Keys: HEADLINE,SUBHEADLINE,INTRO,WHY_IT_WORKS,BENEFITS_LIST,SOCIAL_PROOF,GUARANTEE
 Rules:
 - BOFU tone
 - Google Ads safe
-- BENEFITS_LIST must be <li> items only
-- Write everything in ${language}
-`,
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        }),
-        signal: controller.signal,
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
+- BENEFITS_LIST must be <li>
+- Language: ${language}`,
+          },
+          { role: "user", content: prompt },
+        ],
+      }),
+      signal: controller.signal,
+    });
 
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
-
     const start = raw.indexOf("{");
     const end = raw.lastIndexOf("}");
-
-    if (start === -1 || end === -1) {
-      throw new Error("Invalid JSON from DeepSeek");
-    }
-
     return JSON.parse(raw.slice(start, end + 1));
-  } catch (err) {
-    console.error("❌ DeepSeek failed:", err.message);
+  } catch {
     return null;
   } finally {
     clearTimeout(timeout);
@@ -251,136 +252,78 @@ Rules:
 }
 
 // ======================================================
-// BOFU — REVIEW
+// BOFU REVIEW
 // ======================================================
-async function generateBofuReview({
-  templatePath,
-  affiliateUrl,
-  productUrl,
-  language,
-}) {
+async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
   const SAFE = " ";
 
-  const aiData = await callDeepSeekSafe(
-    `
-You are writing a BOFU product review page.
-
-Product URL:
-${productUrl}
-
-Goal:
-Confirm purchase decision and send the user to the official website.
-
-Do NOT educate.
-Do NOT exaggerate.
-Be concise, clear and conversion-focused.
-`,
+  const ai = await callDeepSeekSafe(
+    `Product URL: ${productUrl}\nGoal: Confirm purchase decision.`,
     language
   );
 
   const productImage = await extractMainImage(productUrl);
-
-  const data = {
-    HEADLINE: aiData?.HEADLINE || SAFE,
-    SUBHEADLINE: aiData?.SUBHEADLINE || SAFE,
-    INTRO: aiData?.INTRO || SAFE,
-    WHY_IT_WORKS: aiData?.WHY_IT_WORKS || SAFE,
-    BENEFITS_LIST: aiData?.BENEFITS_LIST || "<li></li>",
-    SOCIAL_PROOF: aiData?.SOCIAL_PROOF || SAFE,
-    GUARANTEE: aiData?.GUARANTEE || SAFE,
-    FINAL_CTA: aiData?.FINAL_CTA || "Visit Official Website",
-  };
+  const ingredientImages = await extractIngredientImages(productUrl);
 
   let html = fs.readFileSync(templatePath, "utf8");
 
-  for (const [key, value] of Object.entries(data)) {
-    html = html.replaceAll(`{{${key}}}`, value);
+  const data = {
+    HEADLINE: ai?.HEADLINE || SAFE,
+    SUBHEADLINE: ai?.SUBHEADLINE || SAFE,
+    INTRO: ai?.INTRO || SAFE,
+    WHY_IT_WORKS: ai?.WHY_IT_WORKS || SAFE,
+    BENEFITS_LIST: ai?.BENEFITS_LIST || "<li></li>",
+    SOCIAL_PROOF: ai?.SOCIAL_PROOF || SAFE,
+    GUARANTEE: ai?.GUARANTEE || SAFE,
+  };
+
+  for (const [k, v] of Object.entries(data)) {
+    html = html.replaceAll(`{{${k}}}`, v);
   }
 
-  html = html
+  return html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
-    .replaceAll("{{INGREDIENT_IMAGES}}", "")
+    .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", "")
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
-
-  return html;
 }
 
 // ======================================================
 // GENERATE
 // ======================================================
 app.post("/generate", async (req, res) => {
-  if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
+  if (req.headers["x-worker-token"] !== WORKER_TOKEN)
     return res.status(403).json({ error: "forbidden" });
-  }
 
   const userEmail = req.headers["x-user-email"];
-  if (!userEmail) {
+  if (!userEmail)
     return res.status(401).json({ error: "user email missing" });
-  }
 
-  const { data: accessData } = await supabaseAdmin
+  const { data: access } = await supabaseAdmin
     .from("user_access")
     .select("access_until")
     .eq("email", userEmail)
     .single();
 
-  if (!accessData || new Date(accessData.access_until) < new Date()) {
+  if (!access || new Date(access.access_until) < new Date())
     return res.status(403).json({ error: "access expired" });
-  }
 
-  const {
-    templateId,
-    productUrl,
-    affiliateUrl,
-    trackingScript,
-    texts,
-    numbers,
-    language = "en",
-  } = req.body;
-
-  if (!templateId || !affiliateUrl) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-
-  if (templateId === "review" && !productUrl) {
-    return res.status(400).json({ error: "productUrl required for BOFU review" });
-  }
-
+  const { templateId, productUrl, affiliateUrl, language = "en" } = req.body;
   const templatePath = findTemplate(templateId);
-  if (!templatePath) {
-    return res.status(404).json({ error: "Template not found" });
-  }
+  if (!templatePath) return res.status(404).json({ error: "Template not found" });
 
-  // =========================
-  // BOFU — REVIEW
-  // =========================
   if (templateId === "review") {
     const html = await generateBofuReview({
-      templatePath,
-      affiliateUrl,
-      productUrl,
-      language,
+      templatePath, affiliateUrl, productUrl, language
     });
-
-    return res
-      .status(200)
-      .set("Content-Type", "text/html; charset=utf-8")
-      .send(html);
+    return res.status(200).set("Content-Type","text/html").send(html);
   }
 
-  // =========================
-  // LEGACY
-  // =========================
-  if (!productUrl) {
-    return res.status(400).json({ error: "productUrl required for legacy" });
-  }
-
+  // ================= LEGACY =================
   const id = uuid();
   const desktopFile = `desktop-${id}.png`;
   const mobileFile = `mobile-${id}.png`;
-
   let browser;
 
   try {
@@ -405,44 +348,15 @@ app.post("/generate", async (req, res) => {
     safeUnlink(desktopFile);
     safeUnlink(mobileFile);
 
-    let html = fs.readFileSync(templatePath, "utf8");
-
-    html = html
+    let html = fs.readFileSync(templatePath, "utf8")
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    if (texts && typeof texts === "object") {
-      for (const [key, value] of Object.entries(texts)) {
-        if (typeof value === "string") {
-          html = html.replaceAll(`{{${key}}}`, value);
-        }
-      }
-    }
+    return res.status(200).set("Content-Type","text/html").send(html);
 
-    if (numbers && typeof numbers === "object") {
-      for (const [key, value] of Object.entries(numbers)) {
-        if (typeof value === "number") {
-          html = html.replaceAll(`{{${key}}}`, String(value));
-        }
-      }
-    }
-
-    if (trackingScript) {
-      html = html.replace("</body>", `${trackingScript}\n</body>`);
-    }
-
-    return res
-      .status(200)
-      .set("Content-Type", "text/html; charset=utf-8")
-      .send(html);
-
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
   } finally {
-    if (browser) {
-      try { await browser.close(); } catch {}
-    }
+    if (browser) try { await browser.close(); } catch {}
   }
 });
 
