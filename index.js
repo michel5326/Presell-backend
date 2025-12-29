@@ -88,29 +88,56 @@ async function uploadToR2(localPath, remoteKey) {
 // ======================================================
 async function extractMainImage(productUrl) {
   try {
-    const res = await fetch(productUrl, { timeout: 10000 });
+    const res = await fetch(productUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+      },
+      redirect: "follow",
+    });
+
     if (!res.ok) return "";
 
     const html = await res.text();
+
+    const baseUrl = new URL(productUrl);
 
     // og:image
     let match = html.match(
       /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
     );
-    if (match && match[1]) return match[1];
 
-    // twitter:image
-    match = html.match(
-      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
-    );
-    if (match && match[1]) return match[1];
+    let imageUrl = match?.[1] || "";
 
-    return "";
+    // twitter:image fallback
+    if (!imageUrl) {
+      match = html.match(
+        /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
+      );
+      imageUrl = match?.[1] || "";
+    }
+
+    if (!imageUrl) {
+      console.log("⚠️ No og:image found");
+      return "";
+    }
+
+    // Resolve relative URLs
+    if (imageUrl.startsWith("/")) {
+      imageUrl = baseUrl.origin + imageUrl;
+    }
+
+    if (!imageUrl.startsWith("http")) {
+      imageUrl = baseUrl.origin + "/" + imageUrl;
+    }
+
+    return imageUrl;
   } catch (err) {
     console.log("⚠️ Image extraction failed:", err.message);
     return "";
   }
 }
+
 
 // ======================================================
 // DEEPSEEK — SAFE CALL
