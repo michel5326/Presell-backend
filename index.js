@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const { chromium, devices } = require("playwright");
@@ -6,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuid } = require("uuid");
 const { createClient } = require("@supabase/supabase-js");
+const fetch = require("node-fetch");
 
 const app = express();
 
@@ -40,7 +43,7 @@ const supabaseAdmin = createClient(
 );
 
 // ======================================================
-// CLOUDFLARE R2
+// CLOUDFLARE R2 (LEGACY)
 // ======================================================
 const s3 = new AWS.S3({
   endpoint: process.env.R2_ENDPOINT,
@@ -67,34 +70,107 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
-async function uploadToR2(localPath, remoteKey) {
-  const buffer = fs.readFileSync(localPath);
+// ======================================================
+// DEEPSEEK — SAFE CALL
+// ======================================================
+async function callDeepSeekSafe(prompt, language = "en") {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
 
-  await s3.putObject({
-    Bucket: BUCKET,
-    Key: remoteKey,
-    Body: buffer,
-    ContentType: "image/png",
-  }).promise();
+  try {
+    const response = await fetch(
+      "https://api.deepseek.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          temperature: 0.3,
+          messages: [
+            {
+              role: "system",
+              content: `
+Return ONLY valid JSON.
 
-  return `${PUBLIC_BASE_URL}/${remoteKey}`;
+Keys:
+HEADLINE
+SUBHEADLINE
+INTRO
+WHY_IT_WORKS
+BENEFITS_LIST
+SOCIAL_PROOF
+GUARANTEE
+FINAL_CTA
+
+Rules:
+- BOFU tone
+- Google Ads safe
+- BENEFITS_LIST must be <li> items only
+- Write everything in ${language}
+`,
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+        }),
+        signal: controller.signal,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("DeepSeek error");
+    }
+
+    const data = await response.json();
+    const raw = data.choices[0].message.content.trim();
+
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+
+    if (start === -1 || end === -1) {
+      throw new Error("Invalid JSON");
+    }
+
+    return JSON.parse(raw.slice(start, end + 1));
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // ======================================================
-// BOFU — REVIEW (MVP, SEM IA, SEM IMAGENS)
+// BOFU — REVIEW (IA + FALLBACK)
 // ======================================================
-async function generateBofuReview({ templatePath, affiliateUrl }) {
+async function generateBofuReview({
+  templatePath,
+  affiliateUrl,
+  productUrl,
+  language,
+}) {
   const SAFE = " ";
 
+  let aiData = null;
+
+  aiData = await callDeepSeekSafe(
+    `Product URL: ${productUrl}`,
+    language
+  );
+
   const data = {
-    HEADLINE: SAFE,
-    SUBHEADLINE: SAFE,
-    INTRO: SAFE,
-    WHY_IT_WORKS: SAFE,
-    BENEFITS_LIST: "<li></li>",
-    SOCIAL_PROOF: SAFE,
-    GUARANTEE: SAFE,
-    FINAL_CTA: "Visit Official Website",
+    HEADLINE: aiData?.HEADLINE || SAFE,
+    SUBHEADLINE: aiData?.SUBHEADLINE || SAFE,
+    INTRO: aiData?.INTRO || SAFE,
+    WHY_IT_WORKS: aiData?.WHY_IT_WORKS || SAFE,
+    BENEFITS_LIST: aiData?.BENEFITS_LIST || "<li></li>",
+    SOCIAL_PROOF: aiData?.SOCIAL_PROOF || SAFE,
+    GUARANTEE: aiData?.GUARANTEE || SAFE,
+    FINAL_CTA: aiData?.FINAL_CTA || "Visit Official Website",
   };
 
   let html = fs.readFileSync(templatePath, "utf8");
@@ -143,6 +219,7 @@ app.post("/generate", async (req, res) => {
     trackingScript,
     texts,
     numbers,
+    language = "en",
   } = req.body;
 
   if (!templateId || !affiliateUrl) {
@@ -155,12 +232,14 @@ app.post("/generate", async (req, res) => {
   }
 
   // =========================
-  // BOFU — REVIEW (MVP)
+  // BOFU — REVIEW
   // =========================
   if (templateId === "review") {
     const html = await generateBofuReview({
       templatePath,
       affiliateUrl,
+      productUrl,
+      language,
     });
 
     return res
@@ -185,10 +264,7 @@ app.post("/generate", async (req, res) => {
   try {
     browser = await chromium.launch({ headless: true });
 
-    const page = await browser.newPage({
-      viewport: { width: 1366, height: 768 },
-    });
-
+    const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
     await page.goto(productUrl, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(800);
     await page.screenshot({ path: desktopFile });
@@ -196,7 +272,6 @@ app.post("/generate", async (req, res) => {
 
     const iphone = devices["iPhone 12"];
     const pageMobile = await browser.newPage({ ...iphone });
-
     await pageMobile.goto(productUrl, { waitUntil: "domcontentloaded" });
     await pageMobile.waitForTimeout(800);
     await pageMobile.screenshot({ path: mobileFile });
