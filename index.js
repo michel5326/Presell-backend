@@ -86,7 +86,7 @@ async function uploadToR2(localPath, remoteKey) {
 // ======================================================
 // IMAGE EXTRACTION (OG / TWITTER)
 // ======================================================
-aasync function extractMainImage(productUrl) {
+async function extractMainImage(productUrl) {
   try {
     const res = await fetch(productUrl, {
       headers: {
@@ -103,7 +103,6 @@ aasync function extractMainImage(productUrl) {
 
     const normalize = (url) => {
       if (!url) return "";
-      url = url.trim();
       if (url.startsWith("//")) return baseUrl.protocol + url;
       if (url.startsWith("/")) return baseUrl.origin + url;
       if (!url.startsWith("http")) return baseUrl.origin + "/" + url;
@@ -124,27 +123,29 @@ aasync function extractMainImage(productUrl) {
     imageUrl = normalize(match?.[1] || "");
     if (imageUrl) return imageUrl;
 
-    // 3️⃣ <img> heurística por NOME (mais estável que layout)
-    const BAD_PATTERNS = [
-      "banner",
-      "bg",
-      "background",
-      "hero",
-      "header",
-      "footer",
-      "wide",
-      "1920x",
-      "1600x",
-      "1200x",
-      "x628",
-      "x600",
+    // 3️⃣ <img> com blacklist universal
+    const BLOCKED_WORDS = [
+      "logo",
+      "favicon",
+      "icon",
+      "sprite",
+      "order",
+      "order-now",
+      "buy",
+      "cta",
+      "button",
+      "checkout",
+      "cart",
+      "seal",
+      "badge",
+      "star",
     ];
 
-    const imgMatches = [...html.matchAll(/<img\b[^>]+src=["']([^"']+)["']/gi)];
+    const imgs = [...html.matchAll(/<img\b[^>]+src=["']([^"']+)["']/gi)];
 
-    for (const m of imgMatches) {
-      const rawSrc = m[1];
-      const src = normalize(rawSrc);
+    for (const m of imgs) {
+      const srcRaw = m[1];
+      const src = normalize(srcRaw);
       if (!src) continue;
 
       const low = src.toLowerCase();
@@ -155,16 +156,15 @@ aasync function extractMainImage(productUrl) {
         low.endsWith(".gif")
       ) continue;
 
-      // ignora banners óbvios
-      if (BAD_PATTERNS.some(p => low.includes(p))) continue;
+      if (BLOCKED_WORDS.some(w => low.includes(w))) continue;
 
-      // se passou por tudo isso, é muito provável ser produto
+      // passou por tudo → imagem candidata
       return src;
     }
 
     // fallback final
-    if (imgMatches.length > 0) {
-      return normalize(imgMatches[0][1]);
+    if (imgs.length > 0) {
+      return normalize(imgs[0][1]);
     }
 
     return "";
