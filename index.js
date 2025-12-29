@@ -13,7 +13,7 @@ const fetch = require("node-fetch");
 const app = express();
 
 // ======================================================
-// CORS — LEGACY
+// CORS
 // ======================================================
 app.use(
   cors({
@@ -123,7 +123,7 @@ Rules:
     );
 
     if (!response.ok) {
-      throw new Error("DeepSeek error");
+      throw new Error(await response.text());
     }
 
     const data = await response.json();
@@ -133,11 +133,12 @@ Rules:
     const end = raw.lastIndexOf("}");
 
     if (start === -1 || end === -1) {
-      throw new Error("Invalid JSON");
+      throw new Error("Invalid JSON from DeepSeek");
     }
 
     return JSON.parse(raw.slice(start, end + 1));
-  } catch {
+  } catch (err) {
+    console.error("❌ DeepSeek failed:", err.message);
     return null;
   } finally {
     clearTimeout(timeout);
@@ -145,7 +146,7 @@ Rules:
 }
 
 // ======================================================
-// BOFU — REVIEW (IA + FALLBACK)
+// BOFU — REVIEW
 // ======================================================
 async function generateBofuReview({
   templatePath,
@@ -155,10 +156,8 @@ async function generateBofuReview({
 }) {
   const SAFE = " ";
 
-  let aiData = null;
-
-  aiData = await callDeepSeekSafe(
-  `
+  const aiData = await callDeepSeekSafe(
+    `
 You are writing a BOFU product review page.
 
 Product URL:
@@ -171,9 +170,8 @@ Do NOT educate.
 Do NOT exaggerate.
 Be concise, clear and conversion-focused.
 `,
-  language
-);
-
+    language
+  );
 
   const data = {
     HEADLINE: aiData?.HEADLINE || SAFE,
@@ -203,7 +201,7 @@ Be concise, clear and conversion-focused.
 }
 
 // ======================================================
-// GENERATE — LEGACY + BOFU
+// GENERATE
 // ======================================================
 app.post("/generate", async (req, res) => {
   if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
@@ -239,6 +237,10 @@ app.post("/generate", async (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
   }
 
+  if (templateId === "review" && !productUrl) {
+    return res.status(400).json({ error: "productUrl required for BOFU review" });
+  }
+
   const templatePath = findTemplate(templateId);
   if (!templatePath) {
     return res.status(404).json({ error: "Template not found" });
@@ -262,7 +264,7 @@ app.post("/generate", async (req, res) => {
   }
 
   // =========================
-  // LEGACY (INTOCADO)
+  // LEGACY
   // =========================
   if (!productUrl) {
     return res.status(400).json({ error: "productUrl required for legacy" });
