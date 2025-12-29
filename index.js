@@ -208,43 +208,73 @@ async function extractIngredientImages(productUrl) {
 // ======================================================
 // DEEPSEEK — SAFE CALL
 // ======================================================
-async function callDeepSeekSafe(prompt, language) {
+async function callDeepSeekSafe(prompt, language = "en") {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
 
   try {
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        temperature: 0.3,
-        messages: [
-          {
-            role: "system",
-            content: `Return ONLY valid JSON.
-Keys: HEADLINE,SUBHEADLINE,INTRO,WHY_IT_WORKS,BENEFITS_LIST,SOCIAL_PROOF,GUARANTEE
+    const response = await fetch(
+      "https://api.deepseek.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          temperature: 0.3,
+          messages: [
+            {
+              role: "system",
+              content: `
+Return ONLY valid JSON.
+DO NOT include markdown.
+DO NOT include explanations.
+
+Required keys (EXACT, case-sensitive):
+HEADLINE
+SUBHEADLINE
+INTRO
+WHY_IT_WORKS
+BENEFITS_LIST
+SOCIAL_PROOF
+GUARANTEE
+
 Rules:
 - BOFU tone
 - Google Ads safe
-- BENEFITS_LIST must be <li>
-- Language: ${language}`,
-          },
-          { role: "user", content: prompt },
-        ],
-      }),
-      signal: controller.signal,
-    });
+- BENEFITS_LIST must be raw <li> items only
+- Write everything in ${language}
+`,
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+        }),
+        signal: controller.signal,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
 
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
+
     const start = raw.indexOf("{");
     const end = raw.lastIndexOf("}");
+
+    if (start === -1 || end === -1) {
+      throw new Error("AI did not return valid JSON");
+    }
+
     return JSON.parse(raw.slice(start, end + 1));
-  } catch {
+  } catch (err) {
+    console.error("⚠️ DeepSeek failed:", err.message);
     return null;
   } finally {
     clearTimeout(timeout);
