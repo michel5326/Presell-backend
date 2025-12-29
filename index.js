@@ -86,14 +86,12 @@ async function uploadToR2(localPath, remoteKey) {
 // ======================================================
 // IMAGE EXTRACTION (OG / TWITTER)
 // ======================================================
-async function extractMainImage(productUrl) {
+aasync function extractMainImage(productUrl) {
   try {
     const res = await fetch(productUrl, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-        "Accept":
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
       },
       redirect: "follow",
     });
@@ -112,69 +110,61 @@ async function extractMainImage(productUrl) {
       return url;
     };
 
-    // ---------- 1️⃣ og:image ----------
+    // 1️⃣ og:image
     let match = html.match(
       /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
     );
     let imageUrl = normalize(match?.[1] || "");
     if (imageUrl) return imageUrl;
 
-    // ---------- 2️⃣ twitter:image ----------
+    // 2️⃣ twitter:image
     match = html.match(
       /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
     );
     imageUrl = normalize(match?.[1] || "");
     if (imageUrl) return imageUrl;
 
-    // ---------- 3️⃣ <img> por tamanho + proporção ----------
-    const imgTags = [...html.matchAll(/<img\b[^>]*>/gi)];
+    // 3️⃣ <img> heurística por NOME (mais estável que layout)
+    const BAD_PATTERNS = [
+      "banner",
+      "bg",
+      "background",
+      "hero",
+      "header",
+      "footer",
+      "wide",
+      "1920x",
+      "1600x",
+      "1200x",
+      "x628",
+      "x600",
+    ];
 
-    for (const t of imgTags) {
-      const tag = t[0];
+    const imgMatches = [...html.matchAll(/<img\b[^>]+src=["']([^"']+)["']/gi)];
 
-      const srcMatch =
-        tag.match(/\bsrc=["']([^"']+)["']/i) ||
-        tag.match(/\bdata-src=["']([^"']+)["']/i) ||
-        tag.match(/\bdata-original=["']([^"']+)["']/i);
-
-      const rawSrc = srcMatch?.[1] || "";
+    for (const m of imgMatches) {
+      const rawSrc = m[1];
       const src = normalize(rawSrc);
       if (!src) continue;
 
       const low = src.toLowerCase();
 
-      // ignora lixo comum
       if (
         low.startsWith("data:") ||
         low.endsWith(".svg") ||
         low.endsWith(".gif")
       ) continue;
 
-      // tenta extrair width / height
-      const widthMatch = tag.match(/\bwidth=["']?(\d+)["']?/i);
-      const heightMatch = tag.match(/\bheight=["']?(\d+)["']?/i);
+      // ignora banners óbvios
+      if (BAD_PATTERNS.some(p => low.includes(p))) continue;
 
-      const width = widthMatch ? parseInt(widthMatch[1], 10) : null;
-      const height = heightMatch ? parseInt(heightMatch[1], 10) : null;
-
-      // se não tiver dimensões, ignora
-      if (!width || !height) continue;
-
-      // tamanho mínimo
-      if (width < 250 && height < 250) continue;
-
-      const ratio = width / height;
-
-      // proporção aceitável: quadrada ou vertical
-      if (ratio >= 0.7 && ratio <= 1.3 || height > width) {
-        return src;
-      }
+      // se passou por tudo isso, é muito provável ser produto
+      return src;
     }
 
-    // ---------- fallback final ----------
-    if (imgTags.length > 0) {
-      const fallbackSrc = imgTags[0][0].match(/\bsrc=["']([^"']+)["']/i)?.[1];
-      return normalize(fallbackSrc || "");
+    // fallback final
+    if (imgMatches.length > 0) {
+      return normalize(imgMatches[0][1]);
     }
 
     return "";
@@ -183,6 +173,7 @@ async function extractMainImage(productUrl) {
     return "";
   }
 }
+
 
 // ======================================================
 // DEEPSEEK — SAFE CALL
