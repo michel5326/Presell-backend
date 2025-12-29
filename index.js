@@ -10,7 +10,7 @@ const { createClient } = require("@supabase/supabase-js");
 const app = express();
 
 // ======================================================
-// CORS — manter como estava no LEGACY
+// CORS — LEGACY
 // ======================================================
 app.use(
   cors({
@@ -81,7 +81,7 @@ async function uploadToR2(localPath, remoteKey) {
 }
 
 // ======================================================
-// GENERATE — LEGACY
+// GENERATE — LEGACY FINAL
 // ======================================================
 app.post("/generate", async (req, res) => {
   if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
@@ -108,6 +108,8 @@ app.post("/generate", async (req, res) => {
     productUrl,
     affiliateUrl,
     trackingScript,
+    texts,
+    numbers,
   } = req.body;
 
   if (!templateId || !productUrl || !affiliateUrl) {
@@ -128,10 +130,7 @@ app.post("/generate", async (req, res) => {
   try {
     browser = await chromium.launch({ headless: true });
 
-    const page = await browser.newPage({
-      viewport: { width: 1366, height: 768 },
-    });
-
+    const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
     await page.goto(productUrl, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(800);
     await page.screenshot({ path: desktopFile });
@@ -139,7 +138,6 @@ app.post("/generate", async (req, res) => {
 
     const iphone = devices["iPhone 12"];
     const pageMobile = await browser.newPage({ ...iphone });
-
     await pageMobile.goto(productUrl, { waitUntil: "domcontentloaded" });
     await pageMobile.waitForTimeout(800);
     await pageMobile.screenshot({ path: mobileFile });
@@ -153,10 +151,29 @@ app.post("/generate", async (req, res) => {
 
     let html = fs.readFileSync(templatePath, "utf8");
 
+    // Prints + link
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
+
+    // TEXTS
+    if (texts && typeof texts === "object") {
+      for (const [key, value] of Object.entries(texts)) {
+        if (typeof value === "string") {
+          html = html.replaceAll(`{{${key}}}`, value);
+        }
+      }
+    }
+
+    // NUMBERS
+    if (numbers && typeof numbers === "object") {
+      for (const [key, value] of Object.entries(numbers)) {
+        if (typeof value === "number") {
+          html = html.replaceAll(`{{${key}}}`, String(value));
+        }
+      }
+    }
 
     if (trackingScript) {
       html = html.replace("</body>", `${trackingScript}\n</body>`);
