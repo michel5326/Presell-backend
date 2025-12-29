@@ -99,17 +99,16 @@ async function extractMainImage(productUrl) {
     if (!res.ok) return "";
 
     const html = await res.text();
-
     const baseUrl = new URL(productUrl);
 
-    // og:image
+    // ---------- 1️⃣ og:image ----------
     let match = html.match(
       /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
     );
 
     let imageUrl = match?.[1] || "";
 
-    // twitter:image fallback
+    // ---------- 2️⃣ twitter:image ----------
     if (!imageUrl) {
       match = html.match(
         /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i
@@ -117,17 +116,36 @@ async function extractMainImage(productUrl) {
       imageUrl = match?.[1] || "";
     }
 
+    // ---------- 3️⃣ fallback <img> ----------
     if (!imageUrl) {
-      console.log("⚠️ No og:image found");
-      return "";
+      const imgMatches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
+
+      for (const m of imgMatches) {
+        const src = m[1];
+
+        // ignora lixo comum
+        if (
+          !src ||
+          src.startsWith("data:") ||
+          src.endsWith(".svg") ||
+          src.endsWith(".gif")
+        ) {
+          continue;
+        }
+
+        imageUrl = src;
+        break;
+      }
     }
 
-    // Resolve relative URLs
-    if (imageUrl.startsWith("/")) {
+    if (!imageUrl) return "";
+
+    // ---------- normaliza URL ----------
+    if (imageUrl.startsWith("//")) {
+      imageUrl = baseUrl.protocol + imageUrl;
+    } else if (imageUrl.startsWith("/")) {
       imageUrl = baseUrl.origin + imageUrl;
-    }
-
-    if (!imageUrl.startsWith("http")) {
+    } else if (!imageUrl.startsWith("http")) {
       imageUrl = baseUrl.origin + "/" + imageUrl;
     }
 
@@ -137,6 +155,7 @@ async function extractMainImage(productUrl) {
     return "";
   }
 }
+
 
 
 // ======================================================
