@@ -232,11 +232,12 @@ Return ONLY valid JSON.
 DO NOT include markdown.
 DO NOT include explanations.
 
-Required keys (EXACT, case-sensitive):
+Required keys (EXACT):
 HEADLINE
 SUBHEADLINE
 INTRO
 WHY_IT_WORKS
+FORMULA_TEXT
 BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
@@ -244,6 +245,7 @@ GUARANTEE
 Rules:
 - BOFU tone
 - Google Ads safe
+- FORMULA_TEXT must explain the ingredients or formula shown above
 - BENEFITS_LIST must be raw <li> items only
 - Write everything in ${language}
 `,
@@ -258,9 +260,7 @@ Rules:
       }
     );
 
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
+    if (!response.ok) throw new Error(await response.text());
 
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
@@ -268,9 +268,8 @@ Rules:
     const start = raw.indexOf("{");
     const end = raw.lastIndexOf("}");
 
-    if (start === -1 || end === -1) {
-      throw new Error("AI did not return valid JSON");
-    }
+    if (start === -1 || end === -1)
+      throw new Error("Invalid JSON from DeepSeek");
 
     return JSON.parse(raw.slice(start, end + 1));
   } catch (err) {
@@ -284,11 +283,26 @@ Rules:
 // ======================================================
 // BOFU REVIEW
 // ======================================================
-async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
+async function generateBofuReview({
+  templatePath,
+  affiliateUrl,
+  productUrl,
+  language,
+}) {
   const SAFE = " ";
 
   const ai = await callDeepSeekSafe(
-    `Product URL: ${productUrl}\nGoal: Confirm purchase decision.`,
+    `
+Product URL:
+${productUrl}
+
+Goal:
+Confirm purchase decision.
+
+Context:
+The page shows ingredient or formula images above.
+Explain what those ingredients are and why they matter.
+`,
     language
   );
 
@@ -302,6 +316,7 @@ async function generateBofuReview({ templatePath, affiliateUrl, productUrl, lang
     SUBHEADLINE: ai?.SUBHEADLINE || SAFE,
     INTRO: ai?.INTRO || SAFE,
     WHY_IT_WORKS: ai?.WHY_IT_WORKS || SAFE,
+    FORMULA_TEXT: ai?.FORMULA_TEXT || SAFE,
     BENEFITS_LIST: ai?.BENEFITS_LIST || "<li></li>",
     SOCIAL_PROOF: ai?.SOCIAL_PROOF || SAFE,
     GUARANTEE: ai?.GUARANTEE || SAFE,
