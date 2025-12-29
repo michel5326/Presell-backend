@@ -31,7 +31,6 @@ app.use(
 );
 
 app.use(express.json());
-
 const WORKER_TOKEN = process.env.WORKER_TOKEN;
 
 // ======================================================
@@ -60,9 +59,7 @@ const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL;
 // HELPERS
 // ======================================================
 function safeUnlink(file) {
-  try {
-    if (fs.existsSync(file)) fs.unlinkSync(file);
-  } catch {}
+  try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch {}
 }
 
 function findTemplate(templateId) {
@@ -72,14 +69,12 @@ function findTemplate(templateId) {
 
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
-
   await s3.putObject({
     Bucket: BUCKET,
     Key: remoteKey,
     Body: buffer,
     ContentType: "image/png",
   }).promise();
-
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
 
@@ -88,54 +83,35 @@ async function uploadToR2(localPath, remoteKey) {
 // ======================================================
 async function extractMainImage(productUrl) {
   try {
-    const res = await fetch(productUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-      },
-    });
-
+    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
     if (!res.ok) return "";
 
     const html = await res.text();
-    const baseUrl = new URL(productUrl);
+    const base = new URL(productUrl);
 
-    const normalize = (url) => {
-      if (!url) return "";
-      if (url.startsWith("//")) return baseUrl.protocol + url;
-      if (url.startsWith("/")) return baseUrl.origin + url;
-      if (!url.startsWith("http")) return baseUrl.origin + "/" + url;
-      return url;
+    const normalize = (u) => {
+      if (!u) return "";
+      if (u.startsWith("//")) return base.protocol + u;
+      if (u.startsWith("/")) return base.origin + u;
+      if (!u.startsWith("http")) return base.origin + "/" + u;
+      return u;
     };
 
-    let match = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
-    if (match) return normalize(match[1]);
+    let m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    if (m) return normalize(m[1]);
 
-    match = html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
-    if (match) return normalize(match[1]);
+    m = html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
+    if (m) return normalize(m[1]);
 
-    const BLOCKED = [
-      "logo","favicon","icon","sprite","order","buy","cta","button",
-      "checkout","cart","badge","seal","star","banner","bg","hero"
-    ];
-
+    const BLOCK = ["logo","icon","order","buy","cta","checkout","badge","seal","bg","hero"];
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
-    for (const m of imgs) {
-      const src = normalize(m[1]);
+    for (const i of imgs) {
+      const src = normalize(i[1]);
       const low = src.toLowerCase();
-
-      if (
-        !src ||
-        low.startsWith("data:") ||
-        low.endsWith(".svg") ||
-        low.endsWith(".gif") ||
-        BLOCKED.some(w => low.includes(w))
-      ) continue;
-
+      if (!src || low.startsWith("data:") || low.endsWith(".svg") || BLOCK.some(b=>low.includes(b))) continue;
       return src;
     }
-
     return "";
   } catch {
     return "";
@@ -147,24 +123,18 @@ async function extractMainImage(productUrl) {
 // ======================================================
 async function extractIngredientImages(productUrl) {
   try {
-    const res = await fetch(productUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-      },
-    });
-
+    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
     if (!res.ok) return "";
 
     const html = await res.text();
-    const baseUrl = new URL(productUrl);
+    const base = new URL(productUrl);
 
-    const normalize = (url) => {
-      if (!url) return "";
-      if (url.startsWith("//")) return baseUrl.protocol + url;
-      if (url.startsWith("/")) return baseUrl.origin + url;
-      if (!url.startsWith("http")) return baseUrl.origin + "/" + url;
-      return url;
+    const normalize = (u) => {
+      if (!u) return "";
+      if (u.startsWith("//")) return base.protocol + u;
+      if (u.startsWith("/")) return base.origin + u;
+      if (!u.startsWith("http")) return base.origin + "/" + u;
+      return u;
     };
 
     const INCLUDE = ["ingredient","ingredients","formula","blend","extract"];
@@ -175,58 +145,41 @@ async function extractIngredientImages(productUrl) {
 
     for (const m of imgs) {
       if (out.length >= 3) break;
-
       const src = normalize(m[1]);
       const low = src.toLowerCase();
-
-      if (
-        !src ||
-        low.startsWith("data:") ||
-        low.endsWith(".svg") ||
-        low.endsWith(".gif") ||
-        !INCLUDE.some(w => low.includes(w)) ||
-        EXCLUDE.some(w => low.includes(w))
-      ) continue;
-
+      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
+      if (!INCLUDE.some(w=>low.includes(w)) || EXCLUDE.some(w=>low.includes(w))) continue;
       out.push(`<img src="${src}" alt="Ingredient" loading="lazy">`);
     }
 
-    if (!out.length) return "";
-
-    return `<div class="image-grid">\n${out.join("\n")}\n</div>`;
+    return out.length
+      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
+      : "";
   } catch {
     return "";
   }
 }
 
 // ======================================================
-// DEEPSEEK — SAFE CALL
+// DEEPSEEK — RETRY 3x + HARD PARSER
 // ======================================================
-async function callDeepSeekSafe(prompt, language = "en") {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
-
-  try {
-    const response = await fetch(
-      "https://api.deepseek.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+async function callDeepSeekWithRetry(prompt, language="en", attempts=3) {
+  for (let i=1;i<=attempts;i++) {
+    try {
+      const r = await fetch("https://api.deepseek.com/v1/chat/completions",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          Authorization:`Bearer ${process.env.DEEPSEEK_API_KEY}`
         },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          temperature: 0.3,
-          messages: [
-            {
-              role: "system",
-              content: `
+        body:JSON.stringify({
+          model:"deepseek-chat",
+          temperature:0.3,
+          messages:[
+            { role:"system", content:`
 Return ONLY valid JSON.
-NO markdown.
-NO explanations.
 
-Required keys (EXACT):
+Required keys:
 HEADLINE
 SUBHEADLINE
 INTRO
@@ -236,62 +189,37 @@ BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
 
-Context (CRITICAL):
-This page is shown BEFORE purchase.
+This page is BEFORE purchase.
 This is a BOFU review page.
 This is NOT:
-- an order confirmation page
-- a thank-you page
-- a post-purchase page
-- a shipping/update page
+- order confirmation
+- thank you page
+- post purchase
 
-Writing rules:
-- Neutral, review-style BOFU tone (validation + clarity)
-- No "order confirmed", "shipment", "thank you for your purchase"
-- Do NOT assume the user bought anything
-- Google Ads safe (no extreme claims)
-- BENEFITS_LIST must be raw <li> items only
-- FORMULA_TEXT must explain the ingredient/formula images shown above (blend or individual ingredients)
-- Language: ${language}
-`,
+No shipping, no confirmation language.
+Google Ads safe.
+Language: ${language}
+            `},
+            { role:"user", content: prompt }
+          ]
+        })
+      });
 
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-        }),
-        signal: controller.signal,
-      }
-    );
+      const data = await r.json();
+      const raw = data.choices[0].message.content;
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("No JSON");
 
-    if (!response.ok) {
-      throw new Error(await response.text());
+      const json = JSON.parse(match[0]);
+
+      const bad = ["order confirmed","shipment","thank you for your purchase"];
+      const check = `${json.HEADLINE} ${json.INTRO}`.toLowerCase();
+      if (bad.some(b=>check.includes(b))) throw new Error("Post purchase tone");
+
+      return json;
+    } catch (e) {
+      if (i===attempts) throw e;
     }
-
-    const data = await response.json();
-    const raw = data.choices[0].message.content.trim();
-
-   let json;
-
-try {
-  json = JSON.parse(raw);
-} catch {
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) {
-    throw new Error("AI did not return JSON");
-  }
-  json = JSON.parse(match[0]);
-}
-
-return json;
-
-  } catch (err) {
-    console.error("❌ DeepSeek failed:", err.message);
-    return null;
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -299,32 +227,30 @@ return json;
 // BOFU REVIEW
 // ======================================================
 async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
-  const ai = await callDeepSeekSafe(
-    `Product URL: ${productUrl}\nGoal: Confirm purchase decision.`,
+  const ai = await callDeepSeekWithRetry(
+    `Product URL: ${productUrl}\nGoal: Help user decide before purchase.`,
     language
   );
 
-  // 🚨 COPY É O PRODUTO
-  if (!ai || !ai.HEADLINE || !ai.INTRO || !ai.BENEFITS_LIST) {
-    throw new Error("AI copy generation failed");
-  }
+  if (!ai || !ai.FORMULA_TEXT) throw new Error("Invalid AI output");
 
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
 
-  let html = fs.readFileSync(templatePath, "utf8");
+  let html = fs.readFileSync(templatePath,"utf8");
 
-  const data = {
-    HEADLINE: ai.HEADLINE,
-    SUBHEADLINE: ai.SUBHEADLINE,
-    INTRO: ai.INTRO,
-    WHY_IT_WORKS: ai.WHY_IT_WORKS,
-    BENEFITS_LIST: ai.BENEFITS_LIST,
-    SOCIAL_PROOF: ai.SOCIAL_PROOF,
-    GUARANTEE: ai.GUARANTEE,
-  };
+ const data = {
+  HEADLINE: ai.HEADLINE,
+  SUBHEADLINE: ai.SUBHEADLINE,
+  INTRO: ai.INTRO,
+  WHY_IT_WORKS: ai.WHY_IT_WORKS,
+  FORMULA_TEXT: ai.FORMULA_TEXT, // ← FALTAVA ISSO
+  BENEFITS_LIST: ai.BENEFITS_LIST,
+  SOCIAL_PROOF: ai.SOCIAL_PROOF,
+  GUARANTEE: ai.GUARANTEE,
+};
 
-  for (const [k, v] of Object.entries(data)) {
+  for (const [k,v] of Object.entries(data)) {
     html = html.replaceAll(`{{${k}}}`, v);
   }
 
@@ -332,96 +258,65 @@ async function generateBofuReview({ templatePath, affiliateUrl, productUrl, lang
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-    .replaceAll("{{BONUS_IMAGES}}", "")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+    .replaceAll("{{BONUS_IMAGES}}","")
+    .replaceAll("{{TESTIMONIAL_IMAGES}}","");
 }
 
 // ======================================================
 // GENERATE
 // ======================================================
-app.post("/generate", async (req, res) => {
-  try {
-    if (req.headers["x-worker-token"] !== WORKER_TOKEN)
-      return res.status(403).json({ error: "forbidden" });
+app.post("/generate", async (req,res)=>{
+  try{
+    if (req.headers["x-worker-token"]!==WORKER_TOKEN)
+      return res.status(403).json({error:"forbidden"});
 
     const userEmail = req.headers["x-user-email"];
-    if (!userEmail)
-      return res.status(401).json({ error: "user email missing" });
+    if (!userEmail) return res.status(401).json({error:"no user"});
 
     const { data: access } = await supabaseAdmin
-      .from("user_access")
-      .select("access_until")
-      .eq("email", userEmail)
-      .single();
+      .from("user_access").select("access_until")
+      .eq("email",userEmail).single();
 
-    if (!access || new Date(access.access_until) < new Date())
-      return res.status(403).json({ error: "access expired" });
+    if (!access || new Date(access.access_until)<new Date())
+      return res.status(403).json({error:"expired"});
 
-    const { templateId, productUrl, affiliateUrl, language = "en" } = req.body;
+    const { templateId, productUrl, affiliateUrl, language="en" } = req.body;
     const templatePath = findTemplate(templateId);
-    if (!templatePath)
-      return res.status(404).json({ error: "Template not found" });
+    if (!templatePath) return res.status(404).json({error:"no template"});
 
-    // ================= BOFU =================
-    if (templateId === "review") {
-      const html = await generateBofuReview({
-        templatePath,
-        affiliateUrl,
-        productUrl,
-        language
-      });
-
-      return res.status(200)
-        .set("Content-Type","text/html")
-        .send(html);
+    if (templateId==="review") {
+      const html = await generateBofuReview({templatePath,affiliateUrl,productUrl,language});
+      return res.status(200).set("Content-Type","text/html").send(html);
     }
 
-    // ================= LEGACY =================
+    // LEGACY (intacto)
     const id = uuid();
-    const desktopFile = `desktop-${id}.png`;
-    const mobileFile = `mobile-${id}.png`;
+    const d=`desktop-${id}.png`, m=`mobile-${id}.png`;
+    const browser = await chromium.launch({headless:true});
 
-    let browser = await chromium.launch({ headless: true });
+    const p=await browser.newPage({viewport:{width:1366,height:768}});
+    await p.goto(productUrl); await p.screenshot({path:d}); await p.close();
 
-    const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
-    await page.goto(productUrl, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: desktopFile });
-    await page.close();
+    const p2=await browser.newPage(devices["iPhone 12"]);
+    await p2.goto(productUrl); await p2.screenshot({path:m}); await p2.close();
 
-    const iphone = devices["iPhone 12"];
-    const pageMobile = await browser.newPage({ ...iphone });
-    await pageMobile.goto(productUrl, { waitUntil: "domcontentloaded" });
-    await pageMobile.waitForTimeout(800);
-    await pageMobile.screenshot({ path: mobileFile });
-    await pageMobile.close();
+    const du=await uploadToR2(d,`desktop/${d}`);
+    const mu=await uploadToR2(m,`mobile/${m}`);
 
-    const desktopUrl = await uploadToR2(desktopFile, `desktop/${desktopFile}`);
-    const mobileUrl = await uploadToR2(mobileFile, `mobile/${mobileFile}`);
+    safeUnlink(d); safeUnlink(m); await browser.close();
 
-    safeUnlink(desktopFile);
-    safeUnlink(mobileFile);
+    let html = fs.readFileSync(templatePath,"utf8")
+      .replaceAll("{{DESKTOP_PRINT}}",du)
+      .replaceAll("{{MOBILE_PRINT}}",mu)
+      .replaceAll("{{AFFILIATE_LINK}}",affiliateUrl);
 
-    let html = fs.readFileSync(templatePath, "utf8")
-      .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
-      .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
-      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
+    return res.status(200).set("Content-Type","text/html").send(html);
 
-    return res.status(200)
-      .set("Content-Type","text/html")
-      .send(html);
-
-  } catch (err) {
-    console.error("❌ GENERATE ERROR:", err.message);
-    return res.status(502).json({
-      error: "generation_failed",
-      message: err.message
-    });
+  } catch(e){
+    console.error("❌",e.message);
+    return res.status(502).json({error:"generation_failed",message:e.message});
   }
 });
 
-// ======================================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 WORKER rodando na porta ${PORT}`);
-});
+const PORT = process.env.PORT||3000;
+app.listen(PORT,()=>console.log(`🚀 WORKER ${PORT}`));
