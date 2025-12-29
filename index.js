@@ -226,21 +226,35 @@ Return ONLY valid JSON.
 NO markdown.
 NO explanations.
 
-Required keys:
+Required keys (EXACT):
 HEADLINE
 SUBHEADLINE
 INTRO
 WHY_IT_WORKS
+FORMULA_TEXT
 BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
 
-Rules:
-- BOFU tone
-- Google Ads safe
-- BENEFITS_LIST must be raw <li> only
+Context (CRITICAL):
+This page is shown BEFORE purchase.
+This is a BOFU review page.
+This is NOT:
+- an order confirmation page
+- a thank-you page
+- a post-purchase page
+- a shipping/update page
+
+Writing rules:
+- Neutral, review-style BOFU tone (validation + clarity)
+- No "order confirmed", "shipment", "thank you for your purchase"
+- Do NOT assume the user bought anything
+- Google Ads safe (no extreme claims)
+- BENEFITS_LIST must be raw <li> items only
+- FORMULA_TEXT must explain the ingredient/formula images shown above (blend or individual ingredients)
 - Language: ${language}
 `,
+
             },
             {
               role: "user",
