@@ -259,14 +259,20 @@ Rules:
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
 
-    const start = raw.indexOf("{");
-    const end = raw.lastIndexOf("}");
+   let json;
 
-    if (start === -1 || end === -1) {
-      throw new Error("Invalid JSON");
-    }
+try {
+  json = JSON.parse(raw);
+} catch {
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) {
+    throw new Error("AI did not return JSON");
+  }
+  json = JSON.parse(match[0]);
+}
 
-    return JSON.parse(raw.slice(start, end + 1));
+return json;
+
   } catch (err) {
     console.error("❌ DeepSeek failed:", err.message);
     return null;
