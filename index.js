@@ -158,9 +158,22 @@ async function generateBofuReview({
   let aiData = null;
 
   aiData = await callDeepSeekSafe(
-    `Product URL: ${productUrl}`,
-    language
-  );
+  `
+You are writing a BOFU product review page.
+
+Product URL:
+${productUrl}
+
+Goal:
+Confirm purchase decision and send the user to the official website.
+
+Do NOT educate.
+Do NOT exaggerate.
+Be concise, clear and conversion-focused.
+`,
+  language
+);
+
 
   const data = {
     HEADLINE: aiData?.HEADLINE || SAFE,
