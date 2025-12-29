@@ -143,7 +143,7 @@ async function extractMainImage(productUrl) {
 }
 
 // ======================================================
-// IMAGE — INGREDIENTS (ATÉ 3)
+// IMAGE — INGREDIENTS
 // ======================================================
 async function extractIngredientImages(productUrl) {
   try {
@@ -167,14 +167,8 @@ async function extractIngredientImages(productUrl) {
       return url;
     };
 
-    const INCLUDE = [
-      "ingredient","ingredients","formula","blend","extract","component"
-    ];
-
-    const EXCLUDE = [
-      "logo","icon","order","buy","cta","button","checkout",
-      "banner","bg","hero","seal","badge"
-    ];
+    const INCLUDE = ["ingredient","ingredients","formula","blend","extract"];
+    const EXCLUDE = ["logo","icon","order","buy","cta","checkout","banner","hero"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
@@ -229,15 +223,14 @@ async function callDeepSeekSafe(prompt, language = "en") {
               role: "system",
               content: `
 Return ONLY valid JSON.
-DO NOT include markdown.
-DO NOT include explanations.
+NO markdown.
+NO explanations.
 
-Required keys (EXACT):
+Required keys:
 HEADLINE
 SUBHEADLINE
 INTRO
 WHY_IT_WORKS
-FORMULA_TEXT
 BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
@@ -245,9 +238,8 @@ GUARANTEE
 Rules:
 - BOFU tone
 - Google Ads safe
-- FORMULA_TEXT must explain the ingredients or formula shown above
-- BENEFITS_LIST must be raw <li> items only
-- Write everything in ${language}
+- BENEFITS_LIST must be raw <li> only
+- Language: ${language}
 `,
             },
             {
@@ -260,7 +252,9 @@ Rules:
       }
     );
 
-    if (!response.ok) throw new Error(await response.text());
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
 
     const data = await response.json();
     const raw = data.choices[0].message.content.trim();
@@ -268,12 +262,13 @@ Rules:
     const start = raw.indexOf("{");
     const end = raw.lastIndexOf("}");
 
-    if (start === -1 || end === -1)
-      throw new Error("Invalid JSON from DeepSeek");
+    if (start === -1 || end === -1) {
+      throw new Error("Invalid JSON");
+    }
 
     return JSON.parse(raw.slice(start, end + 1));
   } catch (err) {
-    console.error("⚠️ DeepSeek failed:", err.message);
+    console.error("❌ DeepSeek failed:", err.message);
     return null;
   } finally {
     clearTimeout(timeout);
@@ -283,28 +278,16 @@ Rules:
 // ======================================================
 // BOFU REVIEW
 // ======================================================
-async function generateBofuReview({
-  templatePath,
-  affiliateUrl,
-  productUrl,
-  language,
-}) {
-  const SAFE = " ";
-
+async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
   const ai = await callDeepSeekSafe(
-    `
-Product URL:
-${productUrl}
-
-Goal:
-Confirm purchase decision.
-
-Context:
-The page shows ingredient or formula images above.
-Explain what those ingredients are and why they matter.
-`,
+    `Product URL: ${productUrl}\nGoal: Confirm purchase decision.`,
     language
   );
+
+  // 🚨 COPY É O PRODUTO
+  if (!ai || !ai.HEADLINE || !ai.INTRO || !ai.BENEFITS_LIST) {
+    throw new Error("AI copy generation failed");
+  }
 
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
@@ -312,14 +295,13 @@ Explain what those ingredients are and why they matter.
   let html = fs.readFileSync(templatePath, "utf8");
 
   const data = {
-    HEADLINE: ai?.HEADLINE || SAFE,
-    SUBHEADLINE: ai?.SUBHEADLINE || SAFE,
-    INTRO: ai?.INTRO || SAFE,
-    WHY_IT_WORKS: ai?.WHY_IT_WORKS || SAFE,
-    FORMULA_TEXT: ai?.FORMULA_TEXT || SAFE,
-    BENEFITS_LIST: ai?.BENEFITS_LIST || "<li></li>",
-    SOCIAL_PROOF: ai?.SOCIAL_PROOF || SAFE,
-    GUARANTEE: ai?.GUARANTEE || SAFE,
+    HEADLINE: ai.HEADLINE,
+    SUBHEADLINE: ai.SUBHEADLINE,
+    INTRO: ai.INTRO,
+    WHY_IT_WORKS: ai.WHY_IT_WORKS,
+    BENEFITS_LIST: ai.BENEFITS_LIST,
+    SOCIAL_PROOF: ai.SOCIAL_PROOF,
+    GUARANTEE: ai.GUARANTEE,
   };
 
   for (const [k, v] of Object.entries(data)) {
@@ -338,41 +320,48 @@ Explain what those ingredients are and why they matter.
 // GENERATE
 // ======================================================
 app.post("/generate", async (req, res) => {
-  if (req.headers["x-worker-token"] !== WORKER_TOKEN)
-    return res.status(403).json({ error: "forbidden" });
-
-  const userEmail = req.headers["x-user-email"];
-  if (!userEmail)
-    return res.status(401).json({ error: "user email missing" });
-
-  const { data: access } = await supabaseAdmin
-    .from("user_access")
-    .select("access_until")
-    .eq("email", userEmail)
-    .single();
-
-  if (!access || new Date(access.access_until) < new Date())
-    return res.status(403).json({ error: "access expired" });
-
-  const { templateId, productUrl, affiliateUrl, language = "en" } = req.body;
-  const templatePath = findTemplate(templateId);
-  if (!templatePath) return res.status(404).json({ error: "Template not found" });
-
-  if (templateId === "review") {
-    const html = await generateBofuReview({
-      templatePath, affiliateUrl, productUrl, language
-    });
-    return res.status(200).set("Content-Type","text/html").send(html);
-  }
-
-  // ================= LEGACY =================
-  const id = uuid();
-  const desktopFile = `desktop-${id}.png`;
-  const mobileFile = `mobile-${id}.png`;
-  let browser;
-
   try {
-    browser = await chromium.launch({ headless: true });
+    if (req.headers["x-worker-token"] !== WORKER_TOKEN)
+      return res.status(403).json({ error: "forbidden" });
+
+    const userEmail = req.headers["x-user-email"];
+    if (!userEmail)
+      return res.status(401).json({ error: "user email missing" });
+
+    const { data: access } = await supabaseAdmin
+      .from("user_access")
+      .select("access_until")
+      .eq("email", userEmail)
+      .single();
+
+    if (!access || new Date(access.access_until) < new Date())
+      return res.status(403).json({ error: "access expired" });
+
+    const { templateId, productUrl, affiliateUrl, language = "en" } = req.body;
+    const templatePath = findTemplate(templateId);
+    if (!templatePath)
+      return res.status(404).json({ error: "Template not found" });
+
+    // ================= BOFU =================
+    if (templateId === "review") {
+      const html = await generateBofuReview({
+        templatePath,
+        affiliateUrl,
+        productUrl,
+        language
+      });
+
+      return res.status(200)
+        .set("Content-Type","text/html")
+        .send(html);
+    }
+
+    // ================= LEGACY =================
+    const id = uuid();
+    const desktopFile = `desktop-${id}.png`;
+    const mobileFile = `mobile-${id}.png`;
+
+    let browser = await chromium.launch({ headless: true });
 
     const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
     await page.goto(productUrl, { waitUntil: "domcontentloaded" });
@@ -398,10 +387,16 @@ app.post("/generate", async (req, res) => {
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    return res.status(200).set("Content-Type","text/html").send(html);
+    return res.status(200)
+      .set("Content-Type","text/html")
+      .send(html);
 
-  } finally {
-    if (browser) try { await browser.close(); } catch {}
+  } catch (err) {
+    console.error("❌ GENERATE ERROR:", err.message);
+    return res.status(502).json({
+      error: "generation_failed",
+      message: err.message
+    });
   }
 });
 
