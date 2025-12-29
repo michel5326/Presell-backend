@@ -81,7 +81,40 @@ async function uploadToR2(localPath, remoteKey) {
 }
 
 // ======================================================
-// GENERATE — LEGACY FINAL
+// BOFU — REVIEW (MVP, SEM IA, SEM IMAGENS)
+// ======================================================
+async function generateBofuReview({ templatePath, affiliateUrl }) {
+  const SAFE = " ";
+
+  const data = {
+    HEADLINE: SAFE,
+    SUBHEADLINE: SAFE,
+    INTRO: SAFE,
+    WHY_IT_WORKS: SAFE,
+    BENEFITS_LIST: "<li></li>",
+    SOCIAL_PROOF: SAFE,
+    GUARANTEE: SAFE,
+    FINAL_CTA: "Visit Official Website",
+  };
+
+  let html = fs.readFileSync(templatePath, "utf8");
+
+  for (const [key, value] of Object.entries(data)) {
+    html = html.replaceAll(`{{${key}}}`, value);
+  }
+
+  html = html
+    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
+    .replaceAll("{{PRODUCT_IMAGE}}", "")
+    .replaceAll("{{INGREDIENT_IMAGES}}", "")
+    .replaceAll("{{BONUS_IMAGES}}", "")
+    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+
+  return html;
+}
+
+// ======================================================
+// GENERATE — LEGACY + BOFU
 // ======================================================
 app.post("/generate", async (req, res) => {
   if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
@@ -112,13 +145,35 @@ app.post("/generate", async (req, res) => {
     numbers,
   } = req.body;
 
-  if (!templateId || !productUrl || !affiliateUrl) {
+  if (!templateId || !affiliateUrl) {
     return res.status(400).json({ error: "Missing fields" });
   }
 
   const templatePath = findTemplate(templateId);
   if (!templatePath) {
     return res.status(404).json({ error: "Template not found" });
+  }
+
+  // =========================
+  // BOFU — REVIEW (MVP)
+  // =========================
+  if (templateId === "review") {
+    const html = await generateBofuReview({
+      templatePath,
+      affiliateUrl,
+    });
+
+    return res
+      .status(200)
+      .set("Content-Type", "text/html; charset=utf-8")
+      .send(html);
+  }
+
+  // =========================
+  // LEGACY (INTOCADO)
+  // =========================
+  if (!productUrl) {
+    return res.status(400).json({ error: "productUrl required for legacy" });
   }
 
   const id = uuid();
@@ -130,7 +185,10 @@ app.post("/generate", async (req, res) => {
   try {
     browser = await chromium.launch({ headless: true });
 
-    const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    const page = await browser.newPage({
+      viewport: { width: 1366, height: 768 },
+    });
+
     await page.goto(productUrl, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(800);
     await page.screenshot({ path: desktopFile });
@@ -138,6 +196,7 @@ app.post("/generate", async (req, res) => {
 
     const iphone = devices["iPhone 12"];
     const pageMobile = await browser.newPage({ ...iphone });
+
     await pageMobile.goto(productUrl, { waitUntil: "domcontentloaded" });
     await pageMobile.waitForTimeout(800);
     await pageMobile.screenshot({ path: mobileFile });
@@ -151,13 +210,11 @@ app.post("/generate", async (req, res) => {
 
     let html = fs.readFileSync(templatePath, "utf8");
 
-    // Prints + link
     html = html
       .replaceAll("{{DESKTOP_PRINT}}", desktopUrl)
       .replaceAll("{{MOBILE_PRINT}}", mobileUrl)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    // TEXTS
     if (texts && typeof texts === "object") {
       for (const [key, value] of Object.entries(texts)) {
         if (typeof value === "string") {
@@ -166,7 +223,6 @@ app.post("/generate", async (req, res) => {
       }
     }
 
-    // NUMBERS
     if (numbers && typeof numbers === "object") {
       for (const [key, value] of Object.entries(numbers)) {
         if (typeof value === "number") {
