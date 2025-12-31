@@ -159,20 +159,21 @@ button{
 </div>
 
 <script>
-/* ===== BACKEND CONTRACT (UNCHANGED) ===== */
+/* ===== BACKEND CONTRACT (ROBUST) ===== */
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-const ANCHOR_PRICE = Number({{ANCHOR_PRICE}}) || 0;
-const YOUR_PRICE   = Number({{YOUR_PRICE}}) || 0;
-const OFFER_MINUTES = Number({{OFFER_MINUTES}}) || 5;
+
+const ANCHOR_PRICE  = Number("{{ANCHOR_PRICE}}") || 0;
+const YOUR_PRICE    = Number("{{YOUR_PRICE}}") || 0;
+const OFFER_MINUTES = Number("{{OFFER_MINUTES}}") || 5;
 
 /* ===== ELEMENTS ===== */
-const overlay = document.getElementById('overlay');
+const overlay  = document.getElementById('overlay');
 const anchorEl = document.getElementById('anchor');
 const priceEl  = document.getElementById('price');
 const unitEl   = document.getElementById('unit');
-const m = document.getElementById('m');
-const s = document.getElementById('s');
-const btn = document.getElementById('cta');
+const m        = document.getElementById('m');
+const s        = document.getElementById('s');
+const btn      = document.getElementById('cta');
 
 /* ===== STATE ===== */
 let time = OFFER_MINUTES * 60;
@@ -208,11 +209,16 @@ function startTimer(){
 }
 startTimer();
 
-/* ===== CTA ===== */
+/* ===== CTA (TRACKER SAFE) ===== */
 btn.onclick = () => {
   if(clicked) return;
   clicked = true;
-  window.location.href = AFFILIATE_LINK;
+
+  if (typeof window.runTrackerRedirect === "function") {
+    window.runTrackerRedirect(AFFILIATE_LINK);
+  } else {
+    window.location.href = AFFILIATE_LINK;
+  }
 };
 </script>
 
