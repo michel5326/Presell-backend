@@ -10,7 +10,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+/* ===== BACKGROUND IMAGES ===== */
 :root{
+  --desktop-bg-image:url('{{DESKTOP_PRINT}}');
+  --mobile-bg-image:url('{{MOBILE_PRINT}}');
   --accent:#35A35C;
   --danger:#FF5E3A;
 }
@@ -22,9 +25,26 @@ html,body{
   width:100%;
   overflow:hidden;
   font-family:Poppins,sans-serif;
-  background:#f4f6f8;
 }
 
+/* ===== BACKGROUND CONTAINER ===== */
+.background-container{
+  position:fixed;
+  inset:0;
+  background-image:var(--desktop-bg-image);
+  background-size:cover;
+  background-position:center;
+  filter:brightness(.8);
+  z-index:-1;
+}
+
+@media(max-width:768px){
+  .background-container{
+    background-image:var(--mobile-bg-image);
+  }
+}
+
+/* ===== OVERLAY ===== */
 .overlay{
   position:fixed;
   inset:0;
@@ -42,6 +62,7 @@ html,body{
   pointer-events:auto;
 }
 
+/* ===== POPUP ===== */
 .popup{
   background:#fff;
   border-radius:18px;
@@ -53,7 +74,9 @@ html,body{
   transition:.4s ease;
 }
 
-.overlay.show .popup{transform:scale(1)}
+.overlay.show .popup{
+  transform:scale(1);
+}
 
 h2{
   font-size:20px;
@@ -126,6 +149,10 @@ button{
 
 <body>
 
+<!-- BACKGROUND -->
+<div class="background-container"></div>
+
+<!-- POPUP -->
 <div class="overlay" id="overlay">
   <div class="popup">
     <h2>{{PLAN_TITLE}}</h2>
@@ -159,7 +186,7 @@ button{
 </div>
 
 <script>
-/* ===== BACKEND CONTRACT (ROBUST) ===== */
+/* ===== BACKEND CONTRACT (SAFE) ===== */
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
 const ANCHOR_PRICE  = Number("{{ANCHOR_PRICE}}") || 0;
