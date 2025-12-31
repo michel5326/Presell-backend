@@ -197,8 +197,8 @@ BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
 
-This is a BOFU review page.
 This page is BEFORE purchase.
+This is a BOFU review page.
 Language: ${language}
               `,
             },
@@ -281,7 +281,8 @@ app.post("/generate", async (req, res) => {
       productUrl,
       affiliateUrl,
       language = "en",
-      legacyData = {}, // 👈 NOVO (OPCIONAL)
+      legacyData = {},
+      ...flatBody
     } = req.body;
 
     const templatePath = findTemplate(templateId);
@@ -297,7 +298,17 @@ app.post("/generate", async (req, res) => {
       return res.status(200).set("Content-Type", "text/html").send(html);
     }
 
-    /* ===== LEGACY (INTACTO + PLACEHOLDERS OPCIONAIS) ===== */
+    /* ===== LEGACY (INTACTO + CAMPOS EXTRAS) ===== */
+    const finalLegacyData = {
+      ...legacyData,
+      ...flatBody,
+    };
+
+    delete finalLegacyData.templateId;
+    delete finalLegacyData.productUrl;
+    delete finalLegacyData.affiliateUrl;
+    delete finalLegacyData.language;
+
     const id = uuid();
     const d = `desktop-${id}.png`;
     const m = `mobile-${id}.png`;
@@ -326,8 +337,7 @@ app.post("/generate", async (req, res) => {
       .replaceAll("{{MOBILE_PRINT}}", mu)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    // 🔒 PLACEHOLDERS EXTRAS (SE EXISTIREM)
-    for (const [key, value] of Object.entries(legacyData)) {
+    for (const [key, value] of Object.entries(finalLegacyData)) {
       html = html.replaceAll(`{{${key}}}`, String(value));
     }
 
