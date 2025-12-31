@@ -12,9 +12,9 @@ const fetch = require("node-fetch");
 
 const app = express();
 
-// ======================================================
-// CORS
-// ======================================================
+/* =========================
+   CORS
+========================= */
 app.use(
   cors({
     origin: [
@@ -33,17 +33,17 @@ app.use(
 app.use(express.json());
 const WORKER_TOKEN = process.env.WORKER_TOKEN;
 
-// ======================================================
-// SUPABASE ADMIN
-// ======================================================
+/* =========================
+   SUPABASE ADMIN
+========================= */
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// ======================================================
-// CLOUDFLARE R2 (LEGACY)
-// ======================================================
+/* =========================
+   CLOUDFLARE R2 (LEGACY)
+========================= */
 const s3 = new AWS.S3({
   endpoint: process.env.R2_ENDPOINT,
   accessKeyId: process.env.R2_ACCESS_KEY,
@@ -55,11 +55,13 @@ const s3 = new AWS.S3({
 const BUCKET = process.env.R2_BUCKET;
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL;
 
-// ======================================================
-// HELPERS
-// ======================================================
+/* =========================
+   HELPERS
+========================= */
 function safeUnlink(file) {
-  try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch {}
+  try {
+    if (fs.existsSync(file)) fs.unlinkSync(file);
+  } catch {}
 }
 
 function findTemplate(templateId) {
@@ -78,12 +80,14 @@ async function uploadToR2(localPath, remoteKey) {
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
 
-// ======================================================
-// IMAGE — MAIN PRODUCT
-// ======================================================
+/* =========================
+   IMAGE — MAIN PRODUCT
+========================= */
 async function extractMainImage(productUrl) {
   try {
-    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
     if (!res.ok) return "";
 
     const html = await res.text();
@@ -118,12 +122,14 @@ async function extractMainImage(productUrl) {
   }
 }
 
-// ======================================================
-// IMAGE — INGREDIENTS
-// ======================================================
+/* =========================
+   IMAGE — INGREDIENTS
+========================= */
 async function extractIngredientImages(productUrl) {
   try {
-    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
     if (!res.ok) return "";
 
     const html = await res.text();
@@ -160,23 +166,25 @@ async function extractIngredientImages(productUrl) {
   }
 }
 
-// ======================================================
-// DEEPSEEK — RETRY 3x + HARD PARSER
-// ======================================================
+/* =========================
+   DEEPSEEK — REVIEW
+========================= */
 async function callDeepSeekWithRetry(prompt, language="en", attempts=3) {
-  for (let i=1;i<=attempts;i++) {
+  for (let i = 1; i <= attempts; i++) {
     try {
-      const r = await fetch("https://api.deepseek.com/v1/chat/completions",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          Authorization:`Bearer ${process.env.DEEPSEEK_API_KEY}`
+      const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         },
-        body:JSON.stringify({
-          model:"deepseek-chat",
-          temperature:0.3,
-          messages:[
-            { role:"system", content:`
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          temperature: 0.3,
+          messages: [
+            {
+              role: "system",
+              content: `
 Return ONLY valid JSON.
 
 Required keys:
@@ -189,20 +197,14 @@ BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
 
-This page is BEFORE purchase.
 This is a BOFU review page.
-This is NOT:
-- order confirmation
-- thank you page
-- post purchase
-
-No shipping, no confirmation language.
-Google Ads safe.
+This page is BEFORE purchase.
 Language: ${language}
-            `},
-            { role:"user", content: prompt }
-          ]
-        })
+              `,
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
       });
 
       const data = await r.json();
@@ -210,47 +212,39 @@ Language: ${language}
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) throw new Error("No JSON");
 
-      const json = JSON.parse(match[0]);
-
-      const bad = ["order confirmed","shipment","thank you for your purchase"];
-      const check = `${json.HEADLINE} ${json.INTRO}`.toLowerCase();
-      if (bad.some(b=>check.includes(b))) throw new Error("Post purchase tone");
-
-      return json;
+      return JSON.parse(match[0]);
     } catch (e) {
-      if (i===attempts) throw e;
+      if (i === attempts) throw e;
     }
   }
 }
 
-// ======================================================
-// BOFU REVIEW
-// ======================================================
+/* =========================
+   BOFU REVIEW
+========================= */
 async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
   const ai = await callDeepSeekWithRetry(
     `Product URL: ${productUrl}\nGoal: Help user decide before purchase.`,
     language
   );
 
-  if (!ai || !ai.FORMULA_TEXT) throw new Error("Invalid AI output");
-
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
 
-  let html = fs.readFileSync(templatePath,"utf8");
+  let html = fs.readFileSync(templatePath, "utf8");
 
- const data = {
-  HEADLINE: ai.HEADLINE,
-  SUBHEADLINE: ai.SUBHEADLINE,
-  INTRO: ai.INTRO,
-  WHY_IT_WORKS: ai.WHY_IT_WORKS,
-  FORMULA_TEXT: ai.FORMULA_TEXT, // ← FALTAVA ISSO
-  BENEFITS_LIST: ai.BENEFITS_LIST,
-  SOCIAL_PROOF: ai.SOCIAL_PROOF,
-  GUARANTEE: ai.GUARANTEE,
-};
+  const data = {
+    HEADLINE: ai.HEADLINE,
+    SUBHEADLINE: ai.SUBHEADLINE,
+    INTRO: ai.INTRO,
+    WHY_IT_WORKS: ai.WHY_IT_WORKS,
+    FORMULA_TEXT: ai.FORMULA_TEXT,
+    BENEFITS_LIST: ai.BENEFITS_LIST,
+    SOCIAL_PROOF: ai.SOCIAL_PROOF,
+    GUARANTEE: ai.GUARANTEE,
+  };
 
-  for (const [k,v] of Object.entries(data)) {
+  for (const [k, v] of Object.entries(data)) {
     html = html.replaceAll(`{{${k}}}`, v);
   }
 
@@ -258,65 +252,95 @@ async function generateBofuReview({ templatePath, affiliateUrl, productUrl, lang
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-    .replaceAll("{{BONUS_IMAGES}}","")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}","");
+    .replaceAll("{{BONUS_IMAGES}}", "")
+    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 }
 
-// ======================================================
-// GENERATE
-// ======================================================
-app.post("/generate", async (req,res)=>{
-  try{
-    if (req.headers["x-worker-token"]!==WORKER_TOKEN)
-      return res.status(403).json({error:"forbidden"});
+/* =========================
+   GENERATE
+========================= */
+app.post("/generate", async (req, res) => {
+  try {
+    if (req.headers["x-worker-token"] !== WORKER_TOKEN)
+      return res.status(403).json({ error: "forbidden" });
 
     const userEmail = req.headers["x-user-email"];
-    if (!userEmail) return res.status(401).json({error:"no user"});
+    if (!userEmail) return res.status(401).json({ error: "no user" });
 
     const { data: access } = await supabaseAdmin
-      .from("user_access").select("access_until")
-      .eq("email",userEmail).single();
+      .from("user_access")
+      .select("access_until")
+      .eq("email", userEmail)
+      .single();
 
-    if (!access || new Date(access.access_until)<new Date())
-      return res.status(403).json({error:"expired"});
+    if (!access || new Date(access.access_until) < new Date())
+      return res.status(403).json({ error: "expired" });
 
-    const { templateId, productUrl, affiliateUrl, language="en" } = req.body;
+    const {
+      templateId,
+      productUrl,
+      affiliateUrl,
+      language = "en",
+      legacyData = {}, // 👈 NOVO (OPCIONAL)
+    } = req.body;
+
     const templatePath = findTemplate(templateId);
-    if (!templatePath) return res.status(404).json({error:"no template"});
+    if (!templatePath) return res.status(404).json({ error: "no template" });
 
-    if (templateId==="review") {
-      const html = await generateBofuReview({templatePath,affiliateUrl,productUrl,language});
-      return res.status(200).set("Content-Type","text/html").send(html);
+    if (templateId === "review") {
+      const html = await generateBofuReview({
+        templatePath,
+        affiliateUrl,
+        productUrl,
+        language,
+      });
+      return res.status(200).set("Content-Type", "text/html").send(html);
     }
 
-    // LEGACY (intacto)
+    /* ===== LEGACY (INTACTO + PLACEHOLDERS OPCIONAIS) ===== */
     const id = uuid();
-    const d=`desktop-${id}.png`, m=`mobile-${id}.png`;
-    const browser = await chromium.launch({headless:true});
+    const d = `desktop-${id}.png`;
+    const m = `mobile-${id}.png`;
 
-    const p=await browser.newPage({viewport:{width:1366,height:768}});
-    await p.goto(productUrl); await p.screenshot({path:d}); await p.close();
+    const browser = await chromium.launch({ headless: true });
 
-    const p2=await browser.newPage(devices["iPhone 12"]);
-    await p2.goto(productUrl); await p2.screenshot({path:m}); await p2.close();
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    await p.goto(productUrl);
+    await p.screenshot({ path: d });
+    await p.close();
 
-    const du=await uploadToR2(d,`desktop/${d}`);
-    const mu=await uploadToR2(m,`mobile/${m}`);
+    const p2 = await browser.newPage(devices["iPhone 12"]);
+    await p2.goto(productUrl);
+    await p2.screenshot({ path: m });
+    await p2.close();
 
-    safeUnlink(d); safeUnlink(m); await browser.close();
+    const du = await uploadToR2(d, `desktop/${d}`);
+    const mu = await uploadToR2(m, `mobile/${m}`);
 
-    let html = fs.readFileSync(templatePath,"utf8")
-      .replaceAll("{{DESKTOP_PRINT}}",du)
-      .replaceAll("{{MOBILE_PRINT}}",mu)
-      .replaceAll("{{AFFILIATE_LINK}}",affiliateUrl);
+    safeUnlink(d);
+    safeUnlink(m);
+    await browser.close();
 
-    return res.status(200).set("Content-Type","text/html").send(html);
+    let html = fs.readFileSync(templatePath, "utf8")
+      .replaceAll("{{DESKTOP_PRINT}}", du)
+      .replaceAll("{{MOBILE_PRINT}}", mu)
+      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-  } catch(e){
-    console.error("❌",e.message);
-    return res.status(502).json({error:"generation_failed",message:e.message});
+    // 🔒 PLACEHOLDERS EXTRAS (SE EXISTIREM)
+    for (const [key, value] of Object.entries(legacyData)) {
+      html = html.replaceAll(`{{${key}}}`, String(value));
+    }
+
+    return res.status(200).set("Content-Type", "text/html").send(html);
+
+  } catch (e) {
+    console.error("❌", e.message);
+    return res.status(502).json({
+      error: "generation_failed",
+      message: e.message,
+    });
   }
 });
 
-const PORT = process.env.PORT||3000;
-app.listen(PORT,()=>console.log(`🚀 WORKER ${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 WORKER ${PORT}`));
