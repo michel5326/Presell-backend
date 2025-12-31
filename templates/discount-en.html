@@ -3,17 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Special Offer - Limited Time</title>
+<title>Special Offer</title>
 
-<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --desktop-bg-image:url('{{DESKTOP_PRINT}}');
-  --mobile-bg-image:url('{{MOBILE_PRINT}}');
+  --accent:#35A35C;
+  --danger:#FF5E3A;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -23,34 +22,19 @@ html,body{
   width:100%;
   overflow:hidden;
   font-family:Poppins,sans-serif;
-}
-
-.background-container{
-  position:fixed;
-  inset:0;
-  background-image:var(--desktop-bg-image);
-  background-size:cover;
-  background-position:center;
-  filter:brightness(.8);
-  z-index:-1;
-}
-
-@media(max-width:768px){
-  .background-container{
-    background-image:var(--mobile-bg-image);
-  }
+  background:#f4f6f8;
 }
 
 .overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,.55);
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
   opacity:0;
   pointer-events:none;
-  transition:opacity .4s ease;
+  transition:.4s ease;
 }
 
 .overlay.show{
@@ -60,68 +44,78 @@ html,body{
 
 .popup{
   background:#fff;
-  border-radius:16px;
-  padding:25px;
-  max-width:320px;
-  width:90%;
-  text-align:center;
+  border-radius:18px;
+  max-width:360px;
+  width:92%;
+  padding:28px;
+  box-shadow:0 20px 40px rgba(0,0,0,.2);
   transform:scale(.9);
-  transition:transform .4s ease;
+  transition:.4s ease;
 }
 
-.overlay.show .popup{
-  transform:scale(1);
+.overlay.show .popup{transform:scale(1)}
+
+h2{
+  font-size:20px;
+  font-weight:700;
+  text-align:center;
+  margin-bottom:16px;
 }
 
 .pricing{
   background:#f8f9fa;
-  border-radius:12px;
+  border-radius:14px;
   padding:20px;
-  margin:20px 0;
+  margin-bottom:20px;
 }
 
-.line{
+.row{
   display:flex;
   justify-content:space-between;
-  margin-bottom:10px;
+  margin-bottom:8px;
+  font-size:14px;
 }
 
 .old{
+  color:#999;
   text-decoration:line-through;
-  color:#e74c3c;
 }
 
 .new{
   font-size:22px;
   font-weight:700;
-  color:#27ae60;
+  color:var(--accent);
 }
 
 .timer{
   display:flex;
   justify-content:center;
-  gap:10px;
-  margin:20px 0;
+  gap:12px;
+  margin-bottom:20px;
 }
 
-.unit{
-  background:#f8f9fa;
+.time-box{
+  background:#fff3f0;
+  border:1px solid #ffd6ce;
+  border-radius:10px;
+  min-width:70px;
   padding:10px;
-  border-radius:8px;
-  min-width:60px;
+  text-align:center;
 }
 
-.unit span{
+.time-box span{
   display:block;
+  font-size:18px;
   font-weight:700;
+  color:var(--danger);
 }
 
 button{
   width:100%;
-  padding:15px;
+  padding:14px;
   border:none;
-  border-radius:50px;
-  background:#ff5e3a;
+  border-radius:999px;
+  background:var(--danger);
   color:#fff;
   font-size:16px;
   font-weight:600;
@@ -132,30 +126,32 @@ button{
 
 <body>
 
-<div class="background-container"></div>
-
 <div class="overlay" id="overlay">
   <div class="popup">
     <h2>{{PLAN_TITLE}}</h2>
 
     <div class="pricing">
-      <div class="line">
-        <span>Original:</span>
+      <div class="row">
+        <span>Original price</span>
         <span class="old">$<span id="anchor">0</span></span>
       </div>
-      <div class="line">
-        <span>Your price:</span>
+      <div class="row">
+        <span>Your price</span>
         <span class="new">$<span id="price">0</span></span>
       </div>
-      <div class="line">
-        <span>Per unit:</span>
+      <div class="row">
+        <span>Per unit</span>
         <span>$<span id="unit">0.00</span></span>
       </div>
     </div>
 
     <div class="timer">
-      <div class="unit"><span id="m">00</span>Min</div>
-      <div class="unit"><span id="s">00</span>Sec</div>
+      <div class="time-box">
+        <span id="m">00</span>Min
+      </div>
+      <div class="time-box">
+        <span id="s">00</span>Sec
+      </div>
     </div>
 
     <button id="cta">Get Discount</button>
@@ -163,9 +159,8 @@ button{
 </div>
 
 <script>
-/* ===== SAFE VALUES FROM BACKEND ===== */
+/* ===== BACKEND CONTRACT (UNCHANGED) ===== */
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-
 const ANCHOR_PRICE = Number({{ANCHOR_PRICE}}) || 0;
 const YOUR_PRICE   = Number({{YOUR_PRICE}}) || 0;
 const OFFER_MINUTES = Number({{OFFER_MINUTES}}) || 5;
@@ -184,12 +179,12 @@ let time = OFFER_MINUTES * 60;
 let clicked = false;
 let timerInterval = null;
 
-/* ===== SHOW POPUP FIRST (CRITICAL) ===== */
+/* ===== SHOW POPUP ===== */
 document.addEventListener('DOMContentLoaded', () => {
   overlay.classList.add('show');
 });
 
-/* ===== INIT VALUES SAFELY ===== */
+/* ===== INIT VALUES ===== */
 anchorEl.textContent = ANCHOR_PRICE;
 priceEl.textContent  = YOUR_PRICE;
 unitEl.textContent   = YOUR_PRICE ? (YOUR_PRICE / 6).toFixed(2) : '0.00';
@@ -201,7 +196,7 @@ function startTimer(){
   timerInterval = setInterval(() => {
     if(time <= 0){
       btn.textContent = 'Expired';
-      btn.style.opacity = 0.5;
+      btn.style.opacity = 0.6;
       btn.onclick = null;
       clearInterval(timerInterval);
       return;
@@ -211,7 +206,6 @@ function startTimer(){
     time--;
   },1000);
 }
-
 startTimer();
 
 /* ===== CTA ===== */
