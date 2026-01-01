@@ -6,33 +6,21 @@
 <title>Gender Selection</title>
 
 <style>
-:root{
-  --desktop-bg-image:url('{{DESKTOP_PRINT}}');
-  --mobile-bg-image:url('{{MOBILE_PRINT}}');
-}
-
-*{margin:0;padding:0;box-sizing:border-box}
-
-html,body{
-  height:100%;
-  width:100%;
-  overflow:hidden;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
-}
-
-/* BACKGROUND */
 body{
-  background-image:var(--desktop-bg-image);
+  margin:0;
+  padding:0;
+  min-height:100vh;
+  background-image:url("{{DESKTOP_PRINT}}");
   background-size:cover;
   background-position:center top;
   background-repeat:no-repeat;
   background-attachment:fixed;
-  background-color:#f0f0f0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
 }
 
 @media(max-width:768px){
   body{
-    background-image:var(--mobile-bg-image);
+    background-image:url("{{MOBILE_PRINT}}") !important;
     background-attachment:scroll;
   }
 }
@@ -46,58 +34,61 @@ body{
   align-items:center;
   justify-content:center;
   z-index:10000;
-  padding:20px;
+  padding:16px;
 }
 
-/* POPUP */
+/* CONTAINER */
 .gender-popup-container{
   background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-  border-radius:20px;
+  border-radius:18px;
   padding:2px;
-  box-shadow:0 25px 50px rgba(0,0,0,.3);
-  animation:popupSlideIn .3s ease-out;
-  max-width:420px;
+  box-shadow:0 20px 40px rgba(0,0,0,.3);
+  max-width:400px;
   width:100%;
+  animation:popupSlideIn .3s ease-out;
 }
 
+/* CONTENT */
 .gender-popup-content{
   background:#fff;
-  border-radius:18px;
-  padding:40px 30px;
+  border-radius:16px;
+  padding:32px 26px;
   text-align:center;
 }
 
+/* HEADER */
 .gender-popup-header{
-  margin-bottom:35px;
+  margin-bottom:24px;
 }
 
 .gender-popup-title{
-  font-size:28px;
+  font-size:25px;
   font-weight:700;
   color:#2d3748;
-  margin-bottom:8px;
+  margin:0 0 6px;
 }
 
 .gender-popup-subtitle{
-  font-size:16px;
+  font-size:15px;
   color:#718096;
+  margin:0;
 }
 
 /* OPTIONS */
 .gender-options-container{
   display:flex;
   flex-direction:column;
-  gap:15px;
-  margin-bottom:30px;
+  gap:12px;
+  margin-bottom:20px;
 }
 
 .gender-option{
   display:flex;
   align-items:center;
-  padding:20px 25px;
+  padding:16px 20px;
   background:#f7fafc;
   border:2px solid #e2e8f0;
-  border-radius:15px;
+  border-radius:14px;
   cursor:pointer;
   transition:.3s ease;
   width:100%;
@@ -107,55 +98,59 @@ body{
   background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
   border-color:#667eea;
   transform:translateY(-2px);
-  box-shadow:0 10px 25px rgba(102,126,234,.3);
+  box-shadow:0 8px 20px rgba(102,126,234,.3);
 }
 
 .gender-icon{
-  margin-right:20px;
-  width:48px;
-  height:48px;
-  border-radius:12px;
+  width:42px;
+  height:42px;
+  margin-right:16px;
+  border-radius:10px;
   background:rgba(102,126,234,.1);
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:.3s;
 }
 
 .gender-option:hover .gender-icon{
   background:rgba(255,255,255,.2);
 }
 
-.male-icon{color:#4299e1}
-.female-icon{color:#ed64a6}
-.other-icon{color:#9f7aea}
+.male-icon{color:#4299e1;}
+.female-icon{color:#ed64a6;}
+.other-icon{color:#9f7aea;}
 
-.gender-option:hover svg,
-.gender-option:hover .gender-label{
+.gender-option:hover .male-icon,
+.gender-option:hover .female-icon,
+.gender-option:hover .other-icon{
   color:#fff;
 }
 
 .gender-label{
-  font-size:18px;
+  font-size:16px;
   font-weight:600;
   color:#2d3748;
 }
 
+.gender-option:hover .gender-label{
+  color:#fff;
+}
+
 /* FOOTER */
 .gender-popup-footer{
-  padding-top:20px;
+  padding-top:14px;
   border-top:1px solid #e2e8f0;
 }
 
 .gender-popup-note{
-  font-size:14px;
+  font-size:13px;
   color:#a0aec0;
 }
 
 /* ANIMATION */
 @keyframes popupSlideIn{
-  from{opacity:0;transform:scale(.9) translateY(-20px)}
-  to{opacity:1;transform:scale(1) translateY(0)}
+  from{opacity:0;transform:scale(.9) translateY(-20px);}
+  to{opacity:1;transform:scale(1) translateY(0);}
 }
 </style>
 </head>
@@ -172,31 +167,31 @@ body{
       </div>
 
       <div class="gender-options-container">
-        <div class="gender-option" data-gender="male">
+        <button class="gender-option" onclick="doRedirect()">
           <div class="gender-icon male-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="10" cy="14" r="8"/>
               <path d="m17 3 4 4-4 4"/>
               <path d="M17 7h6"/>
             </svg>
           </div>
           <span class="gender-label">Male</span>
-        </div>
+        </button>
 
-        <div class="gender-option" data-gender="female">
+        <button class="gender-option" onclick="doRedirect()">
           <div class="gender-icon female-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="8" r="7"/>
               <path d="m12 15v5"/>
               <path d="m15 18h-6"/>
             </svg>
           </div>
           <span class="gender-label">Female</span>
-        </div>
+        </button>
 
-        <div class="gender-option" data-gender="other">
+        <button class="gender-option" onclick="doRedirect()">
           <div class="gender-icon other-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <path d="m15 9-6 6"/>
               <path d="m9 9h.01"/>
@@ -204,7 +199,7 @@ body{
             </svg>
           </div>
           <span class="gender-label">Other</span>
-        </div>
+        </button>
       </div>
 
       <div class="gender-popup-footer">
@@ -217,35 +212,22 @@ body{
 
 <script>
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-let redirected = false;
-
-/* PRESERVA UTM */
-function buildUrl(url){
-  const params = window.location.search;
-  return params ? url + (url.includes('?') ? '&' : '?') + params.slice(1) : url;
-}
+let clicked = false;
 
 function doRedirect(){
-  if(redirected) return;
-  redirected = true;
-
-  const finalUrl = buildUrl(AFFILIATE_LINK);
+  if(clicked) return;
+  clicked = true;
 
   if(typeof window.runTrackerRedirect === "function"){
-    window.runTrackerRedirect(finalUrl);
+    window.runTrackerRedirect(AFFILIATE_LINK);
   }else{
-    const a = document.createElement('a');
-    a.href = finalUrl;
-    a.className = 'ratoeira-trackable';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>a.remove(),300);
+    window.location.href = AFFILIATE_LINK;
   }
 }
 
-document.querySelectorAll('.gender-option').forEach(opt=>{
-  opt.addEventListener('click',doRedirect);
+document.addEventListener("DOMContentLoaded",()=>{
+  const popup=document.getElementById("genderPopup");
+  if(popup) popup.style.display="flex";
 });
 </script>
 
