@@ -166,7 +166,7 @@ async function extractIngredientImages(productUrl) {
 }
 
 /* =========================
-   IMAGE — BONUS (NOVO)
+   IMAGE — BONUS
 ========================= */
 async function extractBonusImages(productUrl) {
   try {
@@ -200,6 +200,51 @@ async function extractBonusImages(productUrl) {
       if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
         continue;
       out.push(`<img src="${src}" alt="Bonus" loading="lazy">`);
+    }
+
+    return out.length
+      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+/* =========================
+   IMAGE — TESTIMONIALS (NOVO)
+========================= */
+async function extractTestimonialImages(productUrl) {
+  try {
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!res.ok) return "";
+
+    const html = await res.text();
+    const base = new URL(productUrl);
+
+    const normalize = (u) => {
+      if (!u) return "";
+      if (u.startsWith("//")) return base.protocol + u;
+      if (u.startsWith("/")) return base.origin + u;
+      if (!u.startsWith("http")) return base.origin + "/" + u;
+      return u;
+    };
+
+    const INCLUDE = ["testimonial","testimonials","review","reviews","rating","feedback"];
+    const EXCLUDE = ["logo","icon","order","buy","cta","checkout","badge","seal"];
+
+    const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
+    const out = [];
+
+    for (const m of imgs) {
+      if (out.length >= 3) break;
+      const src = normalize(m[1]);
+      const low = src.toLowerCase();
+      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
+      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
+        continue;
+      out.push(`<img src="${src}" alt="Customer review" loading="lazy">`);
     }
 
     return out.length
@@ -284,7 +329,7 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA v2 (BÔNUS ATIVADO)
+   ROBUSTA v2 (TESTEMUNHOS ATIVADOS)
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
   const ai = await callDeepSeekWithRetry(
@@ -333,6 +378,7 @@ Output ONLY valid JSON.`,
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
   const bonusImages = await extractBonusImages(productUrl);
+  const testimonialImages = await extractTestimonialImages(productUrl);
 
   let html = fs.readFileSync(templatePath, "utf8");
 
@@ -361,7 +407,7 @@ Output ONLY valid JSON.`,
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+    .replaceAll("{{TESTIMONIAL_IMAGES}}", testimonialImages || "");
 }
 
 /* =========================
