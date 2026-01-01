@@ -234,7 +234,7 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA (NOVO)
+   ROBUSTA (AJUSTADA)
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
   const ai = await callDeepSeekWithRetry(
@@ -264,8 +264,7 @@ GUARANTEE_TEXT
 DISCLAIMER_TEXT
 
 This page is BEFORE purchase.
-This is a BOFU robustness page.
-No thank you, no order confirmation.`,
+This is a BOFU robustness page.`,
 `Product URL: ${productUrl}`
   );
 
@@ -275,10 +274,10 @@ No thank you, no order confirmation.`,
   let html = fs.readFileSync(templatePath,"utf8");
 
   const fixed = {
-    SITE_BRAND: "Review",
+    SITE_BRAND: "Buyer Guide",
     UPDATED_DATE: new Date().toISOString().split("T")[0],
     CTA_BUTTON_TEXT: "Visit Official Website",
-    DECISION_STAGE_LINE: "Final decision stage",
+    DECISION_STAGE_LINE: "Before you finalize your order",
     PRIMARY_PROBLEM_TITLE: "The real problem",
     WHY_DIFFERENT_TITLE: "Why this is different",
     MECHANISM_TITLE: "How it works",
