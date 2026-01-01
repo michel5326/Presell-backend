@@ -59,9 +59,7 @@ const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL;
    HELPERS
 ========================= */
 function safeUnlink(file) {
-  try {
-    if (fs.existsSync(file)) fs.unlinkSync(file);
-  } catch {}
+  try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch {}
 }
 
 function findTemplate(templateId) {
@@ -85,9 +83,7 @@ async function uploadToR2(localPath, remoteKey) {
 ========================= */
 async function extractMainImage(productUrl) {
   try {
-    const res = await fetch(productUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
+    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
     if (!res.ok) return "";
 
     const html = await res.text();
@@ -127,9 +123,7 @@ async function extractMainImage(productUrl) {
 ========================= */
 async function extractIngredientImages(productUrl) {
   try {
-    const res = await fetch(productUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
+    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
     if (!res.ok) return "";
 
     const html = await res.text();
@@ -167,26 +161,45 @@ async function extractIngredientImages(productUrl) {
 }
 
 /* =========================
-   DEEPSEEK — REVIEW
+   DEEPSEEK — GENERIC
 ========================= */
-async function callDeepSeekWithRetry(prompt, language="en", attempts=3) {
-  for (let i = 1; i <= attempts; i++) {
+async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts=3) {
+  for (let i=1;i<=attempts;i++) {
     try {
       const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          Authorization:`Bearer ${process.env.DEEPSEEK_API_KEY}`
         },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          temperature: 0.3,
-          messages: [
-            {
-              role: "system",
-              content: `
-Return ONLY valid JSON.
+        body:JSON.stringify({
+          model:"deepseek-chat",
+          temperature:0.3,
+          messages:[
+            { role:"system", content: systemPrompt },
+            { role:"user", content: userPrompt }
+          ]
+        })
+      });
 
+      const data = await r.json();
+      const raw = data.choices[0].message.content;
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("No JSON");
+
+      return JSON.parse(match[0]);
+    } catch(e){
+      if (i===attempts) throw e;
+    }
+  }
+}
+
+/* =========================
+   BOFU REVIEW (INTOCADA)
+========================= */
+async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
+  const ai = await callDeepSeekWithRetry(
+`Return ONLY valid JSON.
 Required keys:
 HEADLINE
 SUBHEADLINE
@@ -199,52 +212,16 @@ GUARANTEE
 
 This page is BEFORE purchase.
 This is a BOFU review page.
-Language: ${language}
-              `,
-            },
-            { role: "user", content: prompt },
-          ],
-        }),
-      });
-
-      const data = await r.json();
-      const raw = data.choices[0].message.content;
-      const match = raw.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("No JSON");
-
-      return JSON.parse(match[0]);
-    } catch (e) {
-      if (i === attempts) throw e;
-    }
-  }
-}
-
-/* =========================
-   BOFU REVIEW
-========================= */
-async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
-  const ai = await callDeepSeekWithRetry(
-    `Product URL: ${productUrl}\nGoal: Help user decide before purchase.`,
-    language
+Language: ${language}`,
+`Product URL: ${productUrl}`
   );
 
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
 
-  let html = fs.readFileSync(templatePath, "utf8");
+  let html = fs.readFileSync(templatePath,"utf8");
 
-  const data = {
-    HEADLINE: ai.HEADLINE,
-    SUBHEADLINE: ai.SUBHEADLINE,
-    INTRO: ai.INTRO,
-    WHY_IT_WORKS: ai.WHY_IT_WORKS,
-    FORMULA_TEXT: ai.FORMULA_TEXT,
-    BENEFITS_LIST: ai.BENEFITS_LIST,
-    SOCIAL_PROOF: ai.SOCIAL_PROOF,
-    GUARANTEE: ai.GUARANTEE,
-  };
-
-  for (const [k, v] of Object.entries(data)) {
+  for (const [k,v] of Object.entries(ai)) {
     html = html.replaceAll(`{{${k}}}`, v);
   }
 
@@ -252,58 +229,115 @@ async function generateBofuReview({ templatePath, affiliateUrl, productUrl, lang
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-    .replaceAll("{{BONUS_IMAGES}}", "")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+    .replaceAll("{{BONUS_IMAGES}}","")
+    .replaceAll("{{TESTIMONIAL_IMAGES}}","");
+}
+
+/* =========================
+   ROBUSTA (NOVO)
+========================= */
+async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
+  const ai = await callDeepSeekWithRetry(
+`Return ONLY valid JSON.
+
+Required keys:
+PAGE_TITLE
+META_DESCRIPTION
+HEADLINE_MAIN
+SUBHEADLINE_MAIN
+PRIMARY_PROBLEM_TEXT
+POSITIONING_STATEMENT
+WHY_DIFFERENT_1
+WHY_DIFFERENT_2
+WHY_DIFFERENT_3
+MECHANISM_STEP_1
+MECHANISM_STEP_2
+MECHANISM_STEP_3
+WHO_SHOULD_1
+WHO_SHOULD_2
+WHO_SHOULD_3
+WHO_NOT_1
+WHO_NOT_2
+WHO_NOT_3
+SCAM_ALERT_TEXT
+GUARANTEE_TEXT
+DISCLAIMER_TEXT
+
+This page is BEFORE purchase.
+This is a BOFU robustness page.
+No thank you, no order confirmation.`,
+`Product URL: ${productUrl}`
+  );
+
+  const productImage = await extractMainImage(productUrl);
+  const ingredientImages = await extractIngredientImages(productUrl);
+
+  let html = fs.readFileSync(templatePath,"utf8");
+
+  const fixed = {
+    SITE_BRAND: "Review",
+    UPDATED_DATE: new Date().toISOString().split("T")[0],
+    CTA_BUTTON_TEXT: "Visit Official Website",
+    DECISION_STAGE_LINE: "Final decision stage",
+    PRIMARY_PROBLEM_TITLE: "The real problem",
+    WHY_DIFFERENT_TITLE: "Why this is different",
+    MECHANISM_TITLE: "How it works",
+    WHO_SHOULD_USE_TITLE: "Who this is for",
+    WHO_SHOULD_NOT_TITLE: "Who should avoid",
+    SCAM_ALERT_TITLE: "Important notice",
+    GUARANTEE_TITLE: "Guarantee",
+    BONUS_TITLE: "Available bonuses",
+    FOOTER_DISCLAIMER: "This content is informational only."
+  };
+
+  for (const [k,v] of Object.entries({ ...fixed, ...ai })) {
+    html = html.replaceAll(`{{${k}}}`, v);
+  }
+
+  return html
+    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
+    .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
+    .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
+    .replaceAll("{{BONUS_IMAGES}}","")
+    .replaceAll("{{TESTIMONIAL_IMAGES}}","");
 }
 
 /* =========================
    GENERATE
 ========================= */
-app.post("/generate", async (req, res) => {
-  try {
-    if (req.headers["x-worker-token"] !== WORKER_TOKEN)
-      return res.status(403).json({ error: "forbidden" });
+app.post("/generate", async (req,res)=>{
+  try{
+    if (req.headers["x-worker-token"]!==WORKER_TOKEN)
+      return res.status(403).json({error:"forbidden"});
 
     const userEmail = req.headers["x-user-email"];
-    if (!userEmail) return res.status(401).json({ error: "no user" });
+    if (!userEmail) return res.status(401).json({error:"no user"});
 
     const { data: access } = await supabaseAdmin
       .from("user_access")
       .select("access_until")
-      .eq("email", userEmail)
-      .single();
+      .eq("email",userEmail).single();
 
-    if (!access || new Date(access.access_until) < new Date())
-      return res.status(403).json({ error: "expired" });
+    if (!access || new Date(access.access_until)<new Date())
+      return res.status(403).json({error:"expired"});
 
-    const {
-      templateId,
-      productUrl,
-      affiliateUrl,
-      language = "en",
-      legacyData = {},
-      ...flatBody
-    } = req.body;
+    const { templateId, productUrl, affiliateUrl, language="en", legacyData={}, ...flatBody } = req.body;
 
     const templatePath = findTemplate(templateId);
-    if (!templatePath) return res.status(404).json({ error: "no template" });
+    if (!templatePath) return res.status(404).json({error:"no template"});
 
-    if (templateId === "review") {
-      const html = await generateBofuReview({
-        templatePath,
-        affiliateUrl,
-        productUrl,
-        language,
-      });
-      return res.status(200).set("Content-Type", "text/html").send(html);
+    if (templateId==="review") {
+      const html = await generateBofuReview({templatePath,affiliateUrl,productUrl,language});
+      return res.status(200).set("Content-Type","text/html").send(html);
     }
 
-    /* ===== LEGACY (INTACTO + CAMPOS EXTRAS) ===== */
-    const finalLegacyData = {
-      ...legacyData,
-      ...flatBody,
-    };
+    if (templateId==="robusta") {
+      const html = await generateRobusta({templatePath,affiliateUrl,productUrl});
+      return res.status(200).set("Content-Type","text/html").send(html);
+    }
 
+    /* ===== LEGACY (INTOCADO) ===== */
+    const finalLegacyData = { ...legacyData, ...flatBody };
     delete finalLegacyData.templateId;
     delete finalLegacyData.productUrl;
     delete finalLegacyData.affiliateUrl;
@@ -313,44 +347,34 @@ app.post("/generate", async (req, res) => {
     const d = `desktop-${id}.png`;
     const m = `mobile-${id}.png`;
 
-    const browser = await chromium.launch({ headless: true });
-
-    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
-    await p.goto(productUrl);
-    await p.screenshot({ path: d });
-    await p.close();
+    const browser = await chromium.launch({headless:true});
+    const p = await browser.newPage({viewport:{width:1366,height:768}});
+    await p.goto(productUrl); await p.screenshot({path:d}); await p.close();
 
     const p2 = await browser.newPage(devices["iPhone 12"]);
-    await p2.goto(productUrl);
-    await p2.screenshot({ path: m });
-    await p2.close();
+    await p2.goto(productUrl); await p2.screenshot({path:m}); await p2.close();
 
-    const du = await uploadToR2(d, `desktop/${d}`);
-    const mu = await uploadToR2(m, `mobile/${m}`);
+    const du = await uploadToR2(d,`desktop/${d}`);
+    const mu = await uploadToR2(m,`mobile/${m}`);
 
-    safeUnlink(d);
-    safeUnlink(m);
-    await browser.close();
+    safeUnlink(d); safeUnlink(m); await browser.close();
 
-    let html = fs.readFileSync(templatePath, "utf8")
-      .replaceAll("{{DESKTOP_PRINT}}", du)
-      .replaceAll("{{MOBILE_PRINT}}", mu)
-      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
+    let html = fs.readFileSync(templatePath,"utf8")
+      .replaceAll("{{DESKTOP_PRINT}}",du)
+      .replaceAll("{{MOBILE_PRINT}}",mu)
+      .replaceAll("{{AFFILIATE_LINK}}",affiliateUrl);
 
-    for (const [key, value] of Object.entries(finalLegacyData)) {
-      html = html.replaceAll(`{{${key}}}`, String(value));
+    for (const [k,v] of Object.entries(finalLegacyData)) {
+      html = html.replaceAll(`{{${k}}}`,String(v));
     }
 
-    return res.status(200).set("Content-Type", "text/html").send(html);
+    return res.status(200).set("Content-Type","text/html").send(html);
 
-  } catch (e) {
-    console.error("❌", e.message);
-    return res.status(502).json({
-      error: "generation_failed",
-      message: e.message,
-    });
+  } catch(e){
+    console.error("❌",e.message);
+    return res.status(502).json({error:"generation_failed",message:e.message});
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 WORKER ${PORT}`));
+const PORT = process.env.PORT||3000;
+app.listen(PORT,()=>console.log(`🚀 WORKER ${PORT}`));
