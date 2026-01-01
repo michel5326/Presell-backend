@@ -9,6 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+<link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+<link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
+
 <style>
 :root{
   --desktop-bg-image:url('{{DESKTOP_PRINT}}');
@@ -33,28 +36,27 @@ html,body{
   background:#000;
   background-image:var(--desktop-bg-image);
   background-size:cover;
-  background-position:center;
-  filter:brightness(.8);
+  background-position:center top;
+  filter:brightness(.85);
   z-index:-1;
 }
 
 @media(max-width:768px){
-  .background-container{
-    background-image:var(--mobile-bg-image);
-  }
+  .background-container{ background-image:var(--mobile-bg-image); }
 }
 
 /* OVERLAY */
 .overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.55);
+  background:rgba(0,0,0,.5);
   display:flex;
   align-items:center;
   justify-content:center;
   opacity:0;
   pointer-events:none;
-  transition:.4s ease;
+  transition:opacity .35s ease;
+  padding:20px;
 }
 
 .overlay.show{
@@ -62,86 +64,136 @@ html,body{
   pointer-events:auto;
 }
 
-/* POPUP */
-.popup{
+.popup-container{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* COUPON WRAPPER (RETANGULAR) */
+.coupon-wrapper{
+  position:relative;
+  width:600px;
+  max-width:90%;
   background:#fff;
-  border-radius:18px;
-  max-width:360px;
-  width:92%;
-  padding:28px;
-  box-shadow:0 20px 40px rgba(0,0,0,.2);
-  transform:scale(.9);
-  transition:.4s ease;
+  border-radius:8px;               /* <<< RETANGULAR */
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+  overflow:visible;
 }
 
-.overlay.show .popup{transform:scale(1)}
-
-h2{
-  font-size:20px;
-  font-weight:700;
-  text-align:center;
-  margin-bottom:16px;
+/* HEADER */
+.coupon-header{
+  padding:24px 24px 16px 24px;
 }
 
-.pricing{
-  background:#f8f9fa;
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:20px;
+.main-title{
+  font-size:18px;
+  font-weight:600;
+  color:#222;
+  margin-bottom:12px;
 }
 
-.row{
+.sub-description{
+  font-size:14px;
+  color:#666;
+  margin-bottom:14px;
+}
+
+/* PRICES */
+.price-section{ margin-bottom:12px; }
+
+.price-row{
   display:flex;
   justify-content:space-between;
-  margin-bottom:8px;
-  font-size:14px;
+  align-items:center;
+  margin-bottom:6px;
 }
 
-.old{
+.price-label{
+  font-size:14px;
+  color:#666;
+}
+
+.original-price{
+  font-size:14px;
   color:#999;
   text-decoration:line-through;
 }
 
-.new{
-  font-size:22px;
+.final-price{
+  font-size:16px;
   font-weight:700;
   color:var(--accent);
 }
 
-.timer{
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  margin-bottom:20px;
+.unit-price{
+  font-size:14px;
+  font-weight:600;
+  color:#222;
 }
 
-.time-box{
-  background:#fff3f0;
-  border:1px solid #ffd6ce;
-  border-radius:10px;
-  min-width:70px;
-  padding:10px;
+/* COUNTDOWN */
+.countdown-section{
+  margin-top:14px;
   text-align:center;
 }
 
-.time-box span{
-  display:block;
+.countdown-label{
+  font-size:12px;
+  font-weight:500;
+  color:var(--danger);
+  margin:0 0 8px 0;
+}
+
+.countdown-timer{
   font-size:18px;
   font-weight:700;
   color:var(--danger);
+  background:#fff5f5;
+  padding:8px 16px;
+  border-radius:6px;
+  border:2px solid #ffe5e5;
+  display:inline-block;
+  min-width:140px;
+  letter-spacing:1px;
 }
 
-button{
+/* PERFORATION */
+.coupon-perforation{
+  margin:18px 0;
+  border-top:1px dashed #e0e0e0;
+}
+
+/* FOOTER */
+.coupon-footer{
+  padding:0 24px 24px 24px;
+}
+
+.cta-button{
   width:100%;
-  padding:14px;
-  border:none;
-  border-radius:999px;
   background:var(--danger);
   color:#fff;
-  font-size:16px;
+  font-size:14px;
   font-weight:600;
+  padding:12px 16px;
+  border-radius:6px;          /* <<< RETANGULAR */
+  border:none;
   cursor:pointer;
+  transition:.2s ease;
 }
+
+.cta-button:hover{ filter:brightness(.95); }
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .coupon-wrapper{ max-width:350px; width:95%; }
+  .coupon-header{ padding:16px; }
+  .coupon-footer{ padding:0 16px 16px 16px; }
+  .main-title{ font-size:16px; }
+}
+
 </style>
 </head>
 
@@ -150,78 +202,76 @@ button{
 <div class="background-container"></div>
 
 <div class="overlay" id="overlay">
-  <div class="popup">
-    <h2>{{PLAN_TITLE}}</h2>
+  <div class="popup-container">
+    <div class="coupon-wrapper" role="dialog" aria-modal="true">
+      <div class="coupon-header">
+        <div class="main-title">{{PLAN_TITLE}}</div>
+        <div class="sub-description">Limited-time discount reserved for you.</div>
 
-    <div class="pricing">
-      <div class="row">
-        <span>Original price</span>
-        <span class="old">$<span id="anchor">0</span></span>
+        <div class="price-section">
+          <div class="price-row">
+            <span class="price-label">Original price:</span>
+            <span class="original-price">$<span id="anchor">0</span></span>
+          </div>
+          <div class="price-row">
+            <span class="price-label">Your price:</span>
+            <span class="final-price">$<span id="price">0</span></span>
+          </div>
+          <div class="price-row">
+            <span class="price-label">Per unit:</span>
+            <span class="unit-price">$<span id="unit">0.00</span></span>
+          </div>
+        </div>
+
+        <div class="countdown-section">
+          <p class="countdown-label">Offer expires in:</p>
+          <div class="countdown-timer">
+            <span id="hh">00</span>:<span id="mm">00</span>:<span id="ss">00</span>
+          </div>
+        </div>
       </div>
-      <div class="row">
-        <span>Your price</span>
-        <span class="new">$<span id="price">0</span></span>
-      </div>
-      <div class="row">
-        <span>Per unit</span>
-        <span>$<span id="unit">0.00</span></span>
+
+      <div class="coupon-perforation"></div>
+
+      <div class="coupon-footer">
+        <button id="cta" class="cta-button">Get Discount</button>
       </div>
     </div>
-
-    <div class="timer">
-      <div class="time-box"><span id="m">00</span>Min</div>
-      <div class="time-box"><span id="s">00</span>Sec</div>
-    </div>
-
-    <button id="cta">Get Discount</button>
   </div>
 </div>
 
 <script>
 /* ===== BACKEND CONTRACT ===== */
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-const ANCHOR_PRICE  = Number("{{ANCHOR_PRICE}}") || 0;
-const YOUR_PRICE    = Number("{{YOUR_PRICE}}") || 0;
-const OFFER_MINUTES = Number("{{OFFER_MINUTES}}") || 5;
+const ANCHOR_PRICE   = Number("{{ANCHOR_PRICE}}") || 0;
+const YOUR_PRICE     = Number("{{YOUR_PRICE}}") || 0;
+const OFFER_MINUTES  = Number("{{OFFER_MINUTES}}") || 5;
 
 /* ELEMENTS */
 const overlay  = document.getElementById('overlay');
 const anchorEl = document.getElementById('anchor');
 const priceEl  = document.getElementById('price');
 const unitEl   = document.getElementById('unit');
-const m = document.getElementById('m');
-const s = document.getElementById('s');
+const hh = document.getElementById('hh');
+const mm = document.getElementById('mm');
+const ss = document.getElementById('ss');
 const btn = document.getElementById('cta');
 
-/* STATE */
 let time = OFFER_MINUTES * 60;
 let clicked = false;
 
-/* SHOW POPUP */
+/* SHOW */
 document.addEventListener('DOMContentLoaded', () => {
   overlay.classList.add('show');
 });
 
-/* INIT VALUES */
+/* INIT */
 anchorEl.textContent = ANCHOR_PRICE;
 priceEl.textContent  = YOUR_PRICE;
 unitEl.textContent   = YOUR_PRICE ? (YOUR_PRICE / 6).toFixed(2) : '0.00';
 
-/* TIMER */
-const timer = setInterval(() => {
-  if(time <= 0){
-    btn.textContent = 'Expired';
-    btn.style.opacity = 0.6;
-    clearInterval(timer);
-    return;
-  }
-  m.textContent = String(Math.floor(time / 60)).padStart(2,'0');
-  s.textContent = String(time % 60).padStart(2,'0');
-  time--;
-},1000);
-
-/* CTA — TRACKER SAFE */
-btn.onclick = () => {
+/* TRACKER-SAFE REDIRECT */
+function redirectSafe(){
   if(clicked) return;
   clicked = true;
 
@@ -230,7 +280,39 @@ btn.onclick = () => {
   } else {
     window.location.href = AFFILIATE_LINK;
   }
-};
+}
+
+/* TIMER hh:mm:ss */
+const timer = setInterval(() => {
+  if(time <= 0){
+    clearInterval(timer);
+    btn.textContent = "Expired";
+    btn.style.opacity = 0.65;
+    btn.disabled = true;
+    return;
+  }
+  const H = Math.floor(time / 3600);
+  const M = Math.floor((time % 3600) / 60);
+  const S = time % 60;
+
+  hh.textContent = String(H).padStart(2,'0');
+  mm.textContent = String(M).padStart(2,'0');
+  ss.textContent = String(S).padStart(2,'0');
+
+  time--;
+},1000);
+
+/* CTA */
+btn.addEventListener('click', redirectSafe);
+
+/* OPTIONAL: click outside popup redirects too (match your old behavior)
+   If you DON'T want this, delete this block. */
+overlay.addEventListener('click', (e) => {
+  if(clicked) return;
+  const inside = e.target.closest('.coupon-wrapper');
+  if(inside) return;
+  redirectSafe();
+});
 </script>
 
 </body>
