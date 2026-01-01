@@ -411,17 +411,14 @@
         </ul>
       </div>
 
-      <!-- SECTION: INGREDIENTS (SISTEMA REVIEW - IMAGES FIRST, TEXT AFTER) -->
+      <!-- SECTION: INGREDIENTS -->
       <div class="content-block">
         <h2 class="section-title">{{FORMULA_TITLE}}</h2>
         
-        <!-- 1. Visual Container (Wrapper) -->
         <div class="ingredients-visual">
-          <!-- 2. Grid Injected by Backend -->
           {{INGREDIENT_IMAGES}}
         </div>
 
-        <!-- 3. Explanation Text (After Images) -->
         <p style="color:var(--text-sec); font-size: 17px; max-width: 800px; margin-top: 24px;">
           {{FORMULA_TEXT}}
         </p>
@@ -477,7 +474,7 @@
 
     </main>
 
-    <!-- SIDEBAR (STICKY CHECKOUT STYLE) -->
+    <!-- SIDEBAR -->
     <aside>
       <div class="offer-box">
         <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
@@ -497,9 +494,14 @@
         </div>
       </div>
 
-      <!-- Bonus Section -->
+      <!-- Bonus Section (TESTE 1: CONTEXTO + SEM CONDICIONAL) -->
       <div class="bonus-section">
-        <h4 style="margin-bottom:12px; font-size:16px;">🎁 {{BONUS_TITLE}}</h4>
+        <h4 style="margin-bottom:8px; font-size:16px;">🎁 {{BONUS_TITLE}}</h4>
+
+        <p style="font-size:13px; color:var(--text-sec); margin-bottom:14px;">
+          Some packages may include additional digital materials provided by the manufacturer at no extra cost.
+        </p>
+
         {{BONUS_IMAGES}}
       </div>
 
