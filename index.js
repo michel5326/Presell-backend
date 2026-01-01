@@ -59,7 +59,9 @@ const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL;
    HELPERS
 ========================= */
 function safeUnlink(file) {
-  try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch {}
+  try {
+    if (fs.existsSync(file)) fs.unlinkSync(file);
+  } catch {}
 }
 
 function findTemplate(templateId) {
@@ -69,12 +71,14 @@ function findTemplate(templateId) {
 
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
-  await s3.putObject({
-    Bucket: BUCKET,
-    Key: remoteKey,
-    Body: buffer,
-    ContentType: "image/png",
-  }).promise();
+  await s3
+    .putObject({
+      Bucket: BUCKET,
+      Key: remoteKey,
+      Body: buffer,
+      ContentType: "image/png",
+    })
+    .promise();
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
 
@@ -83,7 +87,9 @@ async function uploadToR2(localPath, remoteKey) {
 ========================= */
 async function extractMainImage(productUrl) {
   try {
-    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
     if (!res.ok) return "";
 
     const html = await res.text();
@@ -103,13 +109,31 @@ async function extractMainImage(productUrl) {
     m = html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
     if (m) return normalize(m[1]);
 
-    const BLOCK = ["logo","icon","order","buy","cta","checkout","badge","seal","bg","hero"];
+    const BLOCK = [
+      "logo",
+      "icon",
+      "order",
+      "buy",
+      "cta",
+      "checkout",
+      "badge",
+      "seal",
+      "bg",
+      "hero",
+    ];
+
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
     for (const i of imgs) {
       const src = normalize(i[1]);
       const low = src.toLowerCase();
-      if (!src || low.startsWith("data:") || low.endsWith(".svg") || BLOCK.some(b=>low.includes(b))) continue;
+      if (
+        !src ||
+        low.startsWith("data:") ||
+        low.endsWith(".svg") ||
+        BLOCK.some((b) => low.includes(b))
+      )
+        continue;
       return src;
     }
     return "";
@@ -123,7 +147,9 @@ async function extractMainImage(productUrl) {
 ========================= */
 async function extractIngredientImages(productUrl) {
   try {
-    const res = await fetch(productUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
     if (!res.ok) return "";
 
     const html = await res.text();
@@ -137,8 +163,17 @@ async function extractIngredientImages(productUrl) {
       return u;
     };
 
-    const INCLUDE = ["ingredient","ingredients","formula","blend","extract"];
-    const EXCLUDE = ["logo","icon","order","buy","cta","checkout","banner","hero"];
+    const INCLUDE = ["ingredient", "ingredients", "formula", "blend", "extract"];
+    const EXCLUDE = [
+      "logo",
+      "icon",
+      "order",
+      "buy",
+      "cta",
+      "checkout",
+      "banner",
+      "hero",
+    ];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
@@ -148,7 +183,8 @@ async function extractIngredientImages(productUrl) {
       const src = normalize(m[1]);
       const low = src.toLowerCase();
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (!INCLUDE.some(w=>low.includes(w)) || EXCLUDE.some(w=>low.includes(w))) continue;
+      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
+        continue;
       out.push(`<img src="${src}" alt="Ingredient" loading="lazy">`);
     }
 
@@ -161,25 +197,25 @@ async function extractIngredientImages(productUrl) {
 }
 
 /* =========================
-   DEEPSEEK — GENERIC
+   DEEPSEEK
 ========================= */
-async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts=3) {
-  for (let i=1;i<=attempts;i++) {
+async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
+  for (let i = 1; i <= attempts; i++) {
     try {
       const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          Authorization:`Bearer ${process.env.DEEPSEEK_API_KEY}`
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         },
-        body:JSON.stringify({
-          model:"deepseek-chat",
-          temperature:0.3,
-          messages:[
-            { role:"system", content: systemPrompt },
-            { role:"user", content: userPrompt }
-          ]
-        })
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          temperature: 0.3,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
       });
 
       const data = await r.json();
@@ -188,8 +224,8 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts=3) {
       if (!match) throw new Error("No JSON");
 
       return JSON.parse(match[0]);
-    } catch(e){
-      if (i===attempts) throw e;
+    } catch (e) {
+      if (i === attempts) throw e;
     }
   }
 }
@@ -199,7 +235,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts=3) {
 ========================= */
 async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
   const ai = await callDeepSeekWithRetry(
-`Return ONLY valid JSON.
+    `Return ONLY valid JSON.
 Required keys:
 HEADLINE
 SUBHEADLINE
@@ -213,32 +249,32 @@ GUARANTEE
 This page is BEFORE purchase.
 This is a BOFU review page.
 Language: ${language}`,
-`Product URL: ${productUrl}`
+    `Product URL: ${productUrl}`
   );
 
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
 
-  let html = fs.readFileSync(templatePath,"utf8");
+  let html = fs.readFileSync(templatePath, "utf8");
 
-  for (const [k,v] of Object.entries(ai)) {
-    html = html.replaceAll(\`{{\${k}}}\`, v);
+  for (const [k, v] of Object.entries(ai)) {
+    html = html.replaceAll(`{{${k}}}`, v);
   }
 
   return html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-    .replaceAll("{{BONUS_IMAGES}}","")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}","");
+    .replaceAll("{{BONUS_IMAGES}}", "")
+    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 }
 
 /* =========================
-   ROBUSTA v2 (PROMPT AJUSTADO)
+   ROBUSTA v2
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
   const ai = await callDeepSeekWithRetry(
-`Return ONLY valid JSON.
+    `Return ONLY valid JSON.
 
 This page is shown immediately BEFORE the user clicks to the official website.
 The user has already read a full review.
@@ -287,23 +323,19 @@ GUARANTEE_TEXT
 DISCLAIMER_TEXT
 
 Rules:
-- Write for someone who is about to click “Buy”
 - Be honest and realistic
 - No medical claims
 - No guaranteed results
-- No emojis
-- No markdown
-- No HTML
 - Plain text only
 
 Output ONLY valid JSON.`,
-`Product URL: ${productUrl}`
+    `Product URL: ${productUrl}`
   );
 
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
 
-  let html = fs.readFileSync(templatePath,"utf8");
+  let html = fs.readFileSync(templatePath, "utf8");
 
   const fixed = {
     SITE_BRAND: "Buyer Guide",
@@ -318,53 +350,70 @@ Output ONLY valid JSON.`,
     SCAM_ALERT_TITLE: "Important notice",
     GUARANTEE_TITLE: "Guarantee",
     BONUS_TITLE: "Available bonuses",
-    FOOTER_DISCLAIMER: "This content is informational only."
+    FOOTER_DISCLAIMER: "This content is informational only.",
   };
 
-  for (const [k,v] of Object.entries({ ...fixed, ...ai })) {
-    html = html.replaceAll(\`{{\${k}}}\`, v);
+  for (const [k, v] of Object.entries({ ...fixed, ...ai })) {
+    html = html.replaceAll(`{{${k}}}`, v);
   }
 
   return html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-    .replaceAll("{{BONUS_IMAGES}}","")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}","");
+    .replaceAll("{{BONUS_IMAGES}}", "")
+    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 }
 
 /* =========================
    GENERATE
 ========================= */
-app.post("/generate", async (req,res)=>{
-  try{
-    if (req.headers["x-worker-token"]!==WORKER_TOKEN)
-      return res.status(403).json({error:"forbidden"});
+app.post("/generate", async (req, res) => {
+  try {
+    if (req.headers["x-worker-token"] !== WORKER_TOKEN)
+      return res.status(403).json({ error: "forbidden" });
 
     const userEmail = req.headers["x-user-email"];
-    if (!userEmail) return res.status(401).json({error:"no user"});
+    if (!userEmail) return res.status(401).json({ error: "no user" });
 
     const { data: access } = await supabaseAdmin
       .from("user_access")
       .select("access_until")
-      .eq("email",userEmail).single();
+      .eq("email", userEmail)
+      .single();
 
-    if (!access || new Date(access.access_until)<new Date())
-      return res.status(403).json({error:"expired"});
+    if (!access || new Date(access.access_until) < new Date())
+      return res.status(403).json({ error: "expired" });
 
-    const { templateId, productUrl, affiliateUrl, language="en", legacyData={}, ...flatBody } = req.body;
+    const {
+      templateId,
+      productUrl,
+      affiliateUrl,
+      language = "en",
+      legacyData = {},
+      ...flatBody
+    } = req.body;
 
     const templatePath = findTemplate(templateId);
-    if (!templatePath) return res.status(404).json({error:"no template"});
+    if (!templatePath) return res.status(404).json({ error: "no template" });
 
-    if (templateId==="review") {
-      const html = await generateBofuReview({templatePath,affiliateUrl,productUrl,language});
-      return res.status(200).set("Content-Type","text/html").send(html);
+    if (templateId === "review") {
+      const html = await generateBofuReview({
+        templatePath,
+        affiliateUrl,
+        productUrl,
+        language,
+      });
+      return res.status(200).set("Content-Type", "text/html").send(html);
     }
 
-    if (templateId==="robusta") {
-      const html = await generateRobusta({templatePath,affiliateUrl,productUrl});
-      return res.status(200).set("Content-Type","text/html").send(html);
+    if (templateId === "robusta") {
+      const html = await generateRobusta({
+        templatePath,
+        affiliateUrl,
+        productUrl,
+      });
+      return res.status(200).set("Content-Type", "text/html").send(html);
     }
 
     /* ===== LEGACY (INTOCADO) ===== */
@@ -375,37 +424,46 @@ app.post("/generate", async (req,res)=>{
     delete finalLegacyData.language;
 
     const id = uuid();
-    const d = \`desktop-\${id}.png\`;
-    const m = \`mobile-\${id}.png\`;
+    const d = `desktop-${id}.png`;
+    const m = `mobile-${id}.png`;
 
-    const browser = await chromium.launch({headless:true});
-    const p = await browser.newPage({viewport:{width:1366,height:768}});
-    await p.goto(productUrl); await p.screenshot({path:d}); await p.close();
+    const browser = await chromium.launch({ headless: true });
+
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    await p.goto(productUrl);
+    await p.screenshot({ path: d });
+    await p.close();
 
     const p2 = await browser.newPage(devices["iPhone 12"]);
-    await p2.goto(productUrl); await p2.screenshot({path:m}); await p2.close();
+    await p2.goto(productUrl);
+    await p2.screenshot({ path: m });
+    await p2.close();
 
-    const du = await uploadToR2(d,\`desktop/\${d}\`);
-    const mu = await uploadToR2(m,\`mobile/\${m}\`);
+    const du = await uploadToR2(d, `desktop/${d}`);
+    const mu = await uploadToR2(m, `mobile/${m}`);
 
-    safeUnlink(d); safeUnlink(m); await browser.close();
+    safeUnlink(d);
+    safeUnlink(m);
+    await browser.close();
 
-    let html = fs.readFileSync(templatePath,"utf8")
-      .replaceAll("{{DESKTOP_PRINT}}",du)
-      .replaceAll("{{MOBILE_PRINT}}",mu)
-      .replaceAll("{{AFFILIATE_LINK}}",affiliateUrl);
+    let html = fs.readFileSync(templatePath, "utf8")
+      .replaceAll("{{DESKTOP_PRINT}}", du)
+      .replaceAll("{{MOBILE_PRINT}}", mu)
+      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-    for (const [k,v] of Object.entries(finalLegacyData)) {
-      html = html.replaceAll(\`{{\${k}}}\`,String(v));
+    for (const [k, v] of Object.entries(finalLegacyData)) {
+      html = html.replaceAll(`{{${k}}}`, String(v));
     }
 
-    return res.status(200).set("Content-Type","text/html").send(html);
-
-  } catch(e){
-    console.error("❌",e.message);
-    return res.status(502).json({error:"generation_failed",message:e.message});
+    return res.status(200).set("Content-Type", "text/html").send(html);
+  } catch (e) {
+    console.error("❌", e.message);
+    return res.status(502).json({
+      error: "generation_failed",
+      message: e.message,
+    });
   }
 });
 
-const PORT = process.env.PORT||3000;
-app.listen(PORT,()=>console.log(\`🚀 WORKER \${PORT}\`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 WORKER ${PORT}`));
