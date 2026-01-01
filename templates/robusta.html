@@ -13,8 +13,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
-  <!-- Tracker Head removido pois o backend 'robusta' não preenche -->
-
   <style>
     :root {
       /* --- CORE COLORS --- */
@@ -84,47 +82,68 @@
     /* --- HERO SECTION --- */
     .hero {
       max-width: 1300px; margin: 0 auto; padding: 60px 24px;
-      display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-rows: auto auto; /* Duas linhas: Topo e Baixo */
+      gap: 40px; /* Espaço entre colunas e linhas */
+      align-items: start;
     }
 
-    .hero-text h1 {
+    /* --- HERO PARTS --- */
+    .hero-part-top {
+      grid-column: 1; /* Coluna Esquerda */
+      grid-row: 1;    /* Linha 1 */
+    }
+
+    .hero-part-bottom {
+      grid-column: 1; /* Coluna Esquerda */
+      grid-row: 2;    /* Linha 2 */
+    }
+
+    .hero-img-wrapper {
+      grid-column: 2; /* Coluna Direita */
+      grid-row: 1 / span 2; /* Ocupa as duas linhas (Altura total) */
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%; /* Garante altura total no desktop */
+    }
+
+    /* Text Styling */
+    .hero-part-top h1 {
       font-size: clamp(36px, 5vw, 58px);
       line-height: 1.1;
-      margin-bottom: 24px;
+      margin-bottom: 0;
       font-weight: 800;
-      /* H1 branca sólida para garantir leitura, com brilho sutil */
       text-shadow: 0 0 20px rgba(255,255,255,0.1);
     }
 
+    .hero-label {
+      color:var(--primary); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;
+    }
+
     .hero-sub {
-      font-size: 18px; color: var(--text-sec); margin-bottom: 16px; max-width: 90%;
+      font-size: 18px; color: var(--text-sec); margin-bottom: 16px;
     }
     
     .positioning-text {
       font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary); padding-left: 16px;
     }
 
-    .hero-img-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Glow atrás da imagem principal - Ajustado para visibilidade */
+    /* Image Styling */
     .hero-img-wrapper::before {
-      content: ''; position: absolute; inset: -10px; /* Ajustei o inset */
+      content: ''; position: absolute; inset: -10px;
       background: var(--gradient-main); filter: blur(80px); opacity: 0.4; z-index: -1;
       border-radius: 50%;
     }
 
-    /* Estilo da Imagem Principal - Ajustado para ficar igual ao modelo */
     .hero-img {
       width: 100%;
-      max-width: 450px; /* Limite de tamanho para não ficar esticada */
+      max-width: 450px;
       height: auto;
       display: block;
-      margin: 0 auto; /* Centralizar */
+      margin: 0 auto;
       border-radius: 24px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       border: 1px solid var(--border);
@@ -235,11 +254,17 @@
 
     /* --- RESPONSIVE --- */
     @media (max-width: 900px) {
-      .hero, .container { grid-template-columns: 1fr; }
-      .hero { text-align: center; padding-top: 30px; }
-      .hero-sub { margin: 0 auto 20px; }
-      .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; margin: 0 auto 30px; }
-      .hero-img { margin-top: 30px; transform: none; max-width: 300px; }
+      .hero {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        padding-top: 30px;
+      }
+      
+      .hero-img { margin: 20px 0; transform: none; max-width: 300px; }
+      .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; }
+      
+      .container { grid-template-columns: 1fr; }
       aside { position: static; margin-bottom: 40px; order: -1; }
     }
   </style>
@@ -265,13 +290,23 @@
 
   <!-- HERO SECTION -->
   <section class="hero">
-    <div class="hero-text">
-      <span style="color:var(--primary); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;">
+    
+    <!-- PART 1: Rótulo e Headline -->
+    <div class="hero-part-top">
+      <span class="hero-label">
         {{DECISION_STAGE_LINE}}
       </span>
 
       <h1>{{HEADLINE_MAIN}}</h1>
-      
+    </div>
+
+    <!-- PART 2: Imagem (Centralizada no Desktop, no meio do mobile) -->
+    <div class="hero-img-wrapper">
+      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
+    </div>
+
+    <!-- PART 3: Subheadline, Texto e Botão -->
+    <div class="hero-part-bottom">
       <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
       
       <div class="positioning-text">
@@ -283,9 +318,6 @@
       </a>
     </div>
 
-    <div class="hero-img-wrapper">
-      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
-    </div>
   </section>
 
   <div class="container">
@@ -407,7 +439,6 @@
         <div class="offer-title">{{HEADLINE_MAIN}}</div>
         <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
 
-        <!-- Imagem da Sidebar centralizada e com tamanho controlado -->
         <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
             <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
         </div>
