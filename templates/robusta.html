@@ -13,6 +13,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
+  {{TRACKER_HEAD}}
+
   <style>
     :root {
       /* --- CORE COLORS --- */
@@ -108,6 +110,14 @@
 
     .hero-img-wrapper {
       position: relative;
+      /* Robustez: Min-height e Background caso a imagem falhe */
+      min-height: 300px;
+      background: var(--bg-card);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
 
     .hero-img-wrapper::before {
@@ -116,19 +126,22 @@
       border-radius: 50%;
     }
 
-    .hero-img {
+    /* Robustez: Estilo para img injetada */
+    .hero-img-wrapper img {
       width: 100%;
+      height: auto;
+      max-height: 500px;
+      object-fit: contain;
       border-radius: 24px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       border: 1px solid var(--border);
       transform: rotate(-2deg);
       transition: 0.3s;
-      display:block;
-      height:auto;
-      background: var(--bg-card);
-      object-fit: contain;
+      display: block;
+      /* Se a imagem não carregar, mostra o fundo do wrapper */
+      background: transparent;
     }
-    .hero-img:hover { transform: rotate(0deg) scale(1.02); }
+    .hero-img-wrapper img:hover { transform: rotate(0deg) scale(1.02); }
 
     /* --- MAIN LAYOUT --- */
     .container {
@@ -281,6 +294,7 @@
     </div>
 
     <div class="hero-img-wrapper">
+      <!-- A imagem é injetada aqui. O container tem background e min-height para segurança -->
       {{PRODUCT_IMAGE}}
     </div>
   </section>
@@ -344,7 +358,7 @@
 
       <!-- SECTION: INGREDIENTS -->
       <div class="content-block">
-        <!-- The backend injects the full HTML block including the div wrapper -->
+        <!-- O backend injeta o bloco HTML completo (div + imagens) -->
         {{INGREDIENT_IMAGES}}
       </div>
 
@@ -405,8 +419,8 @@
         <div class="offer-title">{{HEADLINE_MAIN}}</div>
         <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
 
-        <div style="margin-bottom:20px; min-height: 200px; display:flex; align-items:center; justify-content:center; background:#000; border-radius:12px; border:1px solid var(--border);">
-            <!-- Using the injected product image or a fallback -->
+        <!-- Container robusto para imagem lateral -->
+        <div style="margin-bottom:20px; min-height: 200px; display:flex; align-items:center; justify-content:center; background:var(--bg-card); border-radius:12px; border:1px solid var(--border); overflow:hidden;">
             {{PRODUCT_IMAGE}}
         </div>
 
@@ -419,7 +433,7 @@
         </div>
       </div>
 
-      <!-- Bonus Section (Backend replaces {{BONUS_IMAGES}} with empty string, but keeps Title) -->
+      <!-- Bonus Section -->
       <div class="bonus-section">
         <h4 style="margin-bottom:12px; font-size:16px;">🎁 {{BONUS_TITLE}}</h4>
         {{BONUS_IMAGES}}
@@ -434,6 +448,9 @@
   <footer>
     <div>{{FOOTER_DISCLAIMER}}</div>
   </footer>
+
+  <!-- MOVIDO PARA O FINAL DO BODY PARA NÃO BLOQUEAR RENDERIZAÇÃO DE IMAGENS -->
+  {{TRACKER_BODY}}
 
   <script>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
