@@ -13,10 +13,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
-  {{TRACKER_HEAD}}
-
   <style>
     :root {
+      /* --- CORE COLORS --- */
       --bg-body: #02040a;
       --bg-card: #0f1525;
       --bg-card-hover: #161e33;
@@ -26,6 +25,8 @@
       --text-main: #ffffff;
       --text-sec: #94a3b8;
       --border: rgba(255,255,255,0.08);
+      
+      /* --- GRADIENTS & FX --- */
       --gradient-main: linear-gradient(135deg, #00e676 0%, #00b0ff 100%);
       --shadow-glow: 0 0 60px rgba(0, 230, 118, 0.15);
       --radius: 16px;
@@ -41,8 +42,10 @@
       overflow-x: hidden;
     }
 
+    /* Typography */
     h1, h2, h3, .btn { font-family: 'Outfit', sans-serif; }
-    a { text-decoration: none; }
+    a { text-decoration: none; transition: all 0.3s ease; }
+    p { margin-bottom: 1rem; }
 
     /* --- BACKGROUND FX --- */
     .bg-glow {
@@ -67,6 +70,14 @@
 
     .logo { font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
     .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
+    
+    .header-info {
+      display: flex; align-items: center; gap: 15px;
+    }
+
+    .updated-pill {
+      font-size: 12px; color: var(--text-sec);
+    }
 
     /* --- HERO SECTION --- */
     .hero {
@@ -88,7 +99,11 @@
     }
 
     .hero-sub {
-      font-size: 18px; color: var(--text-sec); margin-bottom: 32px; max-width: 90%;
+      font-size: 18px; color: var(--text-sec); margin-bottom: 16px; max-width: 90%;
+    }
+    
+    .positioning-text {
+      font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary); padding-left: 16px;
     }
 
     .hero-img-wrapper {
@@ -110,7 +125,8 @@
       transition: 0.3s;
       display:block;
       height:auto;
-      background: transparent;
+      background: var(--bg-card);
+      object-fit: contain;
     }
     .hero-img:hover { transform: rotate(0deg) scale(1.02); }
 
@@ -140,35 +156,27 @@
     }
     .feature-card:hover { transform: translateY(-5px); border-color: var(--primary); background: var(--bg-card-hover); }
 
-    .feature-card h3 { font-size: 18px; margin-bottom: 10px; color: #fff; }
-    .feature-card p { font-size: 14px; color: var(--text-sec); margin: 0; line-height: 1.5; }
+    .feature-card p { font-size: 15px; color: #cbd5e1; margin: 0; line-height: 1.6; }
 
     .icon-box {
       width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 10px;
       display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary);
     }
 
-    /* --- IMAGE STRIP --- */
-    .img-strip {
-      width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius);
-      border: 1px solid var(--border); margin: 20px 0;
-      display:block;
+    /* --- LIST STYLES --- */
+    ul.styled-list {
+      list-style: none;
     }
-
-    /* --- IMAGE GRID (for ingredients/bonus/testimonials if you use it) --- */
-    .image-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:14px;
-      margin-top:16px;
+    ul.styled-list li {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 16px;
+      color: var(--text-sec);
     }
-    .image-grid img{
-      width:100%;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:#000;
-      display:block;
-      height:auto;
+    ul.styled-list li::before {
+      content: '→';
+      position: absolute; left: 0; top: 2px;
+      color: var(--primary); font-weight: 800;
     }
 
     /* --- STICKY SIDEBAR --- */
@@ -205,11 +213,16 @@
 
     /* --- ALERTS --- */
     .alert {
-      padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 14px;
+      padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 15px;
     }
     .alert.warn { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #fcd34d; }
     .alert.danger { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #fca5a5; }
     .alert.info { background: rgba(41, 121, 255, 0.1); border-color: #2979ff; color: #93c5fd; }
+
+    /* --- BONUS BLOCK --- */
+    .bonus-section {
+      margin-top: 24px; padding: 24px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);
+    }
 
     /* --- FOOTER --- */
     footer {
@@ -221,7 +234,8 @@
     @media (max-width: 900px) {
       .hero, .container { grid-template-columns: 1fr; }
       .hero { text-align: center; padding-top: 30px; }
-      .hero-sub { margin: 0 auto 30px; }
+      .hero-sub { margin: 0 auto 20px; }
+      .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; margin: 0 auto 30px; }
       .hero-img { margin-top: 30px; transform: none; }
       aside { position: static; margin-bottom: 40px; order: -1; }
     }
@@ -229,8 +243,6 @@
 </head>
 
 <body>
-
-  {{TRACKER_BODY}}
 
   <div class="bg-glow"></div>
   <div class="bg-glow-2"></div>
@@ -240,28 +252,36 @@
     <div class="logo">
       <span class="dot"></span> {{SITE_BRAND}}
     </div>
-    <a href="javascript:void(0)" onclick="doRedirect()" style="font-size:14px; font-weight:600; color:var(--primary);" rel="nofollow sponsored">
-      {{HEADER_CTA_TEXT}} &rarr;
-    </a>
+    <div class="header-info">
+      <span class="updated-pill">Updated: {{UPDATED_DATE}}</span>
+      <a href="javascript:void(0)" onclick="doRedirect()" style="font-size:14px; font-weight:600; color:var(--primary);">
+        {{CTA_BUTTON_TEXT}} &rarr;
+      </a>
+    </div>
   </header>
 
   <!-- HERO SECTION -->
   <section class="hero">
     <div class="hero-text">
       <span style="color:var(--primary); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;">
-        {{UPDATED_LINE}}
+        {{DECISION_STAGE_LINE}}
       </span>
 
       <h1>{{HEADLINE_MAIN}}</h1>
+      
       <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
+      
+      <div class="positioning-text">
+        {{POSITIONING_STATEMENT}}
+      </div>
 
-      <a href="javascript:void(0)" class="btn" style="width: auto; padding: 16px 32px;" onclick="doRedirect()" rel="nofollow sponsored">
+      <a href="javascript:void(0)" class="btn" style="width: auto; padding: 16px 32px;" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}}
       </a>
     </div>
 
     <div class="hero-img-wrapper">
-      <img src="{{PRODUCT_IMAGE}}" class="hero-img" alt="Product image" loading="lazy">
+      {{PRODUCT_IMAGE}}
     </div>
   </section>
 
@@ -273,8 +293,7 @@
       <!-- SECTION: THE PROBLEM -->
       <div class="content-block">
         <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p style="color:var(--text-sec); font-size: 17px;">{{PRIMARY_PROBLEM_P1}}</p>
-        <p style="color:var(--text-sec); font-size: 17px;">{{PRIMARY_PROBLEM_P2}}</p>
+        <p style="color:var(--text-sec); font-size: 17px;">{{PRIMARY_PROBLEM_TEXT}}</p>
       </div>
 
       <!-- SECTION: WHY DIFFERENT (CARDS) -->
@@ -288,8 +307,7 @@
                 <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
               </svg>
             </div>
-            <h3>{{WHY_DIFFERENT_1_TITLE}}</h3>
-            <p>{{WHY_DIFFERENT_1_TEXT}}</p>
+            <p>{{WHY_DIFFERENT_1}}</p>
           </div>
 
           <div class="feature-card">
@@ -298,8 +316,7 @@
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
               </svg>
             </div>
-            <h3>{{WHY_DIFFERENT_2_TITLE}}</h3>
-            <p>{{WHY_DIFFERENT_2_TEXT}}</p>
+            <p>{{WHY_DIFFERENT_2}}</p>
           </div>
 
           <div class="feature-card">
@@ -309,8 +326,7 @@
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
             </div>
-            <h3>{{WHY_DIFFERENT_3_TITLE}}</h3>
-            <p>{{WHY_DIFFERENT_3_TEXT}}</p>
+            <p>{{WHY_DIFFERENT_3}}</p>
           </div>
 
         </div>
@@ -319,40 +335,17 @@
       <!-- SECTION: HOW IT WORKS -->
       <div class="content-block">
         <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
-        <ul style="list-style:none;">
-
-          <li style="margin-bottom:20px; display:flex; gap:15px;">
-            <div style="min-width:24px; height:24px; background:var(--primary); border-radius:50%; color:#000; font-weight:800; display:flex; align-items:center; justify-content:center;">1</div>
-            <div>
-              <h4 style="margin-bottom:5px;">{{MECHANISM_STEP_1_TITLE}}</h4>
-              <p style="font-size:14px; color:var(--text-sec); margin:0;">{{MECHANISM_STEP_1_TEXT}}</p>
-            </div>
-          </li>
-
-          <li style="margin-bottom:20px; display:flex; gap:15px;">
-            <div style="min-width:24px; height:24px; background:var(--primary); border-radius:50%; color:#000; font-weight:800; display:flex; align-items:center; justify-content:center;">2</div>
-            <div>
-              <h4 style="margin-bottom:5px;">{{MECHANISM_STEP_2_TITLE}}</h4>
-              <p style="font-size:14px; color:var(--text-sec); margin:0;">{{MECHANISM_STEP_2_TEXT}}</p>
-            </div>
-          </li>
-
-          <li style="display:flex; gap:15px;">
-            <div style="min-width:24px; height:24px; background:var(--primary); border-radius:50%; color:#000; font-weight:800; display:flex; align-items:center; justify-content:center;">3</div>
-            <div>
-              <h4 style="margin-bottom:5px;">{{MECHANISM_STEP_3_TITLE}}</h4>
-              <p style="font-size:14px; color:var(--text-sec); margin:0;">{{MECHANISM_STEP_3_TEXT}}</p>
-            </div>
-          </li>
-
+        <ul class="styled-list">
+          <li>{{MECHANISM_STEP_1}}</li>
+          <li>{{MECHANISM_STEP_2}}</li>
+          <li>{{MECHANISM_STEP_3}}</li>
         </ul>
       </div>
 
       <!-- SECTION: INGREDIENTS -->
       <div class="content-block">
-        <h2 class="section-title">{{FORMULA_TITLE}}</h2>
+        <!-- The backend injects the full HTML block including the div wrapper -->
         {{INGREDIENT_IMAGES}}
-        <div>{{FORMULA_TEXT}}</div>
       </div>
 
       <!-- SECTION: TARGET AUDIENCE -->
@@ -360,31 +353,42 @@
         <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
         <div class="grid-3">
           <div class="feature-card" style="padding:16px;">
-            <p style="font-size:13px;">{{WHO_SHOULD_1}}</p>
+            <p>{{WHO_SHOULD_1}}</p>
           </div>
           <div class="feature-card" style="padding:16px;">
-            <p style="font-size:13px;">{{WHO_SHOULD_2}}</p>
+            <p>{{WHO_SHOULD_2}}</p>
           </div>
           <div class="feature-card" style="padding:16px;">
-            <p style="font-size:13px;">{{WHO_SHOULD_3}}</p>
+            <p>{{WHO_SHOULD_3}}</p>
           </div>
         </div>
       </div>
 
-      <!-- WARNINGS -->
+      <!-- SECTION: WHO SHOULD NOT (WARNINGS) -->
       <div class="content-block">
-        <h2 class="section-title">{{WARNINGS_TITLE}}</h2>
-
+        <h2 class="section-title">{{WHO_SHOULD_NOT_TITLE}}</h2>
         <div class="alert danger">
-          <strong>{{WHO_SHOULD_NOT_TITLE}}:</strong> {{WHO_NOT_INLINE}}
+          <ul class="styled-list" style="margin:0;">
+            <li>{{WHO_NOT_1}}</li>
+            <li>{{WHO_NOT_2}}</li>
+            <li>{{WHO_NOT_3}}</li>
+          </ul>
         </div>
+      </div>
 
+      <!-- SCAM ALERT -->
+      <div class="content-block">
+        <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
         <div class="alert warn">
-          <strong>{{SCAM_ALERT_TITLE}}:</strong> {{SCAM_ALERT_TEXT}}
+          {{SCAM_ALERT_TEXT}}
         </div>
+      </div>
 
+      <!-- GUARANTEE -->
+      <div class="content-block">
+        <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info">
-          <strong>{{GUARANTEE_TITLE}}:</strong> {{GUARANTEE_TEXT}}
+          {{GUARANTEE_TEXT}}
         </div>
       </div>
 
@@ -397,27 +401,31 @@
     <!-- SIDEBAR (STICKY CHECKOUT STYLE) -->
     <aside>
       <div class="offer-box">
-        <div class="offer-badge">{{OFFER_BADGE}}</div>
-        <div class="offer-title">{{OFFER_TITLE}}</div>
-        <div class="offer-sub">{{OFFER_SUBTITLE}}</div>
+        <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
+        <div class="offer-title">{{HEADLINE_MAIN}}</div>
+        <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
 
-        <img src="{{PRODUCT_IMAGE}}" style="width:100%; border-radius:12px; margin-bottom:20px; border:1px solid var(--border);" alt="Product" loading="lazy">
+        <div style="margin-bottom:20px; min-height: 200px; display:flex; align-items:center; justify-content:center; background:#000; border-radius:12px; border:1px solid var(--border);">
+            <!-- Using the injected product image or a fallback -->
+            {{PRODUCT_IMAGE}}
+        </div>
 
-        <a href="javascript:void(0)" class="btn" onclick="doRedirect()" rel="nofollow sponsored">{{CTA_BUTTON_TEXT}}</a>
+        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
 
         <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:12px; color:var(--text-sec);">
-          <span>🔒 {{SECURE_TEXT}}</span>
+          <span>🔒 Secure Checkout</span>
           <span>•</span>
-          <span>{{SHIPPING_TEXT}}</span>
+          <span>Official Site</span>
         </div>
       </div>
 
-      <div style="margin-top:24px; padding:24px; background:var(--bg-card); border-radius:16px; border:1px solid var(--border);">
+      <!-- Bonus Section (Backend replaces {{BONUS_IMAGES}} with empty string, but keeps Title) -->
+      <div class="bonus-section">
         <h4 style="margin-bottom:12px; font-size:16px;">🎁 {{BONUS_TITLE}}</h4>
-        {{BONUS_BLOCK}}
+        {{BONUS_IMAGES}}
       </div>
 
-      {{TESTIMONIAL_BLOCK}}
+      {{TESTIMONIAL_IMAGES}}
 
     </aside>
 
