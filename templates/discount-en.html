@@ -10,7 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-/* ===== BACKGROUND IMAGES ===== */
 :root{
   --desktop-bg-image:url('{{DESKTOP_PRINT}}');
   --mobile-bg-image:url('{{MOBILE_PRINT}}');
@@ -27,10 +26,11 @@ html,body{
   font-family:Poppins,sans-serif;
 }
 
-/* ===== BACKGROUND CONTAINER ===== */
+/* BACKGROUND */
 .background-container{
   position:fixed;
   inset:0;
+  background:#000;
   background-image:var(--desktop-bg-image);
   background-size:cover;
   background-position:center;
@@ -44,7 +44,7 @@ html,body{
   }
 }
 
-/* ===== OVERLAY ===== */
+/* OVERLAY */
 .overlay{
   position:fixed;
   inset:0;
@@ -62,7 +62,7 @@ html,body{
   pointer-events:auto;
 }
 
-/* ===== POPUP ===== */
+/* POPUP */
 .popup{
   background:#fff;
   border-radius:18px;
@@ -74,9 +74,7 @@ html,body{
   transition:.4s ease;
 }
 
-.overlay.show .popup{
-  transform:scale(1);
-}
+.overlay.show .popup{transform:scale(1)}
 
 h2{
   font-size:20px;
@@ -149,10 +147,8 @@ button{
 
 <body>
 
-<!-- BACKGROUND -->
 <div class="background-container"></div>
 
-<!-- POPUP -->
 <div class="overlay" id="overlay">
   <div class="popup">
     <h2>{{PLAN_TITLE}}</h2>
@@ -173,12 +169,8 @@ button{
     </div>
 
     <div class="timer">
-      <div class="time-box">
-        <span id="m">00</span>Min
-      </div>
-      <div class="time-box">
-        <span id="s">00</span>Sec
-      </div>
+      <div class="time-box"><span id="m">00</span>Min</div>
+      <div class="time-box"><span id="s">00</span>Sec</div>
     </div>
 
     <button id="cta">Get Discount</button>
@@ -186,57 +178,49 @@ button{
 </div>
 
 <script>
-/* ===== BACKEND CONTRACT (SAFE) ===== */
+/* ===== BACKEND CONTRACT ===== */
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-
 const ANCHOR_PRICE  = Number("{{ANCHOR_PRICE}}") || 0;
 const YOUR_PRICE    = Number("{{YOUR_PRICE}}") || 0;
 const OFFER_MINUTES = Number("{{OFFER_MINUTES}}") || 5;
 
-/* ===== ELEMENTS ===== */
+/* ELEMENTS */
 const overlay  = document.getElementById('overlay');
 const anchorEl = document.getElementById('anchor');
 const priceEl  = document.getElementById('price');
 const unitEl   = document.getElementById('unit');
-const m        = document.getElementById('m');
-const s        = document.getElementById('s');
-const btn      = document.getElementById('cta');
+const m = document.getElementById('m');
+const s = document.getElementById('s');
+const btn = document.getElementById('cta');
 
-/* ===== STATE ===== */
+/* STATE */
 let time = OFFER_MINUTES * 60;
 let clicked = false;
-let timerInterval = null;
 
-/* ===== SHOW POPUP ===== */
+/* SHOW POPUP */
 document.addEventListener('DOMContentLoaded', () => {
   overlay.classList.add('show');
 });
 
-/* ===== INIT VALUES ===== */
+/* INIT VALUES */
 anchorEl.textContent = ANCHOR_PRICE;
 priceEl.textContent  = YOUR_PRICE;
 unitEl.textContent   = YOUR_PRICE ? (YOUR_PRICE / 6).toFixed(2) : '0.00';
 
-/* ===== TIMER ===== */
-function startTimer(){
-  if(timerInterval) clearInterval(timerInterval);
+/* TIMER */
+const timer = setInterval(() => {
+  if(time <= 0){
+    btn.textContent = 'Expired';
+    btn.style.opacity = 0.6;
+    clearInterval(timer);
+    return;
+  }
+  m.textContent = String(Math.floor(time / 60)).padStart(2,'0');
+  s.textContent = String(time % 60).padStart(2,'0');
+  time--;
+},1000);
 
-  timerInterval = setInterval(() => {
-    if(time <= 0){
-      btn.textContent = 'Expired';
-      btn.style.opacity = 0.6;
-      btn.onclick = null;
-      clearInterval(timerInterval);
-      return;
-    }
-    m.textContent = String(Math.floor(time / 60)).padStart(2,'0');
-    s.textContent = String(time % 60).padStart(2,'0');
-    time--;
-  },1000);
-}
-startTimer();
-
-/* ===== CTA (TRACKER SAFE) ===== */
+/* CTA — TRACKER SAFE */
 btn.onclick = () => {
   if(clicked) return;
   clicked = true;
