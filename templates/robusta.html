@@ -126,8 +126,8 @@
       border-radius: 50%;
     }
 
-    /* Robustez: Estilo para img injetada */
-    .hero-img-wrapper img {
+    /* Estilo da Imagem Principal */
+    .hero-img {
       width: 100%;
       height: auto;
       max-height: 500px;
@@ -138,10 +138,9 @@
       transform: rotate(-2deg);
       transition: 0.3s;
       display: block;
-      /* Se a imagem não carregar, mostra o fundo do wrapper */
       background: transparent;
     }
-    .hero-img-wrapper img:hover { transform: rotate(0deg) scale(1.02); }
+    .hero-img:hover { transform: rotate(0deg) scale(1.02); }
 
     /* --- MAIN LAYOUT --- */
     .container {
@@ -294,8 +293,8 @@
     </div>
 
     <div class="hero-img-wrapper">
-      <!-- A imagem é injetada aqui. O container tem background e min-height para segurança -->
-      {{PRODUCT_IMAGE}}
+      <!-- CORREÇÃO AQUI: Adicionei a tag <img> envolvendo a URL -->
+      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
     </div>
   </section>
 
@@ -419,9 +418,9 @@
         <div class="offer-title">{{HEADLINE_MAIN}}</div>
         <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
 
-        <!-- Container robusto para imagem lateral -->
+        <!-- CORREÇÃO AQUI: Adicionei a tag <img> envolvendo a URL -->
         <div style="margin-bottom:20px; min-height: 200px; display:flex; align-items:center; justify-content:center; background:var(--bg-card); border-radius:12px; border:1px solid var(--border); overflow:hidden;">
-            {{PRODUCT_IMAGE}}
+            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width:100%; height:auto; border-radius:12px; border:1px solid var(--border); display:block;" loading="lazy">
         </div>
 
         <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
