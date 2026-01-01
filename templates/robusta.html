@@ -246,6 +246,25 @@
       margin-top: 24px; padding: 24px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);
     }
 
+    /* --- INGREDIENTS VISUAL CONTAINER --- */
+    .ingredients-visual {
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      /* Centraliza a grade dentro do card */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    /* Estilo interno das imagens injetadas */
+    .ingredients-visual .image-grid {
+      width: 100%;
+    }
+
     /* --- FOOTER --- */
     footer {
       text-align: center; padding: 60px 20px; color: #475569; font-size: 12px;
@@ -377,9 +396,19 @@
         </ul>
       </div>
 
-      <!-- SECTION: INGREDIENTS -->
+      <!-- SECTION: INGREDIENTS (AJUSTADO PARA COESÃO) -->
       <div class="content-block">
-        {{INGREDIENT_IMAGES}}
+        <h2 class="section-title">Proprietary Formula</h2>
+        
+        <!-- Texto explicativo que une a imagem -->
+        <p style="color:var(--text-sec); font-size: 17px; max-width: 800px; margin-bottom: 24px;">
+          {{FORMULA_TEXT}}
+        </p>
+
+        <!-- Container Visual agrupando as imagens -->
+        <div class="ingredients-visual">
+          {{INGREDIENT_IMAGES}}
+        </div>
       </div>
 
       <!-- SECTION: TARGET AUDIENCE -->
