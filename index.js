@@ -222,7 +222,7 @@ Language: ${language}`,
   let html = fs.readFileSync(templatePath,"utf8");
 
   for (const [k,v] of Object.entries(ai)) {
-    html = html.replaceAll(`{{${k}}}`, v);
+    html = html.replaceAll(\`{{\${k}}}\`, v);
   }
 
   return html
@@ -234,11 +234,34 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA (AJUSTADA)
+   ROBUSTA v2 (PROMPT AJUSTADO)
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
   const ai = await callDeepSeekWithRetry(
 `Return ONLY valid JSON.
+
+This page is shown immediately BEFORE the user clicks to the official website.
+The user has already read a full review.
+Your role is NOT to educate, but to CONFIRM the decision and REDUCE risk.
+
+Tone:
+- Confident
+- Calm
+- Direct
+- No hype
+- No exaggerated promises
+- No urgency tricks
+
+Avoid:
+- Long explanations
+- Teaching concepts
+- Review-style comparisons
+
+Focus on:
+- Who this product is really for
+- Why it makes sense now
+- What the user should realistically expect
+- Safety, legitimacy, and clarity
 
 Required keys:
 PAGE_TITLE
@@ -263,8 +286,17 @@ SCAM_ALERT_TEXT
 GUARANTEE_TEXT
 DISCLAIMER_TEXT
 
-This page is BEFORE purchase.
-This is a BOFU robustness page.`,
+Rules:
+- Write for someone who is about to click “Buy”
+- Be honest and realistic
+- No medical claims
+- No guaranteed results
+- No emojis
+- No markdown
+- No HTML
+- Plain text only
+
+Output ONLY valid JSON.`,
 `Product URL: ${productUrl}`
   );
 
@@ -290,7 +322,7 @@ This is a BOFU robustness page.`,
   };
 
   for (const [k,v] of Object.entries({ ...fixed, ...ai })) {
-    html = html.replaceAll(`{{${k}}}`, v);
+    html = html.replaceAll(\`{{\${k}}}\`, v);
   }
 
   return html
@@ -343,8 +375,8 @@ app.post("/generate", async (req,res)=>{
     delete finalLegacyData.language;
 
     const id = uuid();
-    const d = `desktop-${id}.png`;
-    const m = `mobile-${id}.png`;
+    const d = \`desktop-\${id}.png\`;
+    const m = \`mobile-\${id}.png\`;
 
     const browser = await chromium.launch({headless:true});
     const p = await browser.newPage({viewport:{width:1366,height:768}});
@@ -353,8 +385,8 @@ app.post("/generate", async (req,res)=>{
     const p2 = await browser.newPage(devices["iPhone 12"]);
     await p2.goto(productUrl); await p2.screenshot({path:m}); await p2.close();
 
-    const du = await uploadToR2(d,`desktop/${d}`);
-    const mu = await uploadToR2(m,`mobile/${m}`);
+    const du = await uploadToR2(d,\`desktop/\${d}\`);
+    const mu = await uploadToR2(m,\`mobile/\${m}\`);
 
     safeUnlink(d); safeUnlink(m); await browser.close();
 
@@ -364,7 +396,7 @@ app.post("/generate", async (req,res)=>{
       .replaceAll("{{AFFILIATE_LINK}}",affiliateUrl);
 
     for (const [k,v] of Object.entries(finalLegacyData)) {
-      html = html.replaceAll(`{{${k}}}`,String(v));
+      html = html.replaceAll(\`{{\${k}}}\`,String(v));
     }
 
     return res.status(200).set("Content-Type","text/html").send(html);
@@ -376,4 +408,4 @@ app.post("/generate", async (req,res)=>{
 });
 
 const PORT = process.env.PORT||3000;
-app.listen(PORT,()=>console.log(`🚀 WORKER ${PORT}`));
+app.listen(PORT,()=>console.log(\`🚀 WORKER \${PORT}\`));
