@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="es-ES">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Special Offer - Limited Time</title>
+<title>Oferta especial</title>
 
-<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+<link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+<link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
+
 <style>
+/* CSS INALTERADO */
 :root{
   --desktop-bg-image:url('{{DESKTOP_PRINT}}');
   --mobile-bg-image:url('{{MOBILE_PRINT}}');
+  --accent:#35A35C;
+  --danger:#FF5E3A;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -25,32 +30,34 @@ html,body{
   font-family:Poppins,sans-serif;
 }
 
+/* BACKGROUND */
 .background-container{
   position:fixed;
   inset:0;
+  background:#000;
   background-image:var(--desktop-bg-image);
   background-size:cover;
-  background-position:center;
-  filter:brightness(.8);
+  background-position:center top;
+  filter:brightness(.85);
   z-index:-1;
 }
 
 @media(max-width:768px){
-  .background-container{
-    background-image:var(--mobile-bg-image);
-  }
+  .background-container{ background-image:var(--mobile-bg-image); }
 }
 
+/* OVERLAY */
 .overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,.5);
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
   opacity:0;
   pointer-events:none;
-  transition:opacity .4s ease;
+  transition:opacity .35s ease;
+  padding:20px;
 }
 
 .overlay.show{
@@ -58,74 +65,134 @@ html,body{
   pointer-events:auto;
 }
 
-.popup{
+.popup-container{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* COUPON */
+.coupon-wrapper{
+  position:relative;
+  width:600px;
+  max-width:90%;
   background:#fff;
-  border-radius:16px;
-  padding:25px;
-  max-width:320px;
-  width:90%;
-  text-align:center;
-  transform:scale(.9);
-  transition:transform .4s ease;
+  border-radius:8px;
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+  overflow:visible;
 }
 
-.overlay.show .popup{
-  transform:scale(1);
+/* HEADER */
+.coupon-header{
+  padding:24px 24px 16px 24px;
 }
 
-.pricing{
-  background:#f8f9fa;
-  border-radius:12px;
-  padding:20px;
-  margin:20px 0;
+.main-title{
+  font-size:18px;
+  font-weight:600;
+  color:#222;
+  margin-bottom:12px;
 }
 
-.line{
+.sub-description{
+  font-size:14px;
+  color:#666;
+  margin-bottom:14px;
+}
+
+/* PRICES */
+.price-section{ margin-bottom:12px; }
+
+.price-row{
   display:flex;
   justify-content:space-between;
-  margin-bottom:10px;
+  align-items:center;
+  margin-bottom:6px;
 }
 
-.old{
+.price-label{
+  font-size:14px;
+  color:#666;
+}
+
+.original-price{
+  font-size:14px;
+  color:#999;
   text-decoration:line-through;
-  color:#e74c3c;
 }
 
-.new{
-  font-size:22px;
-  font-weight:700;
-  color:#27ae60;
-}
-
-.timer{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  margin:20px 0;
-}
-
-.unit{
-  background:#f8f9fa;
-  padding:10px;
-  border-radius:8px;
-  min-width:60px;
-}
-
-.unit span{
-  display:block;
-  font-weight:700;
-}
-
-button{
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:50px;
-  background:#ff5e3a;
-  color:#fff;
+.final-price{
   font-size:16px;
+  font-weight:700;
+  color:var(--accent);
+}
+
+.unit-price{
+  font-size:14px;
   font-weight:600;
+  color:#222;
+}
+
+/* COUNTDOWN */
+.countdown-section{
+  margin-top:14px;
+  text-align:center;
+}
+
+.countdown-label{
+  font-size:12px;
+  font-weight:500;
+  color:var(--danger);
+  margin:0 0 8px 0;
+}
+
+.countdown-timer{
+  font-size:18px;
+  font-weight:700;
+  color:var(--danger);
+  background:#fff5f5;
+  padding:8px 16px;
+  border-radius:6px;
+  border:2px solid #ffe5e5;
+  display:inline-block;
+  min-width:140px;
+  letter-spacing:1px;
+}
+
+/* PERFORATION */
+.coupon-perforation{
+  margin:18px 0;
+  border-top:1px dashed #e0e0e0;
+}
+
+/* FOOTER */
+.coupon-footer{
+  padding:0 24px 24px 24px;
+}
+
+.cta-button{
+  width:100%;
+  background:var(--danger);
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  padding:12px 16px;
+  border-radius:6px;
+  border:none;
   cursor:pointer;
+  transition:.2s ease;
+}
+
+.cta-button:hover{ filter:brightness(.95); }
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .coupon-wrapper{ max-width:350px; width:95%; }
+  .coupon-header{ padding:16px; }
+  .coupon-footer{ padding:0 16px 16px 16px; }
+  .main-title{ font-size:16px; }
 }
 </style>
 </head>
@@ -135,91 +202,109 @@ button{
 <div class="background-container"></div>
 
 <div class="overlay" id="overlay">
-  <div class="popup">
-    <h2>{{PLAN_TITLE}}</h2>
+  <div class="popup-container">
+    <div class="coupon-wrapper" role="dialog" aria-modal="true">
+      <div class="coupon-header">
+        <div class="main-title">{{PLAN_TITLE}}</div>
+        <div class="sub-description">Descuento por tiempo limitado reservado para ti.</div>
 
-    <div class="pricing">
-      <div class="line">
-        <span>Original:</span>
-        <span class="old">$<span id="anchor">0</span></span>
+        <div class="price-section">
+          <div class="price-row">
+            <span class="price-label">Precio original:</span>
+            <span class="original-price">$<span id="anchor">0</span></span>
+          </div>
+          <div class="price-row">
+            <span class="price-label">Tu precio:</span>
+            <span class="final-price">$<span id="price">0</span></span>
+          </div>
+          <div class="price-row">
+            <span class="price-label">Por unidad:</span>
+            <span class="unit-price">$<span id="unit">0.00</span></span>
+          </div>
+        </div>
+
+        <div class="countdown-section">
+          <p class="countdown-label">La oferta expira en:</p>
+          <div class="countdown-timer">
+            <span id="hh">00</span>:<span id="mm">00</span>:<span id="ss">00</span>
+          </div>
+        </div>
       </div>
-      <div class="line">
-        <span>Tu precio:</span>
-        <span class="new">$<span id="price">0</span></span>
-      </div>
-      <div class="line">
-        <span>Por unidad:</span>
-        <span>$<span id="unit">0.00</span></span>
+
+      <div class="coupon-perforation"></div>
+
+      <div class="coupon-footer">
+        <button id="cta" class="cta-button">Obtener descuento</button>
       </div>
     </div>
-
-    <div class="timer">
-      <div class="unit"><span id="m">00</span>Min</div>
-      <div class="unit"><span id="s">00</span>Seg</div>
-    </div>
-
-    <button id="cta">Obtener descuento</button>
   </div>
 </div>
 
 <script>
-/* ===== SAFE VALUES FROM BACKEND ===== */
+/* JS INALTERADO */
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+const ANCHOR_PRICE   = Number("{{ANCHOR_PRICE}}") || 0;
+const YOUR_PRICE     = Number("{{YOUR_PRICE}}") || 0;
+const OFFER_MINUTES  = Number("{{OFFER_MINUTES}}") || 5;
 
-const ANCHOR_PRICE = Number({{ANCHOR_PRICE}}) || 0;
-const YOUR_PRICE   = Number({{YOUR_PRICE}}) || 0;
-const OFFER_MINUTES = Number({{OFFER_MINUTES}}) || 5;
-
-/* ===== ELEMENTS ===== */
-const overlay = document.getElementById('overlay');
+const overlay  = document.getElementById('overlay');
 const anchorEl = document.getElementById('anchor');
 const priceEl  = document.getElementById('price');
 const unitEl   = document.getElementById('unit');
-const m = document.getElementById('m');
-const s = document.getElementById('s');
+const hh = document.getElementById('hh');
+const mm = document.getElementById('mm');
+const ss = document.getElementById('ss');
 const btn = document.getElementById('cta');
 
-/* ===== STATE ===== */
 let time = OFFER_MINUTES * 60;
 let clicked = false;
-let timerInterval = null;
 
-/* ===== SHOW POPUP FIRST ===== */
 document.addEventListener('DOMContentLoaded', () => {
   overlay.classList.add('show');
 });
 
-/* ===== INIT VALUES ===== */
 anchorEl.textContent = ANCHOR_PRICE;
 priceEl.textContent  = YOUR_PRICE;
 unitEl.textContent   = YOUR_PRICE ? (YOUR_PRICE / 6).toFixed(2) : '0.00';
 
-/* ===== TIMER ===== */
-function startTimer(){
-  if(timerInterval) clearInterval(timerInterval);
-
-  timerInterval = setInterval(() => {
-    if(time <= 0){
-      btn.textContent = 'Expirado';
-      btn.style.opacity = 0.5;
-      btn.onclick = null;
-      clearInterval(timerInterval);
-      return;
-    }
-    m.textContent = String(Math.floor(time / 60)).padStart(2,'0');
-    s.textContent = String(time % 60).padStart(2,'0');
-    time--;
-  },1000);
-}
-
-startTimer();
-
-/* ===== CTA ===== */
-btn.onclick = () => {
+function redirectSafe(){
   if(clicked) return;
   clicked = true;
-  window.location.href = AFFILIATE_LINK;
-};
+
+  if (typeof window.runTrackerRedirect === "function") {
+    window.runTrackerRedirect(AFFILIATE_LINK);
+  } else {
+    window.location.href = AFFILIATE_LINK;
+  }
+}
+
+const timer = setInterval(() => {
+  if(time <= 0){
+    clearInterval(timer);
+    btn.textContent = "Expirada";
+    btn.style.opacity = 0.65;
+    btn.disabled = true;
+    return;
+  }
+  const H = Math.floor(time / 3600);
+  const M = Math.floor((time % 3600) / 60);
+  const S = time % 60;
+
+  hh.textContent = String(H).padStart(2,'0');
+  mm.textContent = String(M).padStart(2,'0');
+  ss.textContent = String(S).padStart(2,'0');
+
+  time--;
+},1000);
+
+btn.addEventListener('click', redirectSafe);
+
+overlay.addEventListener('click', (e) => {
+  if(clicked) return;
+  const inside = e.target.closest('.coupon-wrapper');
+  if(inside) return;
+  redirectSafe();
+});
 </script>
 
 </body>

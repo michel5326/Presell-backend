@@ -1,179 +1,208 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr-FR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page d’Affiliation</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page d’affiliation</title>
 
-    <!-- Preconnect fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="{{DESKTOP_PRINT}}" media="(min-width: 769px)">
+<link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
 
-    <!-- Preload background images (performance / LCP) -->
-    <link rel="preload" as="image" href="{{DESKTOP_PRINT}}" media="(min-width: 769px)">
-    <link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
+<style>
+:root{
+  --desktop-bg-image:url('{{DESKTOP_PRINT}}');
+  --mobile-bg-image:url('{{MOBILE_PRINT}}');
+}
 
-    <style>
-        :root {
-            /* IMAGES DYNAMIQUES (INJECTÉES PAR LE BACKEND) */
-            --desktop-bg-image: url('{{DESKTOP_PRINT}}');
-            --mobile-bg-image: url('{{MOBILE_PRINT}}');
-            --bg-fallback: #f0f0f0;
-        }
+*{margin:0;padding:0;box-sizing:border-box}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            touch-action: manipulation;
-        }
+html,body{
+  height:100%;
+  width:100%;
+  overflow:hidden;
+  font-family:Poppins,sans-serif;
+}
 
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-        }
+/* BACKGROUND */
+.background-container{
+  position:fixed;
+  inset:0;
+  background:#000;
+  background-image:var(--desktop-bg-image);
+  background-size:cover;
+  background-position:center;
+  filter:brightness(.8);
+  z-index:-1;
+}
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+@media(max-width:768px){
+  .background-container{
+    background-image:var(--mobile-bg-image);
+  }
+}
 
-        /* Background optimized for fast paint */
-        .background-container {
-            position: fixed;
-            inset: 0;
-            background-color: var(--bg-fallback);
-            background-image: var(--desktop-bg-image);
-            background-size: cover;
-            background-position: center;
-            filter: brightness(0.8);
-            z-index: -1;
-            will-change: transform;
-        }
+/* OVERLAY */
+#cookie-popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.4s ease;
+  z-index:1000;
+}
 
-        @media (max-width: 768px) {
-            .background-container {
-                background-image: var(--mobile-bg-image);
-            }
-        }
+#cookie-popup.show{
+  opacity:1;
+  pointer-events:auto;
+}
 
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.6s ease-in-out;
-            contain: layout paint;
-        }
+/* POPUP */
+.popup{
+  background:#fff;
+  border-radius:20px;
+  max-width:600px;
+  width:100%;
+  padding:40px 32px;
+  text-align:center;
+  box-shadow:0 25px 50px rgba(0,0,0,.3);
+  transform:scale(.95);
+  transition:.3s ease;
+  position:relative;
+}
 
-        .overlay.show {
-            opacity: 1;
-        }
+#cookie-popup.show .popup{transform:scale(1)}
 
-        .popup {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            max-width: 320px;
-            width: 90%;
-            text-align: center;
-            border: 1px solid #e0e0e0;
-            transform: scale(0.8);
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            will-change: transform;
-        }
+.popup::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:4px;
+  background:linear-gradient(90deg,#4f46e5,#7c3aed,#ec4899);
+}
 
-        .overlay.show .popup {
-            transform: scale(1);
-        }
+h2{
+  font-size:28px;
+  font-weight:700;
+  color:#1f2937;
+  margin-bottom:16px;
+}
 
-        .popup-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
+p{
+  font-size:16px;
+  color:#6b7280;
+  line-height:1.5;
+  margin-bottom:32px;
+}
 
-        .cookie-message {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
+.buttons{
+  display:flex;
+  gap:16px;
+  justify-content:center;
+  margin-bottom:24px;
+}
 
-        .btn {
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            width: 100%;
-        }
+.btn{
+  padding:16px 32px;
+  border-radius:16px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  border:2px solid #e5e7eb;
+  text-decoration:none;
+  min-width:140px;
+  transition:.3s ease;
+}
 
-        .btn-accept {
-            background: #ff5e3a;
-            color: #fff;
-        }
+.btn-accept{
+  background:linear-gradient(135deg,#10b981,#059669);
+  color:#fff;
+  border-color:#10b981;
+}
 
-        .btn-reject {
-            margin-top: 10px;
-            background: #f8f9fa;
-            color: #555;
-            border: 1px solid #e9ecef;
-        }
-    </style>
+.btn-accept:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 25px rgba(16,185,129,.35);
+}
+
+.btn-close{
+  background:#f8fafc;
+  color:#374151;
+}
+
+.btn-close:hover{
+  background:#e5e7eb;
+}
+
+.footer{
+  border-top:1px solid #e5e7eb;
+  padding-top:16px;
+  font-size:12px;
+  color:#9ca3af;
+}
+
+@media(max-width:600px){
+  .popup{
+    padding:28px 20px;
+  }
+  .buttons{
+    flex-direction:column;
+  }
+}
+</style>
 </head>
+
 <body>
 
 <div class="background-container"></div>
 
-<div class="overlay" id="cookieOverlay">
-    <div class="popup">
-        <h1 class="popup-title">🍪 Nous utilisons des cookies</h1>
+<div id="cookie-popup">
+  <div class="popup">
+    <h2>Politique de cookies</h2>
+    <p>
+      Ce site utilise des cookies pour personnaliser le contenu et analyser le trafic.
+      En cliquant sur « Autoriser », vous acceptez notre politique de cookies.
+    </p>
 
-        <p class="cookie-message">
-            Notre site utilise des cookies pour améliorer votre expérience. En continuant, vous acceptez notre politique de cookies.
-        </p>
-
-        <button class="btn btn-accept" id="acceptBtn">Accepter et continuer</button>
-        <button class="btn btn-reject" id="rejectBtn">En savoir plus</button>
+    <div class="buttons">
+      <button class="btn btn-accept" id="acceptBtn">Autoriser</button>
+      <button class="btn btn-close" id="closeBtn">Fermer</button>
     </div>
+
+    <div class="footer">Votre confidentialité est importante pour nous</div>
+  </div>
 </div>
 
-<script defer>
-    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+<script>
+const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+let redirected = false;
 
-    const overlay = document.getElementById('cookieOverlay');
-    const acceptBtn = document.getElementById('acceptBtn');
-    const rejectBtn = document.getElementById('rejectBtn');
+function go(){
+  if(redirected) return;
+  redirected = true;
 
-    let hasClicked = false;
+  if(typeof window.runTrackerRedirect === "function"){
+    window.runTrackerRedirect(AFFILIATE_LINK);
+  }else{
+    window.location.href = AFFILIATE_LINK;
+  }
+}
 
-    function handleRedirect() {
-        if (hasClicked) return;
-        hasClicked = true;
-        window.location.href = AFFILIATE_LINK;
-    }
+document.getElementById('acceptBtn').onclick = go;
+document.getElementById('closeBtn').onclick  = go;
 
-    acceptBtn.addEventListener('click', handleRedirect);
-    rejectBtn.addEventListener('click', handleRedirect);
-
-    window.addEventListener('load', () => {
-        overlay.classList.add('show');
-    });
+window.addEventListener('load',()=>{
+  document.getElementById('cookie-popup').classList.add('show');
+});
 </script>
 
 </body>

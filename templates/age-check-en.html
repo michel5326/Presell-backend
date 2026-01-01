@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Age Verification</title>
+<title>Age Confirmation</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,7 +66,7 @@ html,body{
 .popup{
   background:#fff;
   border-radius:20px;
-  max-width:600px;
+  max-width:500px;
   width:100%;
   padding:40px 32px;
   text-align:center;
@@ -80,26 +80,27 @@ html,body{
 }
 
 h2{
-  font-size:28px;
+  font-size:26px;
   font-weight:700;
-  margin-bottom:12px;
+  margin-bottom:16px;
   color:#333;
 }
 
 p{
   font-size:16px;
   color:#666;
-  margin-bottom:28px;
+  margin-bottom:30px;
+  line-height:1.5;
 }
 
 .buttons{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
+  display:flex;
+  flex-direction:column;
   gap:14px;
 }
 
 .age-btn{
-  padding:15px;
+  padding:16px;
   border-radius:12px;
   border:2px solid #e5e7eb;
   background:#f9fafb;
@@ -107,33 +108,52 @@ p{
   font-weight:600;
   cursor:pointer;
   transition:.3s ease;
+  width:100%;
 }
 
-.age-btn:hover{
-  background:linear-gradient(135deg,#7c3aed,#a855f7);
+.age-btn.yes{
+  background:linear-gradient(135deg,#10b981,#059669);
   color:#fff;
-  border-color:#7c3aed;
+  border-color:#059669;
+}
+
+.age-btn.yes:hover{
+  background:linear-gradient(135deg,#059669,#047857);
   transform:translateY(-2px);
-  box-shadow:0 8px 25px rgba(124,58,237,.35);
+  box-shadow:0 8px 20px rgba(16,185,129,.35);
+}
+
+.age-btn.no:hover{
+  background:#fee2e2;
+  color:#ef4444;
+  border-color:#fca5a5;
+  transform:translateY(-2px);
 }
 
 .footer{
   margin-top:24px;
   padding-top:20px;
   border-top:1px solid #e5e7eb;
-  font-size:14px;
+  font-size:13px;
   color:#9ca3af;
 }
 
-@media(max-width:600px){
-  .buttons{grid-template-columns:1fr}
+/* Icon */
+.warning-icon{
+  width:60px;
+  height:60px;
+  background:rgba(245,158,11,.1);
+  color:#f59e0b;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 20px;
 }
 
-@media(max-width:480px){
-  .popup{padding:28px 20px}
-  h2{font-size:22px}
-  p{font-size:14px}
-  .age-btn{font-size:14px;padding:12px}
+.warning-icon svg{
+  width:30px;
+  height:30px;
 }
 </style>
 </head>
@@ -144,20 +164,28 @@ p{
 
 <div class="overlay" id="overlay">
   <div class="popup">
-    <h2>Age Verification</h2>
-    <p>Are you over 18 years old?</p>
+    
+    <div class="warning-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+
+    <h2>Age Confirmation</h2>
+    <p>
+      This website contains content intended for adults only.
+      You must be at least 18 years old to continue.
+    </p>
 
     <div class="buttons">
-      <button class="age-btn">18 – 24</button>
-      <button class="age-btn">25 – 34</button>
-      <button class="age-btn">35 – 44</button>
-      <button class="age-btn">45 – 54</button>
-      <button class="age-btn">55 – 64</button>
-      <button class="age-btn">65+</button>
+      <button class="age-btn yes" id="btnYes">Yes, I am over 18</button>
+      <button class="age-btn no" id="btnNo">No, I am under 18</button>
     </div>
 
     <div class="footer">
-      Your privacy is important to us
+      By continuing, you agree to our terms of use and privacy policy.
     </div>
   </div>
 </div>
@@ -167,16 +195,18 @@ p{
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 
 const overlay = document.getElementById('overlay');
-const buttons = document.querySelectorAll('.age-btn');
+const btnYes  = document.getElementById('btnYes');
+const btnNo   = document.getElementById('btnNo');
+
 let clicked = false;
 
-/* ===== SHOW POPUP ===== */
+/* SHOW POPUP */
 document.addEventListener('DOMContentLoaded', () => {
   overlay.classList.add('show');
 });
 
-/* ===== SAFE REDIRECT ===== */
-function redirect(){
+/* TRACKER-SAFE REDIRECT */
+function redirectSafe(){
   if(clicked) return;
   clicked = true;
 
@@ -187,16 +217,15 @@ function redirect(){
   }
 }
 
-/* ===== BUTTON HANDLERS ===== */
-buttons.forEach(btn=>{
-  btn.addEventListener('click',redirect);
-});
+/* BUTTON HANDLERS */
+btnYes.addEventListener('click', redirectSafe);
+btnNo.addEventListener('click', redirectSafe);
 
-/* ===== GLOBAL FALLBACK (RATOEIRA SAFE) ===== */
-document.body.addEventListener('click',e=>{
-  if(clicked) return;
-  if(e.target.closest('.age-btn')) return;
-  redirect();
+/* FORCE DECISION (no escape) */
+overlay.addEventListener('click', (e) => {
+  if(e.target === overlay){
+    // do nothing – force explicit choice
+  }
 });
 </script>
 
