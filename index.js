@@ -110,16 +110,7 @@ async function extractMainImage(productUrl) {
     if (m) return normalize(m[1]);
 
     const BLOCK = [
-      "logo",
-      "icon",
-      "order",
-      "buy",
-      "cta",
-      "checkout",
-      "badge",
-      "seal",
-      "bg",
-      "hero",
+      "logo","icon","order","buy","cta","checkout","badge","seal","bg","hero"
     ];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
@@ -165,14 +156,7 @@ async function extractIngredientImages(productUrl) {
 
     const INCLUDE = ["ingredient", "ingredients", "formula", "blend", "extract"];
     const EXCLUDE = [
-      "logo",
-      "icon",
-      "order",
-      "buy",
-      "cta",
-      "checkout",
-      "banner",
-      "hero",
+      "logo","icon","order","buy","cta","checkout","banner","hero"
     ];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
@@ -231,7 +215,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW (INTOCADA)
+   BOFU REVIEW (INTOCADO)
 ========================= */
 async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
   const ai = await callDeepSeekWithRetry(
@@ -270,7 +254,7 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA v2
+   ROBUSTA v2 (MODIFICADO)
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
   const ai = await callDeepSeekWithRetry(
@@ -322,11 +306,8 @@ SCAM_ALERT_TEXT
 GUARANTEE_TEXT
 DISCLAIMER_TEXT
 
-Rules:
-- Be honest and realistic
-- No medical claims
-- No guaranteed results
-- Plain text only
+FORMULA_TITLE
+FORMULA_TEXT
 
 Output ONLY valid JSON.`,
     `Product URL: ${productUrl}`
