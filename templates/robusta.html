@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
-  {{TRACKER_HEAD}}
+  <!-- Tracker Head removido pois o backend 'robusta' não preenche -->
 
   <style>
     :root {
@@ -92,12 +92,8 @@
       line-height: 1.1;
       margin-bottom: 24px;
       font-weight: 800;
-    }
-
-    .highlight {
-      background: var(--gradient-main);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      /* H1 branca sólida para garantir leitura, com brilho sutil */
+      text-shadow: 0 0 20px rgba(255,255,255,0.1);
     }
 
     .hero-sub {
@@ -110,35 +106,30 @@
 
     .hero-img-wrapper {
       position: relative;
-      /* Robustez: Min-height e Background caso a imagem falhe */
-      min-height: 300px;
-      background: var(--bg-card);
-      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
     }
 
+    /* Glow atrás da imagem principal - Ajustado para visibilidade */
     .hero-img-wrapper::before {
-      content: ''; position: absolute; inset: -20px;
-      background: var(--gradient-main); filter: blur(60px); opacity: 0.3; z-index: -1;
+      content: ''; position: absolute; inset: -10px; /* Ajustei o inset */
+      background: var(--gradient-main); filter: blur(80px); opacity: 0.4; z-index: -1;
       border-radius: 50%;
     }
 
-    /* Estilo da Imagem Principal */
+    /* Estilo da Imagem Principal - Ajustado para ficar igual ao modelo */
     .hero-img {
       width: 100%;
+      max-width: 450px; /* Limite de tamanho para não ficar esticada */
       height: auto;
-      max-height: 500px;
-      object-fit: contain;
+      display: block;
+      margin: 0 auto; /* Centralizar */
       border-radius: 24px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       border: 1px solid var(--border);
       transform: rotate(-2deg);
       transition: 0.3s;
-      display: block;
-      background: transparent;
     }
     .hero-img:hover { transform: rotate(0deg) scale(1.02); }
 
@@ -248,7 +239,7 @@
       .hero { text-align: center; padding-top: 30px; }
       .hero-sub { margin: 0 auto 20px; }
       .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; margin: 0 auto 30px; }
-      .hero-img { margin-top: 30px; transform: none; }
+      .hero-img { margin-top: 30px; transform: none; max-width: 300px; }
       aside { position: static; margin-bottom: 40px; order: -1; }
     }
   </style>
@@ -293,7 +284,6 @@
     </div>
 
     <div class="hero-img-wrapper">
-      <!-- CORREÇÃO AQUI: Adicionei a tag <img> envolvendo a URL -->
       <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
     </div>
   </section>
@@ -357,7 +347,6 @@
 
       <!-- SECTION: INGREDIENTS -->
       <div class="content-block">
-        <!-- O backend injeta o bloco HTML completo (div + imagens) -->
         {{INGREDIENT_IMAGES}}
       </div>
 
@@ -418,9 +407,9 @@
         <div class="offer-title">{{HEADLINE_MAIN}}</div>
         <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
 
-        <!-- CORREÇÃO AQUI: Adicionei a tag <img> envolvendo a URL -->
-        <div style="margin-bottom:20px; min-height: 200px; display:flex; align-items:center; justify-content:center; background:var(--bg-card); border-radius:12px; border:1px solid var(--border); overflow:hidden;">
-            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width:100%; height:auto; border-radius:12px; border:1px solid var(--border); display:block;" loading="lazy">
+        <!-- Imagem da Sidebar centralizada e com tamanho controlado -->
+        <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
+            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
         </div>
 
         <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
@@ -447,9 +436,6 @@
   <footer>
     <div>{{FOOTER_DISCLAIMER}}</div>
   </footer>
-
-  <!-- MOVIDO PARA O FINAL DO BODY PARA NÃO BLOQUEAR RENDERIZAÇÃO DE IMAGENS -->
-  {{TRACKER_BODY}}
 
   <script>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
