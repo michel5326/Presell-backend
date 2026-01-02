@@ -165,6 +165,15 @@ background: #fff;
 padding: 10px; /* Margem interna branca tipo moldura */
 }
 
+/* --- DESKTOP IMAGE ADJUSTMENT (Produto) --- */
+@media (min-width: 601px) {
+    /* Limita a largura da imagem no desktop para não ficar esticada demais */
+    .product-image {
+        max-width: 480px; 
+        width: 50%; /* Define a largura como metade do container no desktop */
+    }
+}
+
 .image-grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
@@ -172,6 +181,7 @@ gap:16px;
 margin: 24px 0;
 }
 
+/* --- ADJUSTMENT FOR INGREDIENTS (Grid) --- */
 .image-grid img{
 width:100%;
 height: auto;
@@ -180,6 +190,12 @@ border: 1px solid var(--card-border);
 background: #fff;
 box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 transition: transform 0.2s, box-shadow 0.2s;
+
+/* Ajustes de Alinhamento e Tamanho */
+max-height: 180px;       /* Altura uniforme para todos os ingredientes */
+object-fit: contain;    /* Garante que a imagem inteira apareça sem cortes */
+padding: 15px;          /* Mais espaço interno (moldura branca) */
+box-sizing: border-box; /* Garante que o padding não quebre a largura */
 }
 .image-grid img:hover {
 transform: translateY(-2px);
