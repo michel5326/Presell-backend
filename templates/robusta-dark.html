@@ -61,53 +61,44 @@
 
     /* --- HEADER --- */
     header {
-      padding: 20px 5%;
+      padding: 15px 5%; /* Reduzido padding para mobile */
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(10px);
       position: sticky; top: 0; z-index: 50; background: rgba(2,4,10,0.8);
     }
 
-    .logo { font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
+    .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
     .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
     
     .header-info {
-      display: flex; align-items: center; gap: 15px;
+      display: flex; align-items: center; gap: 10px;
     }
 
     .updated-pill {
-      font-size: 12px; color: var(--text-sec);
+      font-size: 11px; color: var(--text-sec); display: none; /* Esconde no mobile para economizar espaço */
     }
 
     /* --- HERO SECTION --- */
     .hero {
-      max-width: 1300px; margin: 0 auto; padding: 60px 24px;
+      max-width: 1300px; margin: 0 auto; padding: 40px 24px; /* Ajustado padding top */
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
-      grid-template-rows: auto auto; /* Duas linhas: Topo e Baixo */
-      gap: 40px; /* Espaço entre colunas e linhas */
+      grid-template-rows: auto auto;
+      gap: 40px;
       align-items: start;
     }
 
-    /* --- HERO PARTS --- */
-    .hero-part-top {
-      grid-column: 1; /* Coluna Esquerda */
-      grid-row: 1;    /* Linha 1 */
-    }
-
-    .hero-part-bottom {
-      grid-column: 1; /* Coluna Esquerda */
-      grid-row: 2;    /* Linha 2 */
-    }
+    .hero-part-top { grid-column: 1; grid-row: 1; }
+    .hero-part-bottom { grid-column: 1; grid-row: 2; }
 
     .hero-img-wrapper {
-      grid-column: 2; /* Coluna Direita */
-      grid-row: 1 / span 2; /* Ocupa as duas linhas (Altura total) */
+      grid-column: 2; grid-row: 1 / span 2;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100%; /* Garante altura total no desktop */
+      height: 100%;
     }
 
     /* Text Styling */
@@ -162,7 +153,7 @@
     .content-block { margin-bottom: 60px; }
 
     .section-title {
-      font-size: 28px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
+      font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
     }
     .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
@@ -250,18 +241,14 @@
     .guarantee-seal {
       display: block;
       max-width: 180px;
-      margin: 20px auto 0; /* Margem automática para centralizar */
+      margin: 20px auto 0;
       border-radius: 12px;
-      background: rgba(0, 0, 0, 0.3); /* Fundo escuro sutil atrás do selo */
+      background: rgba(0, 0, 0, 0.3);
       padding: 12px;
       border: 1px solid rgba(255,255,255,0.1);
       box-shadow: 0 10px 20px rgba(0,0,0,0.3);
     }
-    
-    /* Se a variável vier vazia, esconde a imagem */
-    .guarantee-seal[src=""] { 
-      display: none; 
-    }
+    .guarantee-seal[src=""] { display: none; }
 
     /* --- INGREDIENTS VISUAL CONTAINER --- */
     .ingredients-visual {
@@ -299,65 +286,37 @@
     /* --- PROFESSIONAL FOOTER --- */
     footer {
       border-top: 1px solid var(--border);
-      /* Fundo sutilmente mais claro que o body para dar profundidade */
       background: rgba(2, 4, 10, 0.6); 
-      padding: 80px 20px;
-      margin-top: 100px;
+      padding: 60px 20px; /* Reduzido um pouco */
+      margin-top: 80px;
       font-family: 'Inter', sans-serif;
     }
 
     .footer-content {
-      max-width: 800px; /* Evita que o texto fique muito largo em telas grandes */
-      margin: 0 auto;
-      text-align: center;
+      max-width: 800px; margin: 0 auto; text-align: center;
     }
 
-    /* Mini Logo no rodapé para identidade */
     .footer-brand {
-      font-weight: 800;
-      font-size: 16px;
-      color: var(--text-main);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      letter-spacing: -0.5px;
+      font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: -0.5px;
     }
 
-    .footer-dot {
-      width: 6px; height: 6px;
-      background: var(--primary);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--primary);
-    }
+    .footer-dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 8px var(--primary); }
 
     .footer-links {
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      font-size: 13px;
+      margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px;
     }
 
-    .footer-links a {
-      color: var(--text-sec);
-      text-decoration: none;
-      transition: 0.3s ease;
-    }
-    .footer-links a:hover {
-      color: var(--primary); /* Verde neon ao passar o mouse */
-    }
+    .footer-links a { color: var(--text-sec); text-decoration: none; transition: 0.3s ease; }
+    .footer-links a:hover { color: var(--primary); }
 
-    /* Texto do Disclaimer */
-    .footer-disclaimer {
-      color: #64748b; /* Cinza mais claro para legibilidade */
-      font-size: 12px;
-      line-height: 1.7; /* Espaçamento entre linhas ajuda a ler */
-      opacity: 0.8;
-    }
+    .footer-disclaimer { color: #64748b; font-size: 12px; line-height: 1.7; opacity: 0.8; }
 
-    /* --- RESPONSIVE --- */
+    /* =========================================
+       RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
+       ========================================= */
+    
+    /* Tablet & Mobile Landscape */
     @media (max-width: 900px) {
       .hero {
         display: flex;
@@ -370,13 +329,46 @@
       .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; }
       
       .container { grid-template-columns: 1fr; }
-      aside { position: static; margin-bottom: 40px; order: -1; }
+      aside { position: static; margin-bottom: 40px; order: -1; } /* Sidebar sobe para o topo */
       
-      /* Mobile Footer Adjustments */
-      .footer-links {
-        flex-direction: column;
-        gap: 12px;
-      }
+      .footer-links { flex-direction: column; gap: 12px; }
+    }
+
+    /* Mobile Portrait (Ajustes finos para celulares pequenos) */
+    @media (max-width: 600px) {
+      /* 1. Hero & Typography */
+      .hero { padding: 30px 16px; } /* Menos padding lateral para aproveitar tela */
+      
+      /* Força H1 menor em telas muito estreitas para evitar quebras feias */
+      h1 { font-size: 32px !important; line-height: 1.15 !important; } 
+      
+      .hero-part-top, .hero-part-bottom { width: 100%; }
+      .hero-label { font-size: 11px; margin-bottom: 8px; }
+
+      /* 2. Botões Full Width (UX de clique) */
+      .btn { width: 100% !important; } /* Força 100% no hero também */
+      .hero .btn { padding: 16px 24px !important; font-size: 18px; }
+
+      /* 3. Grids Empilhados (Evita colunas apertadas) */
+      .grid-3 { grid-template-columns: 1fr !important; } /* Força 1 coluna */
+      
+      /* Imagens de ingredientes também em 1 coluna para mobile */
+      .image-grid { grid-template-columns: 1fr !important; }
+
+      /* 4. Sidebar Ajustes */
+      aside { margin-bottom: 30px; }
+      .offer-box { padding: 20px; }
+      .offer-title { font-size: 18px; }
+      
+      /* Imagem no sidebar menor para não ocupar toda a tela */
+      aside img { max-width: 150px !important; }
+
+      /* 5. Header Compacto */
+      .logo { font-size: 16px; }
+      .header-info a { font-size: 13px; }
+      
+      /* 6. Seção de Posicionamento (Texto abaixo da headline) */
+      .positioning-text { font-size: 15px; text-align: left; border-top: 2px solid var(--primary); border-left: none; }
     }
   </style>
 </head>
@@ -411,7 +403,7 @@
       <h1>{{HEADLINE_MAIN}}</h1>
     </div>
 
-    <!-- PART 2: Imagem (Centralizada no Desktop, no meio do mobile) -->
+    <!-- PART 2: Imagem -->
     <div class="hero-img-wrapper">
       <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
     </div>
@@ -424,7 +416,8 @@
         {{POSITIONING_STATEMENT}}
       </div>
 
-      <a href="javascript:void(0)" class="btn" style="width: auto; padding: 16px 32px;" onclick="doRedirect()">
+      <!-- Botão agora vira 100% no mobile via CSS -->
+      <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}}
       </a>
     </div>
@@ -439,7 +432,7 @@
       <!-- SECTION: THE PROBLEM -->
       <div class="content-block">
         <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p style="color:var(--text-sec); font-size: 17px;">{{PRIMARY_PROBLEM_TEXT}}</p>
+        <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
       </div>
 
       <!-- SECTION: WHY DIFFERENT (CARDS) -->
@@ -489,18 +482,17 @@
       </div>
 
       <!-- SECTION: INGREDIENTS -->
-<div class="content-block">
-  <h2 class="section-title">Proprietary Formula</h2>
-  
-  <div class="ingredients-visual">
-    {{INGREDIENT_IMAGES}}
-  </div>
+      <div class="content-block">
+        <h2 class="section-title">Proprietary Formula</h2>
+        
+        <div class="ingredients-visual">
+          {{INGREDIENT_IMAGES}}
+        </div>
 
-  <!-- ⬇️ INSERIR AQUI -->
-  <p style="color:var(--text-sec); font-size:17px; max-width:800px; margin-top:24px;">
-    {{FORMULA_TEXT}}
-  </p>
-</div>
+        <p style="color:var(--text-sec); font-size:16px; max-width:800px; margin-top:24px;">
+          {{FORMULA_TEXT}}
+        </p>
+      </div>
 
       <!-- SECTION: TARGET AUDIENCE -->
       <div class="content-block">
@@ -543,13 +535,11 @@
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
           {{GUARANTEE_TEXT}}
-
-          <!-- IMAGEM DO SELO DE GARANTIA (BACKEND JÁ RETORNA <img ...>) -->
           {{GUARANTEE_IMAGE}}
         </div>
       </div>
 
-      <p style="font-size:12px; color:#475569; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
+      <p style="font-size:11px; color:#475569; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
         {{DISCLAIMER_TEXT}}
       </p>
 
@@ -568,7 +558,7 @@
 
         <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
 
-        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:12px; color:var(--text-sec);">
+        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
           <span>🔒 Secure Checkout</span>
           <span>•</span>
           <span>Official Site</span>
@@ -577,7 +567,7 @@
 
       <!-- Bonus Section -->
       <div class="bonus-section">
-        <h4 style="margin-bottom:12px; font-size:16px;">🎁 {{BONUS_TITLE}}</h4>
+        <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
         {{BONUS_IMAGES}}
       </div>
 
@@ -591,24 +581,20 @@
   <footer>
     <div class="footer-content">
       
-      <!-- Branding (Repete o topo para amarrar o design) -->
       <div class="footer-brand">
         <span class="footer-dot"></span> {{SITE_BRAND}}
       </div>
 
-      <!-- Links Legais -->
       <div class="footer-links">
         <a href="{{PRIVACY_URL}}">Privacy Policy</a>
         <a href="{{TERMS_URL}}">Terms of Service</a>
         <a href="{{CONTACT_URL}}">Contact Us</a>
       </div>
 
-      <!-- Texto Dinâmico do Backend -->
       <div class="footer-disclaimer">
         {{FOOTER_DISCLAIMER}}
       </div>
       
-      <!-- Copyright Dinâmico -->
       <div style="margin-top: 20px; color: #334155; font-size: 11px;">
         &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.
       </div>
@@ -622,6 +608,10 @@
     function doRedirect(){
       if(clicked) return;
       clicked = true;
+
+      // Opcional: Adicionar classe visual de loading ao botão clicado
+      const btns = document.querySelectorAll('.btn');
+      btns.forEach(btn => btn.innerHTML = 'Redirecionando...');
 
       if(typeof window.runTrackerRedirect === "function"){
         window.runTrackerRedirect(AFFILIATE_LINK);

@@ -15,20 +15,21 @@
 
   <style>
     :root {
-      /* --- CORE COLORS (LIGHT MODE) --- */
-      --bg-body: #f8fafc;       /* Slate 50 - Fundo geral muito claro */
-      --bg-card: #ffffff;       /* Branco puro para cartões */
-      --bg-card-hover: #f1f5f9; /* Slate 100 para hover */
-      --primary: #00bfa5;       /* Verde Teal (levemente mais escuro que neon para contraste no branco) */
-      --primary-dim: rgba(0, 191, 165, 0.08); /* Brilho muito sutil */
-      --accent: #0052cc;        /* Azul Tech mais escuro para melhor leitura */
-      --text-main: #0f172a;     /* Slate 900 - Quase preto para títulos */
-      --text-sec: #64748b;      /* Slate 500 - Cinza médio para parágrafos */
-      --border: rgba(0,0,0,0.08); /* Bordas sutis escuras */
+      /* --- CORE COLORS (LIGHT THEME) --- */
+      --bg-body: #F8FAFC;       /* Slate 50 - Fundo principal claro */
+      --bg-card: #FFFFFF;      /* Branco puro - Cartões */
+      --bg-card-hover: #F1F5F9;/* Slate 100 - Hover sutil */
+      --primary: #10B981;      /* Emerald 500 - Verde SaaS (Levemente mais escuro que neon para ler melhor no branco) */
+      --primary-dim: rgba(16, 185, 129, 0.1); /* Verde muito suave */
+      --accent: #3B82F6;       /* Blue 500 - Tech Blue padrão */
+      --text-main: #0F172A;    /* Slate 900 - Texto principal escuro */
+      --text-sec: #64748B;     /* Slate 500 - Texto secundário */
+      --border: rgba(15, 23, 42, 0.08); /* Borda cinza muito sutil */
       
       /* --- GRADIENTS & FX --- */
-      --gradient-main: linear-gradient(135deg, #00bfa5 0%, #0052cc 100%);
-      --shadow-glow: 0 0 40px rgba(0, 191, 165, 0.2);
+      --gradient-main: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
+      --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.15);
       --radius: 16px;
     }
 
@@ -47,43 +48,43 @@
     a { text-decoration: none; transition: all 0.3s ease; }
     p { margin-bottom: 1rem; }
 
-    /* --- BACKGROUND FX --- */
+    /* --- BACKGROUND FX (AJUSTADO PARA LIGHT) --- */
     .bg-glow {
       position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
       background: radial-gradient(circle, var(--primary-dim) 0%, transparent 70%);
       z-index: -1; pointer-events: none;
+      /* Cor ajustada para não interferir na leitura */
     }
     .bg-glow-2 {
       position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
-      background: radial-gradient(circle, rgba(0, 82, 204, 0.05) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
       z-index: -1; pointer-events: none;
     }
 
     /* --- HEADER --- */
     header {
-      padding: 20px 5%;
+      padding: 15px 5%;
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       position: sticky; top: 0; z-index: 50; 
-      background: rgba(255, 255, 255, 0.85); /* Fundo branco translúcido */
-      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      background: rgba(255, 255, 255, 0.85); /* Branco translúcido */
     }
 
-    .logo { font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; color: #000; }
+    .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; color: var(--text-main); }
     .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
     
     .header-info {
-      display: flex; align-items: center; gap: 15px;
+      display: flex; align-items: center; gap: 10px;
     }
 
     .updated-pill {
-      font-size: 12px; color: var(--text-sec);
+      font-size: 11px; color: var(--text-sec); display: none; 
     }
 
     /* --- HERO SECTION --- */
     .hero {
-      max-width: 1300px; margin: 0 auto; padding: 60px 24px;
+      max-width: 1300px; margin: 0 auto; padding: 40px 24px;
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       grid-template-rows: auto auto;
@@ -91,7 +92,6 @@
       align-items: start;
     }
 
-    /* --- HERO PARTS --- */
     .hero-part-top { grid-column: 1; grid-row: 1; }
     .hero-part-bottom { grid-column: 1; grid-row: 2; }
 
@@ -110,12 +110,11 @@
       line-height: 1.1;
       margin-bottom: 0;
       font-weight: 800;
-      color: var(--text-main); /* Garante contraste escuro */
+      color: var(--text-main); /* Garante cor escura */
     }
 
     .hero-label {
-      color: var(--accent); /* Azul para label no modo claro fica elegante */
-      font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 13px; margin-bottom: 10px; display: block;
+      color: var(--primary); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;
     }
 
     .hero-sub {
@@ -123,13 +122,13 @@
     }
     
     .positioning-text {
-      font-size: 16px; color: #334155; margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary); padding-left: 16px;
+      font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary); padding-left: 16px;
     }
 
     /* Image Styling */
     .hero-img-wrapper::before {
       content: ''; position: absolute; inset: -10px;
-      background: var(--gradient-main); filter: blur(80px); opacity: 0.2; z-index: -1; /* Opacidade reduzida para light mode */
+      background: var(--gradient-main); filter: blur(80px); opacity: 0.15; z-index: -1; /* Opacidade reduzida para modo claro */
       border-radius: 50%;
     }
 
@@ -140,11 +139,11 @@
       display: block;
       margin: 0 auto;
       border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1); /* Sombra escura suave */
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Sombra escura realista */
       border: 1px solid var(--border);
       transform: rotate(-2deg);
       transition: 0.3s;
-      background: #fff; /* Garante fundo branco atrás da imagem se ela tiver transparência */
+      background: #fff;
     }
     .hero-img:hover { transform: rotate(0deg) scale(1.02); }
 
@@ -158,8 +157,7 @@
     .content-block { margin-bottom: 60px; }
 
     .section-title {
-      font-size: 28px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
-      color: var(--text-main);
+      font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--text-main);
     }
     .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
@@ -172,14 +170,15 @@
       background: var(--bg-card); border: 1px solid var(--border);
       padding: 24px; border-radius: var(--radius);
       transition: 0.3s;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      box-shadow: var(--shadow-card); /* Sombra sutil para separar do fundo cinza */
     }
-    .feature-card:hover { transform: translateY(-5px); border-color: var(--primary); background: var(--bg-card-hover); box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
+    .feature-card:hover { transform: translateY(-5px); border-color: var(--primary); background: var(--bg-card-hover); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
 
     .feature-card p { font-size: 15px; color: var(--text-sec); margin: 0; line-height: 1.6; }
 
     .icon-box {
-      width: 40px; height: 40px; background: rgba(0, 0, 0, 0.03); border-radius: 10px;
+      width: 40px; height: 40px; background: rgba(16, 185, 129, 0.1); /* Fundo verde bem claro */
+      border-radius: 10px;
       display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary);
     }
 
@@ -205,20 +204,19 @@
     }
 
     .offer-box {
-      /* Gradiente sutil claro para o box de oferta */
-      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      background: var(--bg-card); /* Branco */
       border: 1px solid var(--border); border-radius: 20px;
       padding: 30px; text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     .offer-badge {
-      background: var(--primary); color: #fff; font-weight: 800; font-size: 12px;
+      background: var(--primary); color: #000; font-weight: 800; font-size: 12px;
       padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 16px;
       text-transform: uppercase; letter-spacing: 1px;
     }
 
-    .offer-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; color: #000; }
+    .offer-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; color: var(--text-main); }
     .offer-sub { color: var(--text-sec); font-size: 14px; margin-bottom: 24px; }
 
     /* --- BUTTONS --- */
@@ -226,24 +224,25 @@
       display: inline-block; width: 100%; padding: 18px; border-radius: 12px;
       background: var(--gradient-main); color: #fff; font-weight: 700; font-size: 16px;
       text-align: center; border: none; cursor: pointer; position: relative; overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0, 191, 165, 0.3); /* Sombra Verde */
+      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
       transition: all 0.3s ease;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0, 191, 165, 0.4); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.5); }
     .btn:active { transform: translateY(1px); }
 
-    /* --- ALERTS --- */
+    /* --- ALERTS (FUNDO CLARO) --- */
     .alert {
       padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 15px;
-      background: #fff; /* Fundo branco sólido para alertas no modo claro */
+      background: #fff; /* Fundo branco para contrastar com o alerta */
     }
-    .alert.warn { background: #fffbeb; border-color: #f59e0b; color: #b45309; }
-    .alert.danger { background: #fef2f2; border-color: #ef4444; color: #b91c1c; }
-    .alert.info { background: #eff6ff; border-color: #2979ff; color: #1d4ed8; }
+    .alert.warn { border-color: #F59E0B; color: #92400E; background: #FFFBEB; } /* Amarelo Claro */
+    .alert.danger { border-color: #EF4444; color: #991B1B; background: #FEF2F2; } /* Vermelho Claro */
+    .alert.info { border-color: #3B82F6; color: #1E40AF; background: #EFF6FF; } /* Azul Claro */
 
     /* --- BONUS BLOCK --- */
     .bonus-section {
       margin-top: 24px; padding: 24px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
     }
 
     /* --- GUARANTEE SEAL STYLE --- */
@@ -252,12 +251,11 @@
       max-width: 180px;
       margin: 20px auto 0;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(0, 0, 0, 0.05); /* Cinza claro */
       padding: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
-    
     .guarantee-seal[src=""] { display: none; }
 
     /* --- INGREDIENTS VISUAL CONTAINER --- */
@@ -270,6 +268,7 @@
       flex-direction: column;
       align-items: center;
       width: 100%;
+      box-shadow: var(--shadow-card);
     }
 
     .image-grid {
@@ -285,73 +284,49 @@
       height: auto;
       border-radius: 14px;
       border: 1px solid var(--border);
-      background: #f1f5f9; /* Fundo placeholder cinza claro */
+      background: #fff;
       transition: 0.3s;
     }
     .image-grid img:hover {
       border-color: var(--primary);
       transform: scale(1.02);
+      box-shadow: var(--shadow-card);
     }
 
     /* --- PROFESSIONAL FOOTER --- */
     footer {
       border-top: 1px solid var(--border);
-      background: #ffffff;
-      padding: 80px 20px;
-      margin-top: 100px;
+      background: #fff; 
+      padding: 60px 20px;
+      margin-top: 80px;
       font-family: 'Inter', sans-serif;
     }
 
     .footer-content {
-      max-width: 800px;
-      margin: 0 auto;
-      text-align: center;
+      max-width: 800px; margin: 0 auto; text-align: center;
     }
 
     .footer-brand {
-      font-weight: 800;
-      font-size: 16px;
-      color: #000;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      letter-spacing: -0.5px;
+      font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: -0.5px;
     }
 
-    .footer-dot {
-      width: 6px; height: 6px;
-      background: var(--primary);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--primary);
-    }
+    .footer-dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 8px var(--primary); }
 
     .footer-links {
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      font-size: 13px;
+      margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px;
     }
 
-    .footer-links a {
-      color: var(--text-sec);
-      text-decoration: none;
-      transition: 0.3s ease;
-    }
-    .footer-links a:hover {
-      color: var(--primary);
-    }
+    .footer-links a { color: var(--text-sec); text-decoration: none; transition: 0.3s ease; }
+    .footer-links a:hover { color: var(--primary); }
 
-    .footer-disclaimer {
-      color: #94a3b8;
-      font-size: 12px;
-      line-height: 1.7;
-      opacity: 0.9;
-    }
+    .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; opacity: 0.8; }
 
-    /* --- RESPONSIVE --- */
+    /* =========================================
+       RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
+       (Preservado da versão anterior)
+       ========================================= */
+    
     @media (max-width: 900px) {
       .hero {
         display: flex;
@@ -361,12 +336,30 @@
       }
       
       .hero-img { margin: 20px 0; transform: none; max-width: 300px; }
-      .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; margin-left: auto; margin-right: auto; max-width: 100%; }
+      .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; }
       
       .container { grid-template-columns: 1fr; }
       aside { position: static; margin-bottom: 40px; order: -1; }
       
       .footer-links { flex-direction: column; gap: 12px; }
+    }
+
+    @media (max-width: 600px) {
+      .hero { padding: 30px 16px; } 
+      h1 { font-size: 32px !important; line-height: 1.15 !important; } 
+      .hero-part-top, .hero-part-bottom { width: 100%; }
+      .hero-label { font-size: 11px; margin-bottom: 8px; }
+      .btn { width: 100% !important; }
+      .hero .btn { padding: 16px 24px !important; font-size: 18px; }
+      .grid-3 { grid-template-columns: 1fr !important; }
+      .image-grid { grid-template-columns: 1fr !important; }
+      aside { margin-bottom: 30px; }
+      .offer-box { padding: 20px; }
+      .offer-title { font-size: 18px; }
+      aside img { max-width: 150px !important; }
+      .logo { font-size: 16px; }
+      .header-info a { font-size: 13px; }
+      .positioning-text { font-size: 15px; text-align: left; border-top: 2px solid var(--primary); border-left: none; }
     }
   </style>
 </head>
@@ -401,7 +394,7 @@
       <h1>{{HEADLINE_MAIN}}</h1>
     </div>
 
-    <!-- PART 2: Imagem (Centralizada no Desktop, no meio do mobile) -->
+    <!-- PART 2: Imagem -->
     <div class="hero-img-wrapper">
       <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
     </div>
@@ -414,7 +407,7 @@
         {{POSITIONING_STATEMENT}}
       </div>
 
-      <a href="javascript:void(0)" class="btn" style="width: auto; padding: 16px 32px;" onclick="doRedirect()">
+      <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}}
       </a>
     </div>
@@ -429,7 +422,7 @@
       <!-- SECTION: THE PROBLEM -->
       <div class="content-block">
         <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p style="color:var(--text-sec); font-size: 17px;">{{PRIMARY_PROBLEM_TEXT}}</p>
+        <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
       </div>
 
       <!-- SECTION: WHY DIFFERENT (CARDS) -->
@@ -479,18 +472,17 @@
       </div>
 
       <!-- SECTION: INGREDIENTS -->
-<div class="content-block">
-  <h2 class="section-title">Proprietary Formula</h2>
-  
-  <div class="ingredients-visual">
-    {{INGREDIENT_IMAGES}}
-  </div>
+      <div class="content-block">
+        <h2 class="section-title">Proprietary Formula</h2>
+        
+        <div class="ingredients-visual">
+          {{INGREDIENT_IMAGES}}
+        </div>
 
-  <!-- ⬇️ INSERIR AQUI -->
-  <p style="color:var(--text-sec); font-size:17px; max-width:800px; margin-top:24px;">
-    {{FORMULA_TEXT}}
-  </p>
-</div>
+        <p style="color:var(--text-sec); font-size:16px; max-width:800px; margin-top:24px;">
+          {{FORMULA_TEXT}}
+        </p>
+      </div>
 
       <!-- SECTION: TARGET AUDIENCE -->
       <div class="content-block">
@@ -533,13 +525,11 @@
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
           {{GUARANTEE_TEXT}}
-
-          <!-- IMAGEM DO SELO DE GARANTIA (BACKEND JÁ RETORNA <img ...>) -->
           {{GUARANTEE_IMAGE}}
         </div>
       </div>
 
-      <p style="font-size:12px; color:#94a3b8; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
+      <p style="font-size:11px; color:#64748B; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
         {{DISCLAIMER_TEXT}}
       </p>
 
@@ -553,12 +543,12 @@
         <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
 
         <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
-            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.05);" loading="lazy">
+            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.1);" loading="lazy">
         </div>
 
         <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
 
-        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:12px; color:var(--text-sec);">
+        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
           <span>🔒 Secure Checkout</span>
           <span>•</span>
           <span>Official Site</span>
@@ -567,7 +557,7 @@
 
       <!-- Bonus Section -->
       <div class="bonus-section">
-        <h4 style="margin-bottom:12px; font-size:16px; color:#000;">🎁 {{BONUS_TITLE}}</h4>
+        <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
         {{BONUS_IMAGES}}
       </div>
 
@@ -581,25 +571,21 @@
   <footer>
     <div class="footer-content">
       
-      <!-- Branding (Repete o topo para amarrar o design) -->
       <div class="footer-brand">
         <span class="footer-dot"></span> {{SITE_BRAND}}
       </div>
 
-      <!-- Links Legais -->
       <div class="footer-links">
         <a href="{{PRIVACY_URL}}">Privacy Policy</a>
         <a href="{{TERMS_URL}}">Terms of Service</a>
         <a href="{{CONTACT_URL}}">Contact Us</a>
       </div>
 
-      <!-- Texto Dinâmico do Backend -->
       <div class="footer-disclaimer">
         {{FOOTER_DISCLAIMER}}
       </div>
       
-      <!-- Copyright Dinâmico -->
-      <div style="margin-top: 20px; color: #cbd5e1; font-size: 11px;">
+      <div style="margin-top: 20px; color: #94A3B8; font-size: 11px;">
         &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.
       </div>
     </div>
@@ -612,6 +598,10 @@
     function doRedirect(){
       if(clicked) return;
       clicked = true;
+
+      // Opcional: Adicionar classe visual de loading ao botão clicado
+      const btns = document.querySelectorAll('.btn');
+      btns.forEach(btn => btn.innerHTML = 'Redirecionando...');
 
       if(typeof window.runTrackerRedirect === "function"){
         window.runTrackerRedirect(AFFILIATE_LINK);
