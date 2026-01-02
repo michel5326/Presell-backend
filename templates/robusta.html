@@ -246,7 +246,24 @@
       margin-top: 24px; padding: 24px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);
     }
 
-    /* --- INGREDIENTS VISUAL CONTAINER & GRID --- */
+    /* --- GUARANTEE SEAL STYLE --- */
+    .guarantee-seal {
+      display: block;
+      max-width: 180px;
+      margin: 20px auto 0; /* Margem automática para centralizar */
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.3); /* Fundo escuro sutil atrás do selo */
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* Se a variável vier vazia, esconde a imagem */
+    .guarantee-seal[src=""] { 
+      display: none; 
+    }
+
+    /* --- INGREDIENTS VISUAL CONTAINER --- */
     .ingredients-visual {
       padding: 24px;
       background: var(--bg-card);
@@ -258,7 +275,6 @@
       width: 100%;
     }
 
-    /* Classe injetada pelo backend (do template review) adaptada ao Dark Theme */
     .image-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -411,20 +427,13 @@
         </ul>
       </div>
 
-      <!-- SECTION: INGREDIENTS (SISTEMA REVIEW - IMAGES FIRST, TEXT AFTER) -->
+      <!-- SECTION: INGREDIENTS -->
       <div class="content-block">
-        <h2 class="section-title">{{FORMULA_TITLE}}</h2>
+        <h2 class="section-title">Proprietary Formula</h2>
         
-        <!-- 1. Visual Container (Wrapper) -->
         <div class="ingredients-visual">
-          <!-- 2. Grid Injected by Backend -->
           {{INGREDIENT_IMAGES}}
         </div>
-
-        <!-- 3. Explanation Text (After Images) -->
-        <p style="color:var(--text-sec); font-size: 17px; max-width: 800px; margin-top: 24px;">
-          {{FORMULA_TEXT}}
-        </p>
       </div>
 
       <!-- SECTION: TARGET AUDIENCE -->
@@ -466,8 +475,16 @@
       <!-- GUARANTEE -->
       <div class="content-block">
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
-        <div class="alert info">
+        <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
           {{GUARANTEE_TEXT}}
+
+          <!-- IMAGEM DO SELO DE GARANTIA AQUI -->
+          <img 
+            src="{{GUARANTEE_IMAGE}}" 
+            alt="Money-back guarantee seal" 
+            class="guarantee-seal" 
+            loading="lazy"
+          >
         </div>
       </div>
 
