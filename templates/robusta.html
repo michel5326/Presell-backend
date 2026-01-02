@@ -45,48 +45,29 @@
     .bg-glow {
       position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
       background: radial-gradient(circle, var(--primary-dim) 0%, transparent 70%);
-      z-index: -1;
+      z-index: -1; pointer-events:none;
     }
 
     .bg-glow-2 {
       position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
       background: radial-gradient(circle, rgba(41, 121, 255, 0.1) 0%, transparent 70%);
-      z-index: -1;
+      z-index: -1; pointer-events:none;
     }
 
     header {
       padding: 20px 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      position: sticky; top: 0; z-index: 50;
       background: rgba(2,4,10,0.8);
     }
 
-    .logo {
-      font-weight: 800;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      background: var(--primary);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--primary);
-    }
+    .logo { font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
 
     .hero {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 60px 24px;
+      max-width: 1300px; margin: 0 auto; padding: 60px 24px;
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       grid-template-rows: auto auto;
@@ -94,36 +75,26 @@
     }
 
     .hero-img {
-      max-width: 450px;
-      border-radius: 24px;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      width:100%;
+      max-width:450px;
+      border-radius:24px;
+      border:1px solid var(--border);
+      box-shadow:0 20px 50px rgba(0,0,0,.5);
     }
 
     .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px;
-      display: grid;
-      grid-template-columns: 1.5fr 1fr;
-      gap: 40px;
+      max-width: 1200px; margin: 0 auto; padding: 40px 24px;
+      display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
     }
 
     .content-block { margin-bottom: 60px; }
 
     .section-title {
-      font-size: 28px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      font-size: 28px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
     }
-
     .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
+      content: ''; flex: 1; height: 1px; background: var(--border);
     }
 
     .alert {
@@ -140,15 +111,12 @@
       color: #93c5fd;
     }
 
-    /* === GUARANTEE SEAL (NOVO) === */
-    .guarantee-seal {
-      display: block;
-      max-width: 180px;
-      margin: 16px auto 0;
+    .guarantee-seal{
+      display:block;
+      max-width:180px;
+      margin:16px auto 0;
     }
-    .guarantee-seal[src=""] {
-      display: none;
-    }
+    .guarantee-seal[src=""]{ display:none; }
 
     footer {
       text-align: center;
@@ -163,50 +131,64 @@
 
 <body>
 
-  <div class="bg-glow"></div>
-  <div class="bg-glow-2"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow-2"></div>
 
-  <!-- MAIN CONTENT -->
-  <div class="container">
-    <main>
+<div class="container">
+  <main>
 
-      <!-- GUARANTEE -->
-      <div class="content-block">
-        <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
+    <!-- GUARANTEE -->
+    <div class="content-block">
+      <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
 
-        <div class="alert info">
-          {{GUARANTEE_TEXT}}
+      <div class="alert info">
+        {{GUARANTEE_TEXT}}
 
-          <img
-            src="{{GUARANTEE_IMAGE}}"
-            alt="Money-back guarantee"
-            class="guarantee-seal"
-            loading="lazy"
-          >
-        </div>
+        <img
+          src="{{GUARANTEE_IMAGE}}"
+          alt="Money-back guarantee"
+          class="guarantee-seal"
+          loading="lazy"
+        >
+      </div>
+    </div>
+
+    <!-- TESTIMONIAL NOTICE (FIXO, BOFU) -->
+    <div class="content-block">
+      <div class="alert info">
+        Individual results may vary.  
+        You can view real customer reviews and experiences directly on the official website.
       </div>
 
-    </main>
+      <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
+        View real customer reviews on the official website
+      </a>
+    </div>
 
-    <aside>
-      <!-- sidebar intact -->
-    </aside>
-  </div>
+  </main>
 
-  <footer>
-    <div>{{FOOTER_DISCLAIMER}}</div>
-  </footer>
+  <aside>
+    <!-- sidebar permanece intacta -->
+  </aside>
+</div>
 
-  <script>
-    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-    function doRedirect(){
-      if(typeof window.runTrackerRedirect === "function"){
-        window.runTrackerRedirect(AFFILIATE_LINK);
-      }else{
-        window.location.href = AFFILIATE_LINK;
-      }
+<footer>
+  <div>{{FOOTER_DISCLAIMER}}</div>
+</footer>
+
+<script>
+  const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+  let clicked=false;
+  function doRedirect(){
+    if(clicked) return;
+    clicked=true;
+    if(typeof window.runTrackerRedirect==="function"){
+      window.runTrackerRedirect(AFFILIATE_LINK);
+    }else{
+      window.location.href=AFFILIATE_LINK;
     }
-  </script>
+  }
+</script>
 
 </body>
 </html>
