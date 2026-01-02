@@ -19,8 +19,8 @@
       --bg-body: #F8FAFC;       /* Slate 50 - Fundo principal claro */
       --bg-card: #FFFFFF;      /* Branco puro - Cartões */
       --bg-card-hover: #F1F5F9;/* Slate 100 - Hover sutil */
-      --primary: #10B981;      /* Emerald 500 - Verde SaaS (Levemente mais escuro que neon para ler melhor no branco) */
-      --primary-dim: rgba(16, 185, 129, 0.1); /* Verde muito suave */
+      --primary: #10B981;      /* Emerald 500 - Verde SaaS */
+      --primary-dim: rgba(16, 185, 129, 0.1); 
       --accent: #3B82F6;       /* Blue 500 - Tech Blue padrão */
       --text-main: #0F172A;    /* Slate 900 - Texto principal escuro */
       --text-sec: #64748B;     /* Slate 500 - Texto secundário */
@@ -48,12 +48,11 @@
     a { text-decoration: none; transition: all 0.3s ease; }
     p { margin-bottom: 1rem; }
 
-    /* --- BACKGROUND FX (AJUSTADO PARA LIGHT) --- */
+    /* --- BACKGROUND FX --- */
     .bg-glow {
       position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
       background: radial-gradient(circle, var(--primary-dim) 0%, transparent 70%);
       z-index: -1; pointer-events: none;
-      /* Cor ajustada para não interferir na leitura */
     }
     .bg-glow-2 {
       position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
@@ -141,11 +140,11 @@
       border-radius: 24px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Sombra escura realista */
       border: 1px solid var(--border);
-      transform: rotate(-2deg);
+      transform: none; /* <--- AJUSTE: Imagem agora fica totalmente reta (removido o rotate(-2deg)) */
       transition: 0.3s;
       background: #fff;
     }
-    .hero-img:hover { transform: rotate(0deg) scale(1.02); }
+    .hero-img:hover { transform: scale(1.02); } /* <--- AJUSTE: Hover mantém apenas o leve zoom */
 
     /* --- MAIN LAYOUT --- */
     .container {
@@ -324,7 +323,6 @@
 
     /* =========================================
        RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
-       (Preservado da versão anterior)
        ========================================= */
     
     @media (max-width: 900px) {
