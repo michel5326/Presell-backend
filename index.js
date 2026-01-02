@@ -17,16 +17,9 @@ const app = express();
 ========================= */
 app.use(
   cors({
-    origin: [
-      "https://clickpage.vercel.app",
-      "https://clickpage.lovable.app",
-    ],
+    origin: ["https://clickpage.vercel.app", "https://clickpage.lovable.app"],
     methods: ["POST", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "x-worker-token",
-      "x-user-email",
-    ],
+    allowedHeaders: ["Content-Type", "x-worker-token", "x-user-email"],
   })
 );
 
@@ -69,6 +62,20 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
+/* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
+async function uploadToR2(localPath, remoteKey) {
+  const buffer = fs.readFileSync(localPath);
+  await s3
+    .putObject({
+      Bucket: BUCKET,
+      Key: remoteKey,
+      Body: buffer,
+      ContentType: "image/png",
+    })
+    .promise();
+  return `${PUBLIC_BASE_URL}/${remoteKey}`;
+}
+
 /* =========================
    IMAGE — MAIN PRODUCT
 ========================= */
@@ -97,7 +104,16 @@ async function extractMainImage(productUrl) {
     if (m) return normalize(m[1]);
 
     const BLOCK = [
-      "logo","icon","order","buy","cta","checkout","badge","seal","bg","hero"
+      "logo",
+      "icon",
+      "order",
+      "buy",
+      "cta",
+      "checkout",
+      "badge",
+      "seal",
+      "bg",
+      "hero",
     ];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
@@ -141,8 +157,8 @@ async function extractIngredientImages(productUrl) {
       return u;
     };
 
-    const INCLUDE = ["ingredient","ingredients","formula","blend","extract"];
-    const EXCLUDE = ["logo","icon","order","buy","cta","checkout","banner","hero"];
+    const INCLUDE = ["ingredient", "ingredients", "formula", "blend", "extract"];
+    const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "banner", "hero"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
@@ -157,9 +173,7 @@ async function extractIngredientImages(productUrl) {
       out.push(`<img src="${src}" alt="Ingredient" loading="lazy">`);
     }
 
-    return out.length
-      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
-      : "";
+    return out.length ? `<div class="image-grid">\n${out.join("\n")}\n</div>` : "";
   } catch {
     return "";
   }
@@ -186,8 +200,8 @@ async function extractBonusImages(productUrl) {
       return u;
     };
 
-    const INCLUDE = ["bonus","bonuses","free","gift","guide","ebook","pdf"];
-    const EXCLUDE = ["logo","icon","order","buy","cta","checkout","badge","seal","guarantee"];
+    const INCLUDE = ["bonus", "bonuses", "free", "gift", "guide", "ebook", "pdf"];
+    const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "badge", "seal", "guarantee"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
@@ -202,18 +216,18 @@ async function extractBonusImages(productUrl) {
       out.push(`<img src="${src}" alt="Bonus" loading="lazy">`);
     }
 
-    return out.length
-      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
-      : "";
+    return out.length ? `<div class="image-grid">\n${out.join("\n")}\n</div>` : "";
   } catch {
     return "";
   }
 }
 
 /* =========================
-   IMAGE — TESTIMONIALS (NOVO)
+   IMAGE — GUARANTEE (NOVO)
+   - 1 imagem (badge)
+   - fallback vazio
 ========================= */
-async function extractTestimonialImages(productUrl) {
+async function extractGuaranteeImage(productUrl) {
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -231,25 +245,23 @@ async function extractTestimonialImages(productUrl) {
       return u;
     };
 
-    const INCLUDE = ["testimonial","testimonials","review","reviews","rating","feedback"];
-    const EXCLUDE = ["logo","icon","order","buy","cta","checkout","badge","seal"];
+    const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge"];
+    const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "hero", "banner"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
-    const out = [];
 
     for (const m of imgs) {
-      if (out.length >= 3) break;
       const src = normalize(m[1]);
       const low = src.toLowerCase();
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
       if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
         continue;
-      out.push(`<img src="${src}" alt="Customer review" loading="lazy">`);
+
+      // retorna HTML pronto (não quebra layout se vazio)
+      return `<img src="${src}" alt="Guarantee" loading="lazy" style="max-width:190px;width:100%;height:auto;display:block;margin:0 auto 14px;border-radius:12px;">`;
     }
 
-    return out.length
-      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
-      : "";
+    return "";
   } catch {
     return "";
   }
@@ -329,7 +341,9 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA v2 (TESTEMUNHOS ATIVADOS)
+   ROBUSTA v3
+   - remove testemunhas (sem extração)
+   - adiciona GUARANTEE_IMAGE
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
   const ai = await callDeepSeekWithRetry(
@@ -378,7 +392,7 @@ Output ONLY valid JSON.`,
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
   const bonusImages = await extractBonusImages(productUrl);
-  const testimonialImages = await extractTestimonialImages(productUrl);
+  const guaranteeImage = await extractGuaranteeImage(productUrl);
 
   let html = fs.readFileSync(templatePath, "utf8");
 
@@ -407,7 +421,9 @@ Output ONLY valid JSON.`,
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}", testimonialImages || "");
+    .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "")
+    // se o template ainda tiver placeholder antigo, não deixa “cru”
+    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 }
 
 /* =========================
