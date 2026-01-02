@@ -62,6 +62,11 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
+/* ✅ GLOBAL PLACEHOLDERS (NOVO) */
+function applyGlobals(html) {
+  return html.replaceAll("{{CURRENT_YEAR}}", String(new Date().getFullYear()));
+}
+
 /* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
@@ -329,12 +334,17 @@ Language: ${language}`,
     html = html.replaceAll(`{{${k}}}`, v);
   }
 
-  return html
+  html = html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", "")
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+
+  /* ✅ aplica CURRENT_YEAR */
+  html = applyGlobals(html);
+
+  return html;
 }
 
 /* =========================
@@ -411,13 +421,18 @@ Output ONLY valid JSON.`,
     html = html.replaceAll(`{{${k}}}`, v);
   }
 
-  return html
+  html = html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
     .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "")
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+
+  /* ✅ aplica CURRENT_YEAR */
+  html = applyGlobals(html);
+
+  return html;
 }
 
 /* =========================
@@ -452,7 +467,6 @@ app.post("/generate", async (req, res) => {
     const templatePath = findTemplate(templateId);
     if (!templatePath) return res.status(404).json({ error: "no template" });
 
-    /* ===== 🔥 ÚNICA MUDANÇA AQUI 🔥 ===== */
     if (templateId.startsWith("review")) {
       const html = await generateBofuReview({
         templatePath,
@@ -471,7 +485,6 @@ app.post("/generate", async (req, res) => {
       });
       return res.status(200).set("Content-Type", "text/html").send(html);
     }
-    /* ===== 🔥 FIM DA MUDANÇA 🔥 ===== */
 
     /* ===== LEGACY (INTOCADO) ===== */
     const finalLegacyData = { ...legacyData, ...flatBody };
@@ -511,6 +524,9 @@ app.post("/generate", async (req, res) => {
     for (const [k, v] of Object.entries(finalLegacyData)) {
       html = html.replaceAll(`{{${k}}}`, String(v));
     }
+
+    /* ✅ aplica CURRENT_YEAR também no legacy */
+    html = applyGlobals(html);
 
     return res.status(200).set("Content-Type", "text/html").send(html);
   } catch (e) {
