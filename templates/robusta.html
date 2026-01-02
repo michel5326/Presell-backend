@@ -296,10 +296,65 @@
       transform: scale(1.02);
     }
 
-    /* --- FOOTER --- */
+    /* --- PROFESSIONAL FOOTER --- */
     footer {
-      text-align: center; padding: 60px 20px; color: #475569; font-size: 12px;
-      border-top: 1px solid var(--border); margin-top: 80px;
+      border-top: 1px solid var(--border);
+      /* Fundo sutilmente mais claro que o body para dar profundidade */
+      background: rgba(2, 4, 10, 0.6); 
+      padding: 80px 20px;
+      margin-top: 100px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .footer-content {
+      max-width: 800px; /* Evita que o texto fique muito largo em telas grandes */
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    /* Mini Logo no rodapé para identidade */
+    .footer-brand {
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .footer-dot {
+      width: 6px; height: 6px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--primary);
+    }
+
+    .footer-links {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      font-size: 13px;
+    }
+
+    .footer-links a {
+      color: var(--text-sec);
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+    .footer-links a:hover {
+      color: var(--primary); /* Verde neon ao passar o mouse */
+    }
+
+    /* Texto do Disclaimer */
+    .footer-disclaimer {
+      color: #64748b; /* Cinza mais claro para legibilidade */
+      font-size: 12px;
+      line-height: 1.7; /* Espaçamento entre linhas ajuda a ler */
+      opacity: 0.8;
     }
 
     /* --- RESPONSIVE --- */
@@ -316,6 +371,12 @@
       
       .container { grid-template-columns: 1fr; }
       aside { position: static; margin-bottom: 40px; order: -1; }
+      
+      /* Mobile Footer Adjustments */
+      .footer-links {
+        flex-direction: column;
+        gap: 12px;
+      }
     }
   </style>
 </head>
@@ -526,8 +587,32 @@
 
   </div>
 
+  <!-- PROFESSIONAL FOOTER -->
   <footer>
-    <div>{{FOOTER_DISCLAIMER}}</div>
+    <div class="footer-content">
+      
+      <!-- Branding (Repete o topo para amarrar o design) -->
+      <div class="footer-brand">
+        <span class="footer-dot"></span> {{SITE_BRAND}}
+      </div>
+
+      <!-- Links Legais (Placeholders fixos para estrutura visual) -->
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Contact Us</a>
+      </div>
+
+      <!-- Texto Dinâmico do Backend -->
+      <div class="footer-disclaimer">
+        {{FOOTER_DISCLAIMER}}
+      </div>
+      
+      <!-- Copyright Fixo para finalizar -->
+      <div style="margin-top: 20px; color: #334155; font-size: 11px;">
+        &copy; 2026 {{SITE_BRAND}}. All rights reserved.
+      </div>
+    </div>
   </footer>
 
   <script>
