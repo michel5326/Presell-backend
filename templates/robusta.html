@@ -490,7 +490,7 @@
 
       <!-- SECTION: INGREDIENTS -->
       <div class="content-block">
-        <h2 class="section-title">Proprietary Formula</h2>
+        <h2 class="section-title">{{FORMULA_TITLE}}</h2>
         
         <div class="ingredients-visual">
           {{INGREDIENT_IMAGES}}
@@ -539,13 +539,8 @@
         <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
           {{GUARANTEE_TEXT}}
 
-          <!-- IMAGEM DO SELO DE GARANTIA AQUI -->
-          <img 
-            src="{{GUARANTEE_IMAGE}}" 
-            alt="Money-back guarantee seal" 
-            class="guarantee-seal" 
-            loading="lazy"
-          >
+          <!-- IMAGEM DO SELO DE GARANTIA (BACKEND JÁ RETORNA <img ...>) -->
+          {{GUARANTEE_IMAGE}}
         </div>
       </div>
 
@@ -596,11 +591,11 @@
         <span class="footer-dot"></span> {{SITE_BRAND}}
       </div>
 
-      <!-- Links Legais (Placeholders fixos para estrutura visual) -->
+      <!-- Links Legais -->
       <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact Us</a>
+        <a href="{{PRIVACY_URL}}">Privacy Policy</a>
+        <a href="{{TERMS_URL}}">Terms of Service</a>
+        <a href="{{CONTACT_URL}}">Contact Us</a>
       </div>
 
       <!-- Texto Dinâmico do Backend -->
@@ -608,9 +603,9 @@
         {{FOOTER_DISCLAIMER}}
       </div>
       
-      <!-- Copyright Fixo para finalizar -->
+      <!-- Copyright Dinâmico -->
       <div style="margin-top: 20px; color: #334155; font-size: 11px;">
-        &copy; 2026 {{SITE_BRAND}}. All rights reserved.
+        &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.
       </div>
     </div>
   </footer>
