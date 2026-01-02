@@ -223,9 +223,7 @@ async function extractBonusImages(productUrl) {
 }
 
 /* =========================
-   IMAGE — GUARANTEE (NOVO)
-   - 1 imagem (badge)
-   - fallback vazio
+   IMAGE — GUARANTEE
 ========================= */
 async function extractGuaranteeImage(productUrl) {
   try {
@@ -257,7 +255,6 @@ async function extractGuaranteeImage(productUrl) {
       if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
         continue;
 
-      // retorna HTML pronto (não quebra layout se vazio)
       return `<img src="${src}" alt="Guarantee" loading="lazy" style="max-width:190px;width:100%;height:auto;display:block;margin:0 auto 14px;border-radius:12px;">`;
     }
 
@@ -302,7 +299,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW (INTOCADO)
+   BOFU REVIEW
 ========================= */
 async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
   const ai = await callDeepSeekWithRetry(
@@ -341,9 +338,7 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA v3
-   - remove testemunhas (sem extração)
-   - adiciona GUARANTEE_IMAGE
+   ROBUSTA
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
   const ai = await callDeepSeekWithRetry(
@@ -422,7 +417,6 @@ Output ONLY valid JSON.`,
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
     .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "")
-    // se o template ainda tiver placeholder antigo, não deixa “cru”
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 }
 
@@ -458,7 +452,8 @@ app.post("/generate", async (req, res) => {
     const templatePath = findTemplate(templateId);
     if (!templatePath) return res.status(404).json({ error: "no template" });
 
-    if (templateId === "review") {
+    /* ===== 🔥 ÚNICA MUDANÇA AQUI 🔥 ===== */
+    if (templateId.startsWith("review")) {
       const html = await generateBofuReview({
         templatePath,
         affiliateUrl,
@@ -468,7 +463,7 @@ app.post("/generate", async (req, res) => {
       return res.status(200).set("Content-Type", "text/html").send(html);
     }
 
-    if (templateId === "robusta") {
+    if (templateId.startsWith("robusta")) {
       const html = await generateRobusta({
         templatePath,
         affiliateUrl,
@@ -476,6 +471,7 @@ app.post("/generate", async (req, res) => {
       });
       return res.status(200).set("Content-Type", "text/html").send(html);
     }
+    /* ===== 🔥 FIM DA MUDANÇA 🔥 ===== */
 
     /* ===== LEGACY (INTOCADO) ===== */
     const finalLegacyData = { ...legacyData, ...flatBody };
