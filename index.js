@@ -367,7 +367,7 @@ Language: ${language}`,
 /* =========================
    ROBUSTA
 ========================= */
-async function generateRobusta({ templatePath, affiliateUrl, productUrl }) {
+async function generateRobusta({ templatePath, affiliateUrl, productUrl, language = "en" }) {
   const ai = await callDeepSeekWithRetry(
     `Return ONLY valid JSON.
 
@@ -406,18 +406,69 @@ GUARANTEE_TEXT
 DISCLAIMER_TEXT
 FORMULA_TITLE
 FORMULA_TEXT
+TESTIMONIAL_TITLE
+TESTIMONIAL_NOTICE_TEXT
+TESTIMONIAL_CTA_TEXT
+
+IMPORTANT — TESTIMONIAL SECTION:
+- Do NOT invent testimonials
+- Do NOT describe individual users
+- Do NOT include names, quotes, or personal stories
+- Do NOT claim specific results
+
+The testimonial section must clearly state that:
+- real customer testimonials are available on the official website
+- this page does not reproduce or modify user feedback
+- the goal is transparency and authenticity
+
+Use neutral, compliance-safe language.
 
 Output ONLY valid JSON.`,
     `Product URL: ${productUrl}`
   );
 
+  /* ===== IMAGES ===== */
   const productImage = await extractMainImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
   const bonusImages = await extractBonusImages(productUrl);
   const guaranteeImage = await extractGuaranteeImage(productUrl);
 
+  /* ===== TESTIMONIAL FALLBACK (MULTI-LANGUAGE) ===== */
+  const testimonialFallback = {
+    en: {
+      title: "What customers are saying",
+      text:
+        "Real customer testimonials are available directly on the official website. " +
+        "To preserve authenticity and accuracy, this page does not reproduce or modify individual user feedback.",
+      cta: "View real testimonials on the official site",
+    },
+    pt: {
+      title: "O que clientes reais dizem",
+      text:
+        "Depoimentos reais de clientes estão disponíveis diretamente no site oficial. " +
+        "Para preservar a autenticidade, esta página não reproduz nem modifica avaliações individuais.",
+      cta: "Ver depoimentos no site oficial",
+    },
+    es: {
+      title: "Lo que dicen los clientes",
+      text:
+        "Los testimonios reales de clientes están disponibles directamente en el sitio oficial. " +
+        "Para preservar la autenticidad, esta página no reproduce ni modifica opiniones individuales.",
+      cta: "Ver testimonios en el sitio oficial",
+    },
+    fr: {
+      title: "Ce que disent les clients",
+      text:
+        "Les témoignages réels de clients sont disponibles directement sur le site officiel. " +
+        "Afin de préserver l’authenticité, cette page ne reproduit ni ne modifie les avis individuels.",
+      cta: "Voir les témoignages sur le site officiel",
+    },
+  };
+
+  /* ===== LOAD TEMPLATE ===== */
   let html = fs.readFileSync(templatePath, "utf8");
 
+  /* ===== FIXED STRINGS ===== */
   const fixed = {
     SITE_BRAND: "Buyer Guide",
     UPDATED_DATE: new Date().toISOString().split("T")[0],
@@ -434,19 +485,29 @@ Output ONLY valid JSON.`,
     FOOTER_DISCLAIMER: "This content is informational only.",
   };
 
+  /* ===== APPLY AI + FIXED COPY ===== */
   for (const [k, v] of Object.entries({ ...fixed, ...ai })) {
-    html = html.replaceAll(`{{${k}}}`, v);
+    html = html.replaceAll(`{{${k}}}`, v || "");
   }
 
+  /* ===== APPLY IMAGES ===== */
   html = html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
-    .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+    .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "");
 
-  /* ✅ aplica CURRENT_YEAR */
+  /* ===== APPLY TESTIMONIAL TEXT (AI + FALLBACK) ===== */
+  const lang = (language || "en").toLowerCase();
+  const t = testimonialFallback[lang] || testimonialFallback.en;
+
+  html = html
+    .replaceAll("{{TESTIMONIAL_TITLE}}", ai.TESTIMONIAL_TITLE || t.title)
+    .replaceAll("{{TESTIMONIAL_NOTICE_TEXT}}", ai.TESTIMONIAL_NOTICE_TEXT || t.text)
+    .replaceAll("{{TESTIMONIAL_CTA_TEXT}}", ai.TESTIMONIAL_CTA_TEXT || t.cta);
+
+  /* ===== GLOBAL PLACEHOLDERS ===== */
   html = applyGlobals(html);
 
   return html;
