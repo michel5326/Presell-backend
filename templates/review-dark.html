@@ -8,306 +8,383 @@
 <meta name="description" content="{{SUBHEADLINE}}" />
 <meta name="robots" content="index,follow,max-image-preview:large" />
 
+<!-- Fonts: Inter & Outfit (Mesmo do modelo bom) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+
 <style>
-:root{
-/* Palette: Modern Dark Blue / Slate */
---bg: #0f172a;          /* Fundo mais profundo */
---card: #1e293b;         /* Card ligeiramente mais claro */
---card-border: rgba(255,255,255,0.08);
---text: #f1f5f9;         /* Quase branco */
---muted: #94a3b8;        /* Cinza azulado suave */
---accent: #3b82f6;       /* Azul vibrante */
---accent-hover: #2563eb;
---line: rgba(255,255,255,0.05);
---shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
---radius: 20px;
---max: 900px;            /* Largura melhorada para leitura de review */
---font-family: system-ui, -apple-system, sans-serif;
-}
+  /* --- DESIGN SYSTEM DO MODELO BOM --- */
+  :root {
+    --bg-body: #02040a;
+    --bg-card: #0f1525;
+    --bg-card-hover: #161e33;
+    --primary: #00e676; /* Neon Green */
+    --primary-dim: rgba(0, 230, 118, 0.15);
+    --accent: #2979ff; /* Tech Blue */
+    --text-main: #ffffff;
+    --text-sec: #94a3b8;
+    --border: rgba(255,255,255,0.08);
+    
+    --gradient-main: linear-gradient(135deg, #00e676 0%, #00b0ff 100%);
+    --shadow-glow: 0 0 60px rgba(0, 230, 118, 0.15);
+    --radius: 16px;
+    
+    --success-bg: rgba(0, 230, 118, 0.1);
+    --success-text: #00e676;
+    --info-bg: rgba(41, 121, 255, 0.1);
+    --info-text: #93c5fd;
+  }
 
-*{box-sizing:border-box}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body{
-margin:0;
-background-color: var(--bg);
-color:var(--text);
-font-family: var(--font-family);
-line-height: 1.65; /* Melhor espaçamento entre linhas */
--webkit-font-smoothing: antialiased;
-}
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
 
-a{color:inherit;text-decoration:none;}
+  /* Typography */
+  h1, h2, h3, .btn { font-family: 'Outfit', sans-serif; }
+  a { text-decoration: none; transition: all 0.3s ease; }
+  p { margin-bottom: 1rem; color: var(--text-sec); }
 
-/* --- LAYOUT --- */
-.wrap{max-width:var(--max);margin:0 auto;padding:16px;}
+  /* --- BACKGROUND FX --- */
+  .bg-glow {
+    position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
+    background: radial-gradient(circle, var(--primary-dim) 0%, transparent 70%);
+    z-index: -1; pointer-events: none;
+  }
+  .bg-glow-2 {
+    position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
+    background: radial-gradient(circle, rgba(41, 121, 255, 0.1) 0%, transparent 70%);
+    z-index: -1; pointer-events: none;
+  }
 
-/* --- TOPBAR --- */
-.topbar{
-position:sticky;
-top:0;
-z-index:50; /* Garante que fique por cima */
-background: rgba(15, 23, 42, 0.95); /* Fundo quase sólido */
-backdrop-filter: blur(10px);
-border-bottom: 1px solid var(--card-border);
-padding: 12px 0;
-}
-.topbar .inner{
-max-width:var(--max);
-margin:0 auto;
-padding:0 16px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-.topbar strong { font-weight:700; color: #fff; letter-spacing: -0.5px; }
+  /* --- HEADER --- */
+  header {
+    padding: 15px 5%;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    position: sticky; top: 0; z-index: 50; background: rgba(2,4,10,0.8);
+  }
 
-/* --- CTA BUTTONS --- */
-.cta{
-display: inline-flex;
-align-items: center;
-justify-content: center;
-padding: 12px 20px;
-border-radius: 12px;
-background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-color:#fff;
-font-weight:700;
-font-size: 14px;
-transition: transform 0.2s, box-shadow 0.2s;
-box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-border: 1px solid rgba(255,255,255,0.1);
-cursor: pointer;
-}
-.cta:hover{
-transform: translateY(-1px);
-box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
-}
-.cta:active{transform: translateY(1px);}
+  .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; color: #fff; text-transform: uppercase;}
+  .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
 
-/* --- MAIN CARD --- */
-.card{
-background: var(--card);
-border: 1px solid var(--card-border);
-/* Efeito de topo iluminado */
-border-top: 2px solid rgba(59, 130, 246, 0.5);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding: 32px 24px; /* Mais espaço interno para leitura */
-margin-bottom: 40px;
-}
+  .header-cta {
+    font-size:14px; font-weight:600; color:var(--primary);
+    background: rgba(0, 230, 118, 0.1); padding: 8px 16px; border-radius: 20px;
+  }
+  .header-cta:hover { background: var(--primary); color: #000; }
 
-/* --- TYPOGRAPHY --- */
-h1{
-font-size:clamp(28px, 4.5vw, 42px); /* Ajuste granular */
-line-height:1.15;
-margin-bottom:12px;
-font-weight:800;
-color: #fff;
-letter-spacing: -0.02em;
-}
+  /* --- HERO SECTION (Reutilizando estrutura do bom) --- */
+  .hero {
+    max-width: 1300px; margin: 0 auto; padding: 40px 24px;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-rows: auto auto;
+    gap: 40px;
+    align-items: start;
+  }
 
-h2{
-font-size: 22px;
-margin-top: 40px;
-margin-bottom: 16px;
-font-weight:700;
-color: #fff;
-display: flex;
-align-items: center;
-gap: 10px;
-}
-/* Barra decorativa nos H2 */
-h2::before {
-content: '';
-display: block;
-width: 4px;
-height: 22px;
-background: var(--accent);
-border-radius: 2px;
-}
+  .hero-part-top { grid-column: 1; grid-row: 1; }
+  .hero-part-bottom { grid-column: 1; grid-row: 2; }
+  .hero-img-wrapper {
+    grid-column: 2; grid-row: 1 / span 2;
+    position: relative; display: flex; align-items: center; justify-content: center;
+  }
 
-p{color:var(--muted); font-size: 16px; margin-bottom: 1.2rem;}
+  .hero-part-top h1 {
+    font-size: clamp(36px, 5vw, 56px); line-height: 1.1; margin-bottom: 0; font-weight: 800;
+  }
 
-/* --- LISTS --- */
-ul{padding-left:0; list-style:none; margin:0;}
-li{
-position:relative;
-padding-left: 28px;
-margin-bottom: 12px;
-color:var(--muted);
-font-size: 16px;
-}
-/* Checkmark customizado */
-li::before {
-content: '✓';
-position:absolute; left:0; top:1px;
-color: var(--accent);
-font-weight:bold;
-font-size:18px;
-}
+  .hero-label {
+    color:var(--primary); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;
+  }
 
-/* --- IMAGES --- */
-.product-image-container {
-margin: 24px 0;
-text-align: center;
-}
+  .hero-img-wrapper::before {
+    content: ''; position: absolute; inset: -10px;
+    background: var(--gradient-main); filter: blur(80px); opacity: 0.4; z-index: -1; border-radius: 50%;
+  }
 
-.product-image{
-max-width:100%;
-height: auto;
-display:inline-block;
-border-radius:16px;
-border: 1px solid var(--card-border);
-box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-background: #000;
-}
+  .hero-img {
+    width: 100%; max-width: 450px; height: auto; display: block; margin: 0 auto;
+    border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid var(--border); transform: rotate(-2deg); transition: 0.3s;
+  }
+  .hero-img:hover { transform: rotate(0deg) scale(1.02); }
 
-.image-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); /* Largura mínima ajustada */
-gap:16px;
-margin: 24px 0;
-}
+  .positioning-text {
+    font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500;
+    border-left: 2px solid var(--primary); padding-left: 16px;
+  }
 
-.image-grid img{
-width:100%;
-height: auto;
-border-radius:14px;
-border: 1px solid var(--card-border);
-background: #000;
-transition: transform 0.2s;
-}
-.image-grid img:hover {
-transform: scale(1.02);
-border-color: var(--accent);
-}
+  /* --- MAIN LAYOUT --- */
+  .container {
+    max-width: 1200px; margin: 0 auto; padding: 40px 24px;
+    display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
+  }
 
-/* --- SEPARATORS --- */
-.separator {
-height: 1px;
-background: var(--line);
-margin: 32px 0;
-}
+  /* --- CONTENT BLOCKS --- */
+  .content-block { margin-bottom: 60px; }
+  
+  .section-title {
+    font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: #fff;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-/* --- FOOTER --- */
-footer{
-margin-top:20px;
-padding: 20px;
-border-top: 1px solid var(--line);
-text-align:center;
-}
-footer p{
-font-size:12px;
-color:var(--muted);
-margin:0;
-opacity:0.7;
-}
+  /* --- STICKY SIDEBAR (O GRANDE DIFERENCIAL) --- */
+  aside {
+    position: sticky; top: 100px; height: fit-content;
+  }
 
-/* --- MOBILE RESPONSIVE --- */
-@media (max-width:600px) {
-.wrap { padding: 0; } /* Remove padding geral no mobile */
-.card { border-radius: 0; border-left:none; border-right:none; padding: 24px 16px; }
-.topbar .inner { padding: 0 16px; }
-.cta { width: 100%; } /* Botão full width no mobile */
-h2 { font-size: 18px; margin-top: 32px; }
-h2::before { height: 18px; }
-.topbar strong { font-size: 14px; }
-}
+  .offer-box {
+    background: linear-gradient(180deg, var(--bg-card) 0%, #050810 100%);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 30px; text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
 
+  .offer-badge {
+    background: var(--primary); color: #000; font-weight: 800; font-size: 12px;
+    padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 16px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .btn {
+    display: inline-block; width: 100%; padding: 18px; border-radius: 12px;
+    background: var(--gradient-main); color: #fff; font-weight: 700; font-size: 16px;
+    text-align: center; border: none; cursor: pointer; margin-top: 16px;
+    box-shadow: 0 10px 25px rgba(0, 230, 118, 0.3); transition: all 0.3s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0, 230, 118, 0.4); }
+  .btn:active { transform: translateY(1px); }
+
+  /* --- STYLED LIST --- */
+  ul.styled-list { list-style: none; }
+  ul.styled-list li {
+    position: relative; padding-left: 28px; margin-bottom: 16px; color: var(--text-sec);
+  }
+  ul.styled-list li::before {
+    content: '→'; position: absolute; left: 0; top: 2px; color: var(--primary); font-weight: 800;
+  }
+
+  /* --- ALERTS --- */
+  .alert {
+    padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 15px; background: var(--bg-card);
+  }
+  .alert.info { border-color: var(--accent); color: var(--info-text); background: rgba(41, 121, 255, 0.05); }
+  .alert.success { border-color: var(--primary); color: var(--success-text); background: rgba(0, 230, 118, 0.05); }
+
+  /* --- INGREDIENTS VISUAL --- */
+  .ingredients-visual {
+    padding: 24px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; width: 100%;
+  }
+  .image-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; width: 100%; max-width: 800px;
+  }
+  .image-grid img {
+    width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border);
+    background: #000; transition: 0.3s;
+  }
+  .image-grid img:hover { border-color: var(--primary); transform: scale(1.02); }
+
+  /* --- BONUS & TESTIMONIALS --- */
+  .bonus-section { margin-top: 24px; padding: 24px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); }
+
+  /* --- FOOTER --- */
+  footer {
+    border-top: 1px solid var(--border); background: rgba(2, 4, 10, 0.6); 
+    padding: 60px 20px; margin-top: 80px; text-align: center;
+  }
+  .footer-links { margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px; }
+  .footer-links a { color: var(--text-sec); }
+  .footer-links a:hover { color: var(--primary); }
+  .footer-disclaimer { color: #64748b; font-size: 12px; line-height: 1.7; opacity: 0.8; max-width: 600px; margin: 0 auto; }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 900px) {
+    .hero { display: flex; flex-direction: column; text-align: center; padding-top: 30px; }
+    .hero-img { margin: 20px 0; transform: none; max-width: 300px; }
+    .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; }
+    .container { grid-template-columns: 1fr; }
+    aside { position: static; margin-bottom: 40px; order: -1; } /* Sidebar sobe no mobile */
+    .footer-links { flex-direction: column; gap: 12px; }
+  }
+  @media (max-width: 600px) {
+    .hero { padding: 30px 16px; }
+    h1 { font-size: 32px !important; }
+    .grid-3 { grid-template-columns: 1fr !important; }
+    .image-grid { grid-template-columns: 1fr !important; }
+  }
 </style>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-<div class="inner">
-<strong>Editorial Review</strong>
-<a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
-Visit Official Site &rarr;
-</a>
-</div>
-</div>
+  <!-- Glows de Fundo -->
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
 
-<main class="wrap">
+  <!-- NAV -->
+  <header>
+    <div class="logo">
+      <span class="dot"></span> Editorial Review
+    </div>
+    <a href="javascript:void(0)" onclick="doRedirect()" class="header-cta">
+      Visit Official Site &rarr;
+    </a>
+  </header>
 
-<section class="card">
+  <!-- HERO SECTION -->
+  <section class="hero">
+    
+    <!-- Headline & Label -->
+    <div class="hero-part-top">
+      <span class="hero-label">Quick Overview</span>
+      <h1>{{HEADLINE}}</h1>
+    </div>
 
-<!-- FIRST FOLD -->
-<h1>{{HEADLINE}}</h1>
-<p style="font-size: 18px; color: #cbd5e1;">{{SUBHEADLINE}}</p>
+    <!-- Imagem (Também aparece na sidebar) -->
+    <div class="hero-img-wrapper">
+      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
+    </div>
 
-<div class="separator"></div>
+    <!-- Subheadline & Intro -->
+    <div class="hero-part-bottom">
+      <p class="hero-sub" style="font-size: 20px; color: #e2e8f0; margin-bottom: 16px;">{{SUBHEADLINE}}</p>
+      
+      <!-- O Intro agora serve como texto de posicionamento -->
+      <div class="positioning-text">
+        {{INTRO}}
+      </div>
 
-<!-- PRODUCT IMAGE -->
-<div class="product-image-container">
-<img
-src="{{PRODUCT_IMAGE}}"
-alt="Product image"
-class="product-image"
-loading="lazy"
->
-</div>
+      <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
+        Check Availability Now
+      </a>
+    </div>
 
-<a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored" style="width:100%; margin-top:24px;">
-Check Availability Now
-</a>
+  </section>
 
-<div class="separator"></div>
+  <div class="container">
 
-<!-- INTRO -->
-<h2>Quick Overview</h2>
-<p>{{INTRO}}</p>
+    <!-- MAIN CONTENT -->
+    <main>
 
-<!-- WHY IT WORKS -->
-<h2>Why It Works</h2>
-<p>{{WHY_IT_WORKS}}</p>
+      <!-- WHY IT WORKS -->
+      <div class="content-block">
+        <h2 class="section-title">Why It Works</h2>
+        <p style="font-size: 18px; color: #cbd5e1;">{{WHY_IT_WORKS}}</p>
+      </div>
 
-<div class="separator"></div>
+      <!-- FORMULA / INGREDIENTS (Grid Visual) -->
+      <div class="content-block">
+        <h2 class="section-title">Inside the Formula</h2>
+        
+        <div class="ingredients-visual">
+          <div class="image-grid">
+            {{INGREDIENT_IMAGES}}
+          </div>
+        </div>
 
-<!-- FORMULA / INGREDIENTS -->
-<h2>Inside the Formula</h2>
+        <p style="margin-top:24px;">{{FORMULA_TEXT}}</p>
+      </div>
 
-<!-- INGREDIENT IMAGES (VISUAL FIRST) -->
-<div class="image-grid">
-{{INGREDIENT_IMAGES}}
-</div>
+      <!-- MAIN BENEFITS (Styled List) -->
+      <div class="content-block">
+        <h2 class="section-title">Key Benefits</h2>
+        <ul class="styled-list">
+          {{BENEFITS_LIST}}
+        </ul>
+      </div>
 
-<!-- INGREDIENT COPY -->
-<p>{{FORMULA_TEXT}}</p>
+      <!-- BONUS SECTION -->
+      <div class="content-block">
+        <div class="bonus-section">
+          <h4 style="margin-bottom:12px; font-size:16px; color:#fff;">🎁 Exclusive Bonuses</h4>
+          {{BONUS_IMAGES}}
+        </div>
+      </div>
 
-<!-- MAIN BENEFITS -->
-<h2>Key Benefits</h2>
-<ul>
-{{BENEFITS_LIST}}
-</ul>
+      <!-- TESTIMONIALS -->
+      <div class="content-block">
+        <h2 class="section-title">What Users Are Saying</h2>
+        {{TESTIMONIAL_IMAGES}}
+        <p style="margin-top: 16px;">{{SOCIAL_PROOF}}</p>
+      </div>
 
-<!-- BONUS IMAGES -->
-{{BONUS_IMAGES}}
+      <!-- GUARANTEE (Styled Alert) -->
+      <div class="content-block">
+        <h2 class="section-title">Money-Back Guarantee</h2>
+        <div class="alert success">
+          <strong>100% Risk-Free:</strong> {{GUARANTEE}}
+        </div>
+      </div>
 
-<!-- TESTIMONIAL IMAGES -->
-{{TESTIMONIAL_IMAGES}}
+    </main>
 
-<!-- SOCIAL PROOF -->
-<h2>What Users Are Saying</h2>
-<p>{{SOCIAL_PROOF}}</p>
+    <!-- SIDEBAR (STICKY CHECKOUT) -->
+    <aside>
+      <div class="offer-box">
+        <div class="offer-badge">Special Offer</div>
+        
+        <div class="offer-title" style="font-size: 20px; font-weight: 800; margin-bottom: 8px; color: #fff;">
+          {{HEADLINE}}
+        </div>
+        
+        <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center;">
+            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 60%; max-width: 180px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
+        </div>
 
-<!-- GUARANTEE -->
-<h2>Money-Back Guarantee</h2>
-<p>{{GUARANTEE}}</p>
+        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">Check Availability Now</a>
 
-<div class="separator"></div>
+        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
+          <span>🔒 Secure Checkout</span>
+          <span>•</span>
+          <span>Official Site</span>
+        </div>
+      </div>
+    </aside>
 
-<a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored" style="width:100%;">
-Read More on Official Website
-</a>
+  </div>
 
-</section>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-links">
+      <a href="{{PRIVACY_URL}}">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="footer-disclaimer">
+      &copy; {{CURRENT_YEAR}} Editorial Review. Disclaimer: This content is for informational purposes only and does not replace professional advice.
+    </div>
+  </footer>
 
-<footer>
-<p>&copy; {{CURRENT_YEAR}} Editorial Review. <br>Disclaimer: This content is for informational purposes only and does not replace professional advice. <br> <a href="{{PRIVACY_URL}}" style="text-decoration:underline;">Privacy Policy</a></p>
-</footer>
+  <script>
+    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+    let clicked = false;
 
-</main>
+    function doRedirect(){
+      if(clicked) return;
+      clicked = true;
+
+      // Loading effect visual
+      const btns = document.querySelectorAll('.btn');
+      btns.forEach(btn => btn.innerHTML = 'Redirecting...');
+
+      if(typeof window.runTrackerRedirect === "function"){
+        window.runTrackerRedirect(AFFILIATE_LINK);
+      }else{
+        window.location.href = AFFILIATE_LINK;
+      }
+    }
+  </script>
 
 </body>
 </html>
