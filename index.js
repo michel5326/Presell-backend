@@ -62,9 +62,21 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
-/* ✅ GLOBAL PLACEHOLDERS (NOVO) */
+/* ✅ GLOBAL PLACEHOLDERS */
 function applyGlobals(html) {
   return html.replaceAll("{{CURRENT_YEAR}}", String(new Date().getFullYear()));
+}
+
+/* =========================
+   ✅ URL NORMALIZER (PATCH)
+========================= */
+function normalizeUrl(u, base) {
+  try {
+    const url = new URL(u, base).href;
+    return url.replace(/([^:]\/)\/+/g, "$1"); // remove double slashes in path
+  } catch {
+    return "";
+  }
 }
 
 /* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
@@ -94,13 +106,7 @@ async function extractMainImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    const normalize = (u) => {
-      if (!u) return "";
-      if (u.startsWith("//")) return base.protocol + u;
-      if (u.startsWith("/")) return base.origin + u;
-      if (!u.startsWith("http")) return base.origin + "/" + u;
-      return u;
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
     let m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
     if (m) return normalize(m[1]);
@@ -108,33 +114,17 @@ async function extractMainImage(productUrl) {
     m = html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
     if (m) return normalize(m[1]);
 
-    const BLOCK = [
-      "logo",
-      "icon",
-      "order",
-      "buy",
-      "cta",
-      "checkout",
-      "badge",
-      "seal",
-      "bg",
-      "hero",
-    ];
-
+    const BLOCK = ["logo", "icon", "order", "buy", "cta", "checkout", "badge", "seal", "bg", "hero"];
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
     for (const i of imgs) {
       const src = normalize(i[1]);
       const low = src.toLowerCase();
-      if (
-        !src ||
-        low.startsWith("data:") ||
-        low.endsWith(".svg") ||
-        BLOCK.some((b) => low.includes(b))
-      )
-        continue;
+      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
+      if (BLOCK.some((b) => low.includes(b))) continue;
       return src;
     }
+
     return "";
   } catch {
     return "";
@@ -153,14 +143,7 @@ async function extractIngredientImages(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-
-    const normalize = (u) => {
-      if (!u) return "";
-      if (u.startsWith("//")) return base.protocol + u;
-      if (u.startsWith("/")) return base.origin + u;
-      if (!u.startsWith("http")) return base.origin + "/" + u;
-      return u;
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
     const INCLUDE = ["ingredient", "ingredients", "formula", "blend", "extract"];
     const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "banner", "hero"];
@@ -173,8 +156,7 @@ async function extractIngredientImages(productUrl) {
       const src = normalize(m[1]);
       const low = src.toLowerCase();
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
-        continue;
+      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
       out.push(`<img src="${src}" alt="Ingredient" loading="lazy">`);
     }
 
@@ -196,14 +178,7 @@ async function extractBonusImages(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-
-    const normalize = (u) => {
-      if (!u) return "";
-      if (u.startsWith("//")) return base.protocol + u;
-      if (u.startsWith("/")) return base.origin + u;
-      if (!u.startsWith("http")) return base.origin + "/" + u;
-      return u;
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
     const INCLUDE = ["bonus", "bonuses", "free", "gift", "guide", "ebook", "pdf"];
     const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "badge", "seal", "guarantee"];
@@ -216,8 +191,7 @@ async function extractBonusImages(productUrl) {
       const src = normalize(m[1]);
       const low = src.toLowerCase();
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
-        continue;
+      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
       out.push(`<img src="${src}" alt="Bonus" loading="lazy">`);
     }
 
@@ -239,14 +213,7 @@ async function extractGuaranteeImage(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-
-    const normalize = (u) => {
-      if (!u) return "";
-      if (u.startsWith("//")) return base.protocol + u;
-      if (u.startsWith("/")) return base.origin + u;
-      if (!u.startsWith("http")) return base.origin + "/" + u;
-      return u;
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
     const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge"];
     const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "hero", "banner"];
@@ -257,8 +224,7 @@ async function extractGuaranteeImage(productUrl) {
       const src = normalize(m[1]);
       const low = src.toLowerCase();
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w)))
-        continue;
+      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
 
       return `<img src="${src}" alt="Guarantee" loading="lazy" style="max-width:190px;width:100%;height:auto;display:block;margin:0 auto 14px;border-radius:12px;">`;
     }
