@@ -8,13 +8,13 @@
 <meta name="description" content="{{SUBHEADLINE}}" />
 <meta name="robots" content="index,follow,max-image-preview:large" />
 
-<!-- Fonts: Inter & Outfit (Mesmo do modelo bom) -->
+<!-- Fonts: Inter & Outfit -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
 <style>
-  /* --- DESIGN SYSTEM DO MODELO BOM --- */
+  /* --- DESIGN SYSTEM --- */
   :root {
     --bg-body: #02040a;
     --bg-card: #0f1525;
@@ -81,7 +81,7 @@
   }
   .header-cta:hover { background: var(--primary); color: #000; }
 
-  /* --- HERO SECTION (Reutilizando estrutura do bom) --- */
+  /* --- HERO SECTION --- */
   .hero {
     max-width: 1300px; margin: 0 auto; padding: 40px 24px;
     display: grid;
@@ -111,12 +111,20 @@
     background: var(--gradient-main); filter: blur(80px); opacity: 0.4; z-index: -1; border-radius: 50%;
   }
 
+  /* --- AJUSTE DA IMAGEM (RETA) --- */
   .hero-img {
     width: 100%; max-width: 450px; height: auto; display: block; margin: 0 auto;
     border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    border: 1px solid var(--border); transform: rotate(-2deg); transition: 0.3s;
+    border: 1px solid var(--border);
+    transform: none; /* Garante que a imagem fique 100% reta */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  .hero-img:hover { transform: rotate(0deg) scale(1.02); }
+  
+  /* Efeito ao passar o mouse: Leve flutuação para cima */
+  .hero-img:hover { 
+    transform: translateY(-10px) scale(1.02); 
+    box-shadow: 0 30px 60px rgba(0, 230, 118, 0.3); 
+  }
 
   .positioning-text {
     font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500;
@@ -137,7 +145,7 @@
   }
   .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  /* --- STICKY SIDEBAR (O GRANDE DIFERENCIAL) --- */
+  /* --- STICKY SIDEBAR --- */
   aside {
     position: sticky; top: 100px; height: fit-content;
   }
@@ -251,7 +259,7 @@
       <h1>{{HEADLINE}}</h1>
     </div>
 
-    <!-- Imagem (Também aparece na sidebar) -->
+    <!-- Imagem (Reta) -->
     <div class="hero-img-wrapper">
       <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
     </div>

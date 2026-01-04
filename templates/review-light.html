@@ -8,333 +8,401 @@
 <meta name="description" content="{{SUBHEADLINE}}" />
 <meta name="robots" content="index,follow,max-image-preview:large" />
 
+<!-- Fonts: Inter & Outfit -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+
 <style>
-:root{
-/* Palette: Modern Light / Slate */
---bg: #F1F5F9;          /* Slate 100 - Fundo cinza claro */
---card: #FFFFFF;         /* Branco puro - Cartão de conteúdo */
---card-border: rgba(15, 23, 42, 0.08); /* Borda sutil */
---text: #0F172A;         /* Slate 900 - Texto principal escuro */
---muted: #64748B;        /* Slate 500 - Texto secundário */
---accent: #2563EB;       /* Royal Blue - Confiável e Tech */
---accent-hover: #1D4ED8;
---line: rgba(15, 23, 42, 0.06);
---shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
---radius: 20px;
---max: 900px;
---font-family: system-ui, -apple-system, sans-serif;
-}
+  /* --- DESIGN SYSTEM: LIGHT MODE --- */
+  :root {
+    /* Palette: Clean White, Slate, Vibrant Green */
+    --bg-body: #F8FAFC;          /* Fundo geral cinza muito claro */
+    --bg-card: #FFFFFF;          /* Cartões brancos */
+    --bg-card-hover: #F1F5F9;    /* Hover levemente cinza */
+    
+    --primary: #10B981;          /* Esmeralda Vibrante (versão clara do verde neon) */
+    --primary-dim: rgba(16, 185, 129, 0.1);
+    --accent: #3B82F6;           /* Azul Royal */
+    
+    --text-main: #0F172A;       /* Azul marinho escuro (leitura perfeita) */
+    --text-sec: #64748B;        /* Cinza médio para subtítulos */
+    
+    --border: #E2E8F0;           /* Bordas sutis */
+    
+    --gradient-main: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+    --radius: 16px;
+    
+    --success-text: #047857;
+    --success-bg: #ECFDF5;
+    --info-text: #1D4ED8;
+    --info-bg: #EFF6FF;
+  }
 
-*{box-sizing:border-box}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body{
-margin:0;
-background-color: var(--bg);
-color:var(--text);
-font-family: var(--font-family);
-line-height: 1.7; /* Leitura confortável em claro */
--webkit-font-smoothing: antialiased;
-}
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
 
-a{color:inherit;text-decoration:none;}
+  /* Typography */
+  h1, h2, h3, .btn { font-family: 'Outfit', sans-serif; }
+  a { text-decoration: none; transition: all 0.3s ease; }
+  p { margin-bottom: 1rem; color: var(--text-sec); }
 
-/* --- LAYOUT --- */
-.wrap{max-width:var(--max);margin:0 auto;padding:16px;}
+  /* --- BACKGROUND FX (SUBTLE) --- */
+  .bg-glow {
+    position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
+    background: radial-gradient(circle, var(--primary-dim) 0%, transparent 70%);
+    z-index: -1; pointer-events: none; /* Muito sutil no modo claro */
+  }
+  .bg-glow-2 {
+    position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+    z-index: -1; pointer-events: none;
+  }
 
-/* --- TOPBAR --- */
-.topbar{
-position:sticky;
-top:0;
-z-index:50;
-background: rgba(255, 255, 255, 0.95); /* Branco translúcido */
-backdrop-filter: blur(12px);
-border-bottom: 1px solid var(--card-border);
-padding: 12px 0;
-box-shadow: 0 2px 10px rgba(0,0,0,0.03); /* Sombra leve para separar do conteúdo */
-}
-.topbar .inner{
-max-width:var(--max);
-margin:0 auto;
-padding:0 16px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-.topbar strong { font-weight:800; color: #0F172A; letter-spacing: -0.5px; font-size: 16px;}
+  /* --- HEADER --- */
+  header {
+    padding: 15px 5%;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px); /* Blur mais forte para contraste no branco */
+    position: sticky; top: 0; z-index: 50; background: rgba(248, 250, 252, 0.85); /* Fundo quase sólido */
+  }
 
-/* --- CTA BUTTONS --- */
-.cta{
-display: inline-flex;
-align-items: center;
-justify-content: center;
-padding: 12px 20px;
-border-radius: 10px;
-background: var(--accent);
-color:#fff;
-font-weight:700;
-font-size: 14px;
-transition: all 0.2s ease;
-box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); /* Sombra azulada */
-border: none;
-cursor: pointer;
-}
-.cta:hover{
-background: var(--accent-hover);
-transform: translateY(-1px);
-box-shadow: 0 6px 10px rgba(37, 99, 235, 0.3);
-}
-.cta:active{transform: translateY(1px);}
+  .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; color: var(--text-main); text-transform: uppercase;}
+  .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
 
-/* --- MAIN CARD --- */
-.card{
-background: var(--card);
-border: 1px solid var(--card-border);
-/* Barra azul no topo para destaque editorial */
-border-top: 4px solid var(--accent);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding: 40px 32px; /* Mais espaço "respirado" para leitura */
-margin-bottom: 40px;
-}
+  .header-cta {
+    font-size:14px; font-weight:600; color:var(--primary);
+    background: var(--success-bg); padding: 8px 16px; border-radius: 20px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+  .header-cta:hover { background: var(--primary); color: #fff; }
 
-/* --- TYPOGRAPHY --- */
-h1{
-font-size:clamp(28px, 5vw, 42px);
-line-height:1.15;
-margin-bottom:16px;
-font-weight:800;
-color: #1E293B;
-letter-spacing: -0.02em;
-}
+  /* --- HERO SECTION --- */
+  .hero {
+    max-width: 1300px; margin: 0 auto; padding: 40px 24px;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-rows: auto auto;
+    gap: 40px;
+    align-items: start;
+  }
 
-h2{
-font-size: 20px;
-margin-top: 40px;
-margin-bottom: 16px;
-font-weight:800;
-color: #1E293B;
-display: flex;
-align-items: center;
-gap: 12px;
-}
-/* Barra decorativa nos H2 */
-h2::before {
-content: '';
-display: block;
-width: 5px;
-height: 20px;
-background: var(--accent);
-border-radius: 3px;
-}
+  .hero-part-top { grid-column: 1; grid-row: 1; }
+  .hero-part-bottom { grid-column: 1; grid-row: 2; }
+  .hero-img-wrapper {
+    grid-column: 2; grid-row: 1 / span 2;
+    position: relative; display: flex; align-items: center; justify-content: center;
+  }
 
-p{color:var(--muted); font-size: 17px; margin-bottom: 1.5rem;}
+  .hero-part-top h1 {
+    font-size: clamp(36px, 5vw, 56px); line-height: 1.1; margin-bottom: 0; font-weight: 800;
+    color: var(--text-main);
+  }
 
-/* --- LISTS --- */
-ul{padding-left:0; list-style:none; margin:0;}
-li{
-position:relative;
-padding-left: 28px;
-margin-bottom: 14px;
-color:#475569; /* Um pouco mais escuro que o muted para contraste */
-font-size: 16px;
-line-height: 1.6;
-}
-/* Checkmark customizado em Azul */
-li::before {
-content: '✓';
-position:absolute; left:0; top:2px;
-color: var(--accent);
-font-weight:900;
-font-size:16px;
-}
+  .hero-label {
+    color:var(--primary); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;
+  }
 
-/* --- IMAGES --- */
-.product-image-container {
-margin: 32px 0;
-text-align: center;
-}
+  .hero-img-wrapper::before {
+    content: ''; position: absolute; inset: -20px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+    z-index: -1; border-radius: 50%;
+  }
 
-.product-image{
-max-width:100%;
-height: auto;
-display:inline-block;
-border-radius:16px;
-border: 1px solid var(--card-border);
-box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); /* Sombra realista */
-background: #fff;
-padding: 10px; /* Margem interna branca tipo moldura */
-}
+  /* --- IMAGEM RETA --- */
+  .hero-img {
+    width: 100%; max-width: 450px; height: auto; display: block; margin: 0 auto;
+    border-radius: 24px; 
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); /* Sombra suave preta */
+    border: 1px solid var(--border);
+    transform: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: #fff;
+  }
+  
+  .hero-img:hover { 
+    transform: translateY(-10px) scale(1.02); 
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); 
+  }
 
-/* --- DESKTOP IMAGE ADJUSTMENT (Produto) --- */
-@media (min-width: 601px) {
-    /* Limita a largura da imagem no desktop para não ficar esticada demais */
-    .product-image {
-        max-width: 480px; 
-        width: 50%; /* Define a largura como metade do container no desktop */
-    }
-}
+  .positioning-text {
+    font-size: 17px; color: var(--text-main); margin-bottom: 32px; font-weight: 500;
+    border-left: 3px solid var(--primary); padding-left: 16px;
+    line-height: 1.7;
+  }
 
-.image-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-gap:16px;
-margin: 24px 0;
-}
+  /* --- MAIN LAYOUT --- */
+  .container {
+    max-width: 1200px; margin: 0 auto; padding: 40px 24px;
+    display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
+  }
 
-/* --- ADJUSTMENT FOR INGREDIENTS (Grid) --- */
-.image-grid img{
-width:100%;
-height: auto;
-border-radius:12px;
-border: 1px solid var(--card-border);
-background: #fff;
-box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-transition: transform 0.2s, box-shadow 0.2s;
+  /* --- CONTENT BLOCKS --- */
+  .content-block { margin-bottom: 60px; }
+  
+  .section-title {
+    font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--text-main);
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-/* Ajustes de Alinhamento e Tamanho */
-max-height: 180px;       /* Altura uniforme para todos os ingredientes */
-object-fit: contain;    /* Garante que a imagem inteira apareça sem cortes */
-padding: 15px;          /* Mais espaço interno (moldura branca) */
-box-sizing: border-box; /* Garante que o padding não quebre a largura */
-}
-.image-grid img:hover {
-transform: translateY(-2px);
-box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-border-color: var(--accent);
-}
+  /* --- STICKY SIDEBAR --- */
+  aside {
+    position: sticky; top: 100px; height: fit-content;
+  }
 
-/* --- SEPARATORS --- */
-.separator {
-height: 1px;
-background: var(--line);
-margin: 36px 0;
-}
+  .offer-box {
+    background: #FFFFFF; 
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 30px; text-align: center;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); /* Sombra de papel */
+  }
 
-/* --- FOOTER --- */
-footer{
-margin-top:20px;
-padding: 30px 20px;
-text-align:center;
-background: #fff;
-border-top: 1px solid var(--card-border);
-border-radius: var(--radius);
-}
-footer p{
-font-size:13px;
-color:var(--muted);
-margin:0;
-opacity:0.8;
-}
-footer a { color: var(--accent); text-decoration: underline; }
+  .offer-badge {
+    background: var(--primary); color: #fff; font-weight: 800; font-size: 12px;
+    padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 16px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
 
-/* --- MOBILE RESPONSIVE --- */
-@media (max-width:600px) {
-.wrap { padding: 0; }
-.card { border-radius: 0; border-left:none; border-right:none; padding: 28px 20px; margin-bottom: 20px; box-shadow: none; border-top: 4px solid var(--accent); }
-.topbar .inner { padding: 0 16px; }
-.cta { width: 100%; padding: 14px; font-size: 15px; }
-h2 { font-size: 18px; margin-top: 32px; }
-h2::before { height: 18px; width: 4px; }
-.topbar strong { font-size: 14px; }
-h1 { font-size: 26px; }
-p { font-size: 16px; } /* Texto levemente menor para caber no mobile */
-}
+  .btn {
+    display: inline-block; width: 100%; padding: 18px; border-radius: 12px;
+    background: var(--gradient-main); color: #fff; font-weight: 700; font-size: 16px;
+    text-align: center; border: none; cursor: pointer; margin-top: 16px;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3); 
+    transition: all 0.3s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4); }
+  .btn:active { transform: translateY(1px); }
 
+  /* --- STYLED LIST --- */
+  ul.styled-list { list-style: none; }
+  ul.styled-list li {
+    position: relative; padding-left: 28px; margin-bottom: 16px; color: var(--text-sec);
+  }
+  ul.styled-list li::before {
+    content: '→'; position: absolute; left: 0; top: 2px; color: var(--primary); font-weight: 800;
+  }
+
+  /* --- ALERTS --- */
+  .alert {
+    padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 15px;
+  }
+  .alert.info { border-color: var(--accent); color: var(--info-text); background: var(--info-bg); }
+  .alert.success { border-color: var(--primary); color: var(--success-text); background: var(--success-bg); }
+
+  /* --- INGREDIENTS VISUAL --- */
+  .ingredients-visual {
+    padding: 24px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; width: 100%;
+    box-shadow: var(--shadow-card);
+  }
+  .image-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; width: 100%; max-width: 800px;
+  }
+  .image-grid img {
+    width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border);
+    background: #fff; transition: 0.3s;
+  }
+  .image-grid img:hover { border-color: var(--primary); transform: scale(1.02); box-shadow: var(--shadow-hover); }
+
+  /* --- BONUS & TESTIMONIALS --- */
+  .bonus-section { margin-top: 24px; padding: 24px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-card); }
+
+  /* --- FOOTER --- */
+  footer {
+    border-top: 1px solid var(--border); background: #FFFFFF; 
+    padding: 60px 20px; margin-top: 80px; text-align: center;
+  }
+  .footer-links { margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px; }
+  .footer-links a { color: var(--text-sec); }
+  .footer-links a:hover { color: var(--primary); }
+  .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; opacity: 0.8; max-width: 600px; margin: 0 auto; }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 900px) {
+    .hero { display: flex; flex-direction: column; text-align: center; padding-top: 30px; }
+    .hero-img { margin: 20px 0; transform: none; max-width: 300px; }
+    .positioning-text { border-left: none; border-top: 3px solid var(--primary); padding-left: 0; padding-top: 16px; }
+    .container { grid-template-columns: 1fr; }
+    aside { position: static; margin-bottom: 40px; order: -1; }
+    .footer-links { flex-direction: column; gap: 12px; }
+  }
+  @media (max-width: 600px) {
+    .hero { padding: 30px 16px; }
+    h1 { font-size: 32px !important; }
+    .grid-3 { grid-template-columns: 1fr !important; }
+    .image-grid { grid-template-columns: 1fr !important; }
+  }
 </style>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-<div class="inner">
-<strong>Editorial Review</strong>
-<a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored">
-Visit Official Site &rarr;
-</a>
-</div>
-</div>
+  <!-- Glows Subtis -->
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
 
-<main class="wrap">
+  <!-- NAV -->
+  <header>
+    <div class="logo">
+      <span class="dot"></span> Editorial Review
+    </div>
+    <a href="javascript:void(0)" onclick="doRedirect()" class="header-cta">
+      Visit Official Site &rarr;
+    </a>
+  </header>
 
-<section class="card">
+  <!-- HERO SECTION -->
+  <section class="hero">
+    
+    <!-- Headline & Label -->
+    <div class="hero-part-top">
+      <span class="hero-label">Quick Overview</span>
+      <h1>{{HEADLINE}}</h1>
+    </div>
 
-<!-- FIRST FOLD -->
-<h1>{{HEADLINE}}</h1>
-<p style="font-size: 18px; color: #475569; line-height: 1.5;">{{SUBHEADLINE}}</p>
+    <!-- Imagem (Reta e com sombra suave) -->
+    <div class="hero-img-wrapper">
+      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
+    </div>
 
-<div class="separator"></div>
+    <!-- Subheadline & Intro -->
+    <div class="hero-part-bottom">
+      <p class="hero-sub" style="font-size: 20px; color: var(--text-main); margin-bottom: 16px;">{{SUBHEADLINE}}</p>
+      
+      <div class="positioning-text">
+        {{INTRO}}
+      </div>
 
-<!-- PRODUCT IMAGE -->
-<div class="product-image-container">
-<img
-src="{{PRODUCT_IMAGE}}"
-alt="Product image"
-class="product-image"
-loading="lazy"
->
-</div>
+      <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
+        Check Availability Now
+      </a>
+    </div>
 
-<a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored" style="width:100%; margin-top:24px;">
-Check Availability Now
-</a>
+  </section>
 
-<div class="separator"></div>
+  <div class="container">
 
-<!-- INTRO -->
-<h2>Quick Overview</h2>
-<p>{{INTRO}}</p>
+    <!-- MAIN CONTENT -->
+    <main>
 
-<!-- WHY IT WORKS -->
-<h2>Why It Works</h2>
-<p>{{WHY_IT_WORKS}}</p>
+      <!-- WHY IT WORKS -->
+      <div class="content-block">
+        <h2 class="section-title">Why It Works</h2>
+        <p style="font-size: 18px; color: var(--text-main);">{{WHY_IT_WORKS}}</p>
+      </div>
 
-<div class="separator"></div>
+      <!-- FORMULA / INGREDIENTS -->
+      <div class="content-block">
+        <h2 class="section-title">Inside the Formula</h2>
+        
+        <div class="ingredients-visual">
+          <div class="image-grid">
+            {{INGREDIENT_IMAGES}}
+          </div>
+        </div>
 
-<!-- FORMULA / INGREDIENTS -->
-<h2>Inside the Formula</h2>
+        <p style="margin-top:24px;">{{FORMULA_TEXT}}</p>
+      </div>
 
-<!-- INGREDIENT IMAGES (VISUAL FIRST) -->
-<div class="image-grid">
-{{INGREDIENT_IMAGES}}
-</div>
+      <!-- MAIN BENEFITS -->
+      <div class="content-block">
+        <h2 class="section-title">Key Benefits</h2>
+        <ul class="styled-list">
+          {{BENEFITS_LIST}}
+        </ul>
+      </div>
 
-<!-- INGREDIENT COPY -->
-<p>{{FORMULA_TEXT}}</p>
+      <!-- BONUS SECTION -->
+      <div class="content-block">
+        <div class="bonus-section">
+          <h4 style="margin-bottom:12px; font-size:16px; color:var(--text-main);">🎁 Exclusive Bonuses</h4>
+          {{BONUS_IMAGES}}
+        </div>
+      </div>
 
-<!-- MAIN BENEFITS -->
-<h2>Key Benefits</h2>
-<ul>
-{{BENEFITS_LIST}}
-</ul>
+      <!-- TESTIMONIALS -->
+      <div class="content-block">
+        <h2 class="section-title">What Users Are Saying</h2>
+        {{TESTIMONIAL_IMAGES}}
+        <p style="margin-top: 16px;">{{SOCIAL_PROOF}}</p>
+      </div>
 
-<!-- BONUS IMAGES -->
-{{BONUS_IMAGES}}
+      <!-- GUARANTEE -->
+      <div class="content-block">
+        <h2 class="section-title">Money-Back Guarantee</h2>
+        <div class="alert success">
+          <strong>100% Risk-Free:</strong> {{GUARANTEE}}
+        </div>
+      </div>
 
-<!-- TESTIMONIAL IMAGES -->
-{{TESTIMONIAL_IMAGES}}
+    </main>
 
-<!-- SOCIAL PROOF -->
-<h2>What Users Are Saying</h2>
-<p>{{SOCIAL_PROOF}}</p>
+    <!-- SIDEBAR -->
+    <aside>
+      <div class="offer-box">
+        <div class="offer-badge">Special Offer</div>
+        
+        <div class="offer-title" style="font-size: 20px; font-weight: 800; margin-bottom: 8px; color: var(--text-main);">
+          {{HEADLINE}}
+        </div>
+        
+        <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center;">
+            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 60%; max-width: 180px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: var(--shadow-card);" loading="lazy">
+        </div>
 
-<!-- GUARANTEE -->
-<h2>Money-Back Guarantee</h2>
-<p>{{GUARANTEE}}</p>
+        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">Check Availability Now</a>
 
-<div class="separator"></div>
+        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
+          <span>🔒 Secure Checkout</span>
+          <span>•</span>
+          <span>Official Site</span>
+        </div>
+      </div>
+    </aside>
 
-<a class="cta" href="{{AFFILIATE_LINK}}" rel="nofollow sponsored" style="width:100%;">
-Read More on Official Website
-</a>
+  </div>
 
-</section>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-links">
+      <a href="{{PRIVACY_URL}}">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="footer-disclaimer">
+      &copy; {{CURRENT_YEAR}} Editorial Review. Disclaimer: This content is for informational purposes only and does not replace professional advice.
+    </div>
+  </footer>
 
-<footer>
-<p>&copy; {{CURRENT_YEAR}} Editorial Review. <br>Disclaimer: This content is for informational purposes only and does not replace professional advice. <br> <a href="{{PRIVACY_URL}}">Privacy Policy</a></p>
-</footer>
+  <script>
+    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+    let clicked = false;
 
-</main>
+    function doRedirect(){
+      if(clicked) return;
+      clicked = true;
+
+      const btns = document.querySelectorAll('.btn');
+      btns.forEach(btn => btn.innerHTML = 'Redirecting...');
+
+      if(typeof window.runTrackerRedirect === "function"){
+        window.runTrackerRedirect(AFFILIATE_LINK);
+      }else{
+        window.location.href = AFFILIATE_LINK;
+      }
+    }
+  </script>
 
 </body>
 </html>
