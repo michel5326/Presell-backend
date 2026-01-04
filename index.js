@@ -308,8 +308,58 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 ========================= */
 async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
   const ai = await callDeepSeekWithRetry(
-    `Return ONLY valid JSON.
-Required keys:
+    `You are generating copy for a BOFU review page used primarily with Google Search traffic.
+
+CRITICAL CONTEXT:
+- This page is shown BEFORE purchase.
+- The user already knows the product.
+- The goal is to CONFIRM the decision and REDUCE hesitation.
+- This is NOT a VSL, NOT a long-form advertorial, NOT a medical article.
+
+GUIDELINES (IMPORTANT, NOT OVERLY RESTRICTIVE):
+
+AVOID ONLY THE FOLLOWING:
+- Claiming to cure or treat diseases
+- Making explicit medical diagnoses
+- Mentioning doctors, prescriptions, or lab tests (e.g. PSA, blood work)
+- Making hard guarantees of results
+
+LANGUAGE FREEDOM:
+- You MAY describe how the product is intended to work in practical terms
+- You MAY explain ingredients and their commonly understood roles
+- You MAY use confident, persuasive language
+- You MAY highlight why the product stands out compared to generic alternatives
+
+PREFERRED PHRASING (WHEN POSSIBLE):
+- "designed to support"
+- "intended to help"
+- "many users report"
+- "commonly used to support"
+
+USER FEEDBACK / SOCIAL PROOF:
+- Testimonials can describe noticeable improvements
+- Avoid clinical measurements or medical validation
+- Avoid specific timelines (e.g. exact days or weeks)
+
+TONE & STYLE:
+- Confident
+- Direct
+- Persuasive
+- Clear
+- Not overly cautious
+- Not exaggerated or sensational
+
+STRUCTURE:
+- Decision-focused copy
+- Clear sections
+- No long storytelling
+- No educational lectures
+
+OUTPUT REQUIREMENTS (MANDATORY):
+
+Return ONLY valid JSON.
+
+Required keys (ALL are mandatory):
 HEADLINE
 SUBHEADLINE
 INTRO
@@ -319,8 +369,9 @@ BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
 
-This page is BEFORE purchase.
-This is a BOFU review page.
+Do NOT include explanations, notes, or commentary.
+Do NOT include markdown.
+
 Language: ${language}`,
     `Product URL: ${productUrl}`
   );
