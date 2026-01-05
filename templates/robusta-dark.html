@@ -43,7 +43,7 @@
     }
 
     /* Typography */
-    h1, h2, h3, .btn { font-family: 'Outfit', sans-serif; }
+    h1, h2, h3, h4, .btn { font-family: 'Outfit', sans-serif; }
     a { text-decoration: none; transition: all 0.3s ease; }
     p { margin-bottom: 1rem; }
 
@@ -61,7 +61,7 @@
 
     /* --- HEADER --- */
     header {
-      padding: 15px 5%; /* Reduzido padding para mobile */
+      padding: 15px 5%;
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(10px);
@@ -81,7 +81,7 @@
 
     /* --- HERO SECTION --- */
     .hero {
-      max-width: 1300px; margin: 0 auto; padding: 40px 24px; /* Ajustado padding top */
+      max-width: 1300px; margin: 0 auto; padding: 40px 24px;
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       grid-template-rows: auto auto;
@@ -154,6 +154,7 @@
 
     .section-title {
       font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
+      color: #fff;
     }
     .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
@@ -287,7 +288,7 @@
     footer {
       border-top: 1px solid var(--border);
       background: rgba(2, 4, 10, 0.6); 
-      padding: 60px 20px; /* Reduzido um pouco */
+      padding: 60px 20px;
       margin-top: 80px;
       font-family: 'Inter', sans-serif;
     }
@@ -337,9 +338,9 @@
     /* Mobile Portrait (Ajustes finos para celulares pequenos) */
     @media (max-width: 600px) {
       /* 1. Hero & Typography */
-      .hero { padding: 30px 16px; } /* Menos padding lateral para aproveitar tela */
+      .hero { padding: 30px 16px; } 
       
-      /* Força H1 menor em telas muito estreitas para evitar quebras feias */
+      /* Força H1 menor em telas muito estreitas */
       h1 { font-size: 32px !important; line-height: 1.15 !important; } 
       
       .hero-part-top, .hero-part-bottom { width: 100%; }
@@ -349,25 +350,21 @@
       .btn { width: 100% !important; } /* Força 100% no hero também */
       .hero .btn { padding: 16px 24px !important; font-size: 18px; }
 
-      /* 3. Grids Empilhados (Evita colunas apertadas) */
-      .grid-3 { grid-template-columns: 1fr !important; } /* Força 1 coluna */
-      
-      /* Imagens de ingredientes também em 1 coluna para mobile */
+      /* 3. Grids Empilhados */
+      .grid-3 { grid-template-columns: 1fr !important; } 
       .image-grid { grid-template-columns: 1fr !important; }
 
       /* 4. Sidebar Ajustes */
       aside { margin-bottom: 30px; }
       .offer-box { padding: 20px; }
       .offer-title { font-size: 18px; }
-      
-      /* Imagem no sidebar menor para não ocupar toda a tela */
       aside img { max-width: 150px !important; }
 
       /* 5. Header Compacto */
       .logo { font-size: 16px; }
       .header-info a { font-size: 13px; }
       
-      /* 6. Seção de Posicionamento (Texto abaixo da headline) */
+      /* 6. Seção de Posicionamento */
       .positioning-text { font-size: 15px; text-align: left; border-top: 2px solid var(--primary); border-left: none; }
     }
   </style>
@@ -416,7 +413,6 @@
         {{POSITIONING_STATEMENT}}
       </div>
 
-      <!-- Botão agora vira 100% no mobile via CSS -->
       <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}}
       </a>
@@ -530,6 +526,22 @@
         </div>
       </div>
 
+      <!-- ========================================= -->
+      <!-- AJUSTE SOLICITADO: SEÇÃO DE DEPOIMENTOS -->
+      <!-- ========================================= -->
+      <div class="content-block" style="margin-top:24px;">
+        <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
+
+        <div class="alert info" style="font-size:14px;">
+          {{TESTIMONIAL_NOTICE_TEXT}}
+          <br><br>
+          <a href="javascript:void(0)" onclick="doRedirect()" style="color:var(--primary); font-weight:600;">
+            {{TESTIMONIAL_CTA_TEXT}} →
+          </a>
+        </div>
+      </div>
+      <!-- ========================================= -->
+
       <!-- GUARANTEE -->
       <div class="content-block">
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
@@ -571,6 +583,7 @@
         {{BONUS_IMAGES}}
       </div>
 
+      <!-- Mantendo imagens de depoimentos na sidebar caso existam -->
       {{TESTIMONIAL_IMAGES}}
 
     </aside>
