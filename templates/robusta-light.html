@@ -149,7 +149,7 @@
     /* --- MAIN LAYOUT --- */
     .container {
       max-width: 1200px; margin: 0 auto; padding: 40px 24px;
-      display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
+      display: grid; grid-template-columns:1.5fr 1fr; gap: 40px;
     }
 
     /* --- CONTENT BLOCKS --- */
@@ -320,11 +320,6 @@
     .footer-links a:hover { color: var(--primary); }
 
     .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; opacity: 0.8; }
-
-    /* --- AJUSTE: ESCONDER ELEMENTOS VAZIOS (OPCIONAL - BACKUP CSS) --- */
-    .sidebar-testimonials:empty {
-      display: none;
-    }
 
     /* =========================================
        RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
@@ -523,9 +518,7 @@
         </div>
       </div>
 
-      <!-- ========================================= -->
-      <!-- AJUSTE 1: SEÇÃO DE DEPOIMENTOS (TEXTO) -->
-      <!-- ========================================= -->
+      <!-- SEÇÃO DE DEPOIMENTOS (TEXTO) -->
       <div class="content-block" style="margin-top:24px;">
         <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
 
@@ -537,7 +530,6 @@
           </a>
         </div>
       </div>
-      <!-- ========================================= -->
 
       <!-- GUARANTEE -->
       <div class="content-block">
@@ -579,14 +571,7 @@
         <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
         {{BONUS_IMAGES}}
       </div>
-
-      <!-- ========================================= -->
-      <!-- AJUSTE 2: ESCONDER DEPOIMENTOS SE VAZIOS -->
-      <!-- ========================================= -->
-      <div class="sidebar-testimonials">
-        {{TESTIMONIAL_IMAGES}}
-      </div>
-      <!-- ========================================= -->
+      <!-- NOTA: Bloco de {{TESTIMONIAL_IMAGES}} foi removido da Sidebar conforme solicitado -->
 
     </aside>
 
@@ -634,23 +619,6 @@
         window.location.href = AFFILIATE_LINK;
       }
     }
-
-    /* =================================================================
-       FIX: ESCONDER SIDEBAR DEPOIMENTOS
-       Esconde se estiver vazio OU se a variável {{...}} ainda estiver visível
-       ================================================================= */
-    document.addEventListener("DOMContentLoaded", () => {
-      const sidebarTestimonials = document.querySelector('.sidebar-testimonials');
-      
-      if (sidebarTestimonials) {
-        const content = sidebarTestimonials.innerHTML.trim();
-        
-        // Se estiver vazio OU se ainda tiver o placeholder do backend
-        if (content === '' || content.includes('{{TESTIMONIAL_IMAGES}}')) {
-          sidebarTestimonials.style.display = 'none';
-        }
-      }
-    });
   </script>
 
 </body>
