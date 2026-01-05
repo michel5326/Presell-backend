@@ -294,6 +294,14 @@ async function extractBonusImages(productUrl) {
     return "";
   }
 }
+/* =========================
+   KIWIFY WEBHOOK (PASSO 1 - TESTE)
+========================= */
+app.post("/webhooks/kiwify", (req, res) => {
+  console.log("✅ KIWIFY WEBHOOK CHEGOU");
+  console.log("Payload:", JSON.stringify(req.body || {}, null, 2));
+  return res.status(200).json({ ok: true });
+});
 
 /* =========================
    IMAGE — GUARANTEE
