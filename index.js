@@ -94,9 +94,9 @@ async function uploadToR2(localPath, remoteKey) {
 }
 
 /* =========================
-   IMAGE — MAIN PRODUCT
+   IMAGE — BOTTLE (PRIMARY PRODUCT)
 ========================= */
-async function extractMainImage(productUrl) {
+async function extractBottleImage(productUrl) {
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -105,23 +105,66 @@ async function extractMainImage(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-
     const normalize = (u) => normalizeUrl(u, base);
 
-    let m = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
-    if (m) return normalize(m[1]);
+    /* PRIORITY KEYWORDS (STRONG SIGNAL) */
+    const INCLUDE = [
+      "bottle",
+      "product",
+      "supplement",
+      "capsule",
+      "capsules",
+      "jar",
+      "container",
+      "label",
+    ];
 
-    m = html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
-    if (m) return normalize(m[1]);
+    /* EXCLUDE ABSOLUTE */
+    const EXCLUDE = [
+      "banner",
+      "hero",
+      "bg",
+      "background",
+      "seal",
+      "badge",
+      "guarantee",
+      "logo",
+      "icon",
+      "checkout",
+      "order",
+      "cta",
+    ];
 
-    const BLOCK = ["logo", "icon", "order", "buy", "cta", "checkout", "badge", "seal", "bg", "hero"];
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
-    for (const i of imgs) {
-      const src = normalize(i[1]);
+    /* 1️⃣ FIRST PASS — SEMANTIC MATCH */
+    for (const m of imgs) {
+      const src = normalize(m[1]);
       const low = src.toLowerCase();
+
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (BLOCK.some((b) => low.includes(b))) continue;
+      if (EXCLUDE.some((w) => low.includes(w))) continue;
+      if (!INCLUDE.some((w) => low.includes(w))) continue;
+
+      return src;
+    }
+
+    /* 2️⃣ FALLBACK — OG IMAGE (ONLY IF NOT BANNER-LIKE) */
+    let og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    if (og) {
+      const src = normalize(og[1]);
+      const low = src.toLowerCase();
+      if (!EXCLUDE.some((w) => low.includes(w))) return src;
+    }
+
+    /* 3️⃣ LAST RESORT — FIRST CLEAN IMAGE */
+    for (const m of imgs) {
+      const src = normalize(m[1]);
+      const low = src.toLowerCase();
+
+      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
+      if (EXCLUDE.some((w) => low.includes(w))) continue;
+
       return src;
     }
 
@@ -342,7 +385,7 @@ Language: ${language}`,
     `Product URL: ${productUrl}`
   );
 
-  const productImage = await extractMainImage(productUrl);
+  const productImage = await extractBottleImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
 
   let html = fs.readFileSync(templatePath, "utf8");
@@ -428,7 +471,7 @@ Output ONLY valid JSON.`,
   );
 
   /* ===== IMAGES ===== */
-  const productImage = await extractMainImage(productUrl);
+  const productImage = await extractBottleImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
   const bonusImages = await extractBonusImages(productUrl);
   const guaranteeImage = await extractGuaranteeImage(productUrl);
