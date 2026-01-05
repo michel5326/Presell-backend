@@ -297,11 +297,20 @@ async function extractBonusImages(productUrl) {
 /* =========================
    KIWIFY WEBHOOK (PASSO 1 - TESTE)
 ========================= */
-app.post("/webhooks/kiwify", (req, res) => {
-  console.log("✅ KIWIFY WEBHOOK CHEGOU");
-  console.log("Payload:", JSON.stringify(req.body || {}, null, 2));
-  return res.status(200).json({ ok: true });
-});
+const payload = req.body || {};
+
+const email =
+  payload?.customer?.email ||
+  payload?.buyer?.email ||
+  payload?.customer_email ||
+  payload?.email;
+
+console.log("✅ KIWIFY WEBHOOK CHEGOU");
+console.log("event:", payload?.event);
+console.log("email_detectado:", email);
+console.log("Payload:", JSON.stringify(payload, null, 2));
+
+return res.status(200).json({ ok: true });
 
 /* =========================
    IMAGE — GUARANTEE
