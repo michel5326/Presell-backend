@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <title>{{PAGE_TITLE}}</title>
-  <meta name="description" content="{{META_DESCRIPTION}}" />
+  <title>Mitolyn Official | Secure Order Page</title>
+  <meta name="description" content="Official Mitolyn order page. Secure checkout, transparent pricing, and satisfaction guarantee. No third-party sellers." />
   <meta name="robots" content="index,follow,max-image-preview:large" />
 
   <!-- Fonts -->
@@ -138,10 +138,10 @@
       border-radius: 24px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       border: 1px solid var(--border);
-      transform: none; /* AJUSTE: Imagem reta (removei o rotate) */
+      transform: none; /* Imagem Reta */
       transition: 0.3s;
     }
-    .hero-img:hover { transform: scale(1.02); } /* AJUSTE: Hover apenas escala leve */
+    .hero-img:hover { transform: scale(1.02); } /* Hover apenas escala leve */
 
     /* --- MAIN LAYOUT --- */
     .container {
@@ -338,9 +338,9 @@
     /* Mobile Portrait (Ajustes finos para celulares pequenos) */
     @media (max-width: 600px) {
       /* 1. Hero & Typography */
-      .hero { padding: 30px 16px; } /* Menos padding lateral para aproveitar tela */
+      .hero { padding: 30px 16px; } 
       
-      /* Força H1 menor em telas muito estreitas para evitar quebras feias */
+      /* Força H1 menor em telas muito estreitas */
       h1 { font-size: 32px !important; line-height: 1.15 !important; } 
       
       .hero-part-top, .hero-part-bottom { width: 100%; }
@@ -350,10 +350,8 @@
       .btn { width: 100% !important; } /* Força 100% no hero também */
       .hero .btn { padding: 16px 24px !important; font-size: 18px; }
 
-      /* 3. Grids Empilhados (Evita colunas apertadas) */
-      .grid-3 { grid-template-columns: 1fr !important; } /* Força 1 coluna */
-      
-      /* Imagens de ingredientes também em 1 coluna para mobile */
+      /* 3. Grids Empilhados */
+      .grid-3 { grid-template-columns: 1fr !important; } 
       .image-grid { grid-template-columns: 1fr !important; }
 
       /* 4. Sidebar Ajustes */
@@ -368,7 +366,7 @@
       .logo { font-size: 16px; }
       .header-info a { font-size: 13px; }
       
-      /* 6. Seção de Posicionamento (Texto abaixo da headline) */
+      /* 6. Seção de Posicionamento */
       .positioning-text { font-size: 15px; text-align: left; border-top: 2px solid var(--primary); border-left: none; }
     }
   </style>
@@ -382,12 +380,12 @@
   <!-- NAV -->
   <header>
     <div class="logo">
-      <span class="dot"></span> {{SITE_BRAND}}
+      <span class="dot"></span> Buyer Guide
     </div>
     <div class="header-info">
-      <span class="updated-pill">Updated: {{UPDATED_DATE}}</span>
+      <span class="updated-pill">Updated: 2026-01-05</span>
       <a href="javascript:void(0)" onclick="doRedirect()" style="font-size:14px; font-weight:600; color:var(--primary);">
-        {{CTA_BUTTON_TEXT}} &rarr;
+        Visit Official Website &rarr;
       </a>
     </div>
   </header>
@@ -398,27 +396,27 @@
     <!-- PART 1: Rótulo e Headline -->
     <div class="hero-part-top">
       <span class="hero-label">
-        {{DECISION_STAGE_LINE}}
+        Before you finalize your order
       </span>
 
-      <h1>{{HEADLINE_MAIN}}</h1>
+      <h1>You've Made Your Decision. Now, Order Securely.</h1>
     </div>
 
     <!-- PART 2: Imagem -->
     <div class="hero-img-wrapper">
-      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
+      <img src="https://mitolyn.com/assets/images/product-home.png" alt="Product" class="hero-img" loading="lazy">
     </div>
 
     <!-- PART 3: Subheadline, Texto e Botão -->
     <div class="hero-part-bottom">
-      <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
+      <p class="hero-sub">This is the official, direct order page for Mitolyn. Proceed with confidence.</p>
       
       <div class="positioning-text">
-        {{POSITIONING_STATEMENT}}
+        This is the only official website for purchasing Mitolyn. Every order is processed securely and shipped directly to you.
       </div>
 
       <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
-        {{CTA_BUTTON_TEXT}}
+        Visit Official Website
       </a>
     </div>
 
@@ -431,13 +429,13 @@
 
       <!-- SECTION: THE PROBLEM -->
       <div class="content-block">
-        <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
+        <h2 class="section-title">The real problem</h2>
+        <p style="color:var(--text-sec); font-size: 16px;">You've done your research. The challenge now is ensuring you receive the authentic product directly from the source, without markups, delays, or risk.</p>
       </div>
 
       <!-- SECTION: WHY DIFFERENT (CARDS) -->
       <div class="content-block">
-        <h2 class="section-title">{{WHY_DIFFERENT_TITLE}}</h2>
+        <h2 class="section-title">Why this is different</h2>
         <div class="grid-3">
 
           <div class="feature-card">
@@ -446,7 +444,7 @@
                 <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
               </svg>
             </div>
-            <p>{{WHY_DIFFERENT_1}}</p>
+            <p>Direct from the source. No third-party sellers, no unauthorized resellers.</p>
           </div>
 
           <div class="feature-card">
@@ -455,7 +453,7 @@
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
               </svg>
             </div>
-            <p>{{WHY_DIFFERENT_2}}</p>
+            <p>Transparent pricing. You pay the official price with no hidden fees.</p>
           </div>
 
           <div class="feature-card">
@@ -465,7 +463,7 @@
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
             </div>
-            <p>{{WHY_DIFFERENT_3}}</p>
+            <p>Secure, encrypted checkout. Your personal and payment information is protected.</p>
           </div>
 
         </div>
@@ -473,11 +471,11 @@
 
       <!-- SECTION: HOW IT WORKS -->
       <div class="content-block">
-        <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
+        <h2 class="section-title">How it works</h2>
         <ul class="styled-list">
-          <li>{{MECHANISM_STEP_1}}</li>
-          <li>{{MECHANISM_STEP_2}}</li>
-          <li>{{MECHANISM_STEP_3}}</li>
+          <li>Select your package and add it to your cart.</li>
+          <li>Complete the secure checkout process.</li>
+          <li>Your order is confirmed and shipped directly to you from the official warehouse.</li>
         </ul>
       </div>
 
@@ -486,47 +484,47 @@
         <h2 class="section-title">Proprietary Formula</h2>
         
         <div class="ingredients-visual">
-          {{INGREDIENT_IMAGES}}
+          
         </div>
 
         <p style="color:var(--text-sec); font-size:16px; max-width:800px; margin-top:24px;">
-          {{FORMULA_TEXT}}
+          You are ordering the official Mitolyn formula as described in the product review. Full ingredient details and usage instructions are available on the official website.
         </p>
       </div>
 
       <!-- SECTION: TARGET AUDIENCE -->
       <div class="content-block">
-        <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
+        <h2 class="section-title">Who this is for</h2>
         <div class="grid-3">
           <div class="feature-card" style="padding:16px;">
-            <p>{{WHO_SHOULD_1}}</p>
+            <p>Individuals who have already reviewed the product details and are ready to purchase.</p>
           </div>
           <div class="feature-card" style="padding:16px;">
-            <p>{{WHO_SHOULD_2}}</p>
+            <p>Those seeking the convenience and security of ordering directly from the official source.</p>
           </div>
           <div class="feature-card" style="padding:16px;">
-            <p>{{WHO_SHOULD_3}}</p>
+            <p>Customers who value transparent pricing and direct fulfillment.</p>
           </div>
         </div>
       </div>
 
       <!-- SECTION: WHO SHOULD NOT (WARNINGS) -->
       <div class="content-block">
-        <h2 class="section-title">{{WHO_SHOULD_NOT_TITLE}}</h2>
+        <h2 class="section-title">Who should avoid</h2>
         <div class="alert danger">
           <ul class="styled-list" style="margin:0;">
-            <li>{{WHO_NOT_1}}</li>
-            <li>{{WHO_NOT_2}}</li>
-            <li>{{WHO_NOT_3}}</li>
+            <li>Individuals who have not yet reviewed the product information and ingredients.</li>
+            <li>Those seeking medical advice or a diagnosis—consult a healthcare professional.</li>
+            <li>Anyone under the age of 18, or where prohibited by law.</li>
           </ul>
         </div>
       </div>
 
       <!-- SCAM ALERT -->
       <div class="content-block">
-        <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
+        <h2 class="section-title">Important notice</h2>
         <div class="alert warn">
-          {{SCAM_ALERT_TEXT}}
+          Only purchase Mitolyn through this official website. Purchases from other websites, marketplaces, or social media sellers may be counterfeit, expired, or incorrectly dosed, and are not covered by any guarantee.
         </div>
       </div>
 
@@ -534,13 +532,13 @@
       <!-- AJUSTE 1: SEÇÃO DE DEPOIMENTOS (TEXTO) -->
       <!-- ========================================= -->
       <div class="content-block" style="margin-top:24px;">
-        <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
+        <h4 class="section-title">Customer Experiences</h4>
 
         <div class="alert info" style="font-size:14px;">
-          {{TESTIMONIAL_NOTICE_TEXT}}
+          Real customer testimonials and feedback are available for review on the official Mitolyn website. This page does not reproduce or modify individual user reviews, quotes, or personal stories to ensure complete transparency and authenticity.
           <br><br>
           <a href="javascript:void(0)" onclick="doRedirect()" style="color:var(--primary); font-weight:600;">
-            {{TESTIMONIAL_CTA_TEXT}} →
+            To read authentic customer experiences, please visit the official website after completing your secure order. →
           </a>
         </div>
       </div>
@@ -548,15 +546,15 @@
 
       <!-- GUARANTEE -->
       <div class="content-block">
-        <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
+        <h2 class="section-title">Guarantee</h2>
         <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-          {{GUARANTEE_TEXT}}
-          {{GUARANTEE_IMAGE}}
+          Your purchase is backed by our official satisfaction guarantee. Details are provided during checkout.
+          <img src="https://mitolyn.com/assets/images/guarantee.png" alt="Guarantee" loading="lazy" style="max-width:190px;width:100%;height:auto;display:block;margin:0 auto 14px;border-radius:12px;">
         </div>
       </div>
 
       <p style="font-size:11px; color:#475569; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
-        {{DISCLAIMER_TEXT}}
+        These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results may vary. Consult your healthcare provider before starting any new supplement.
       </p>
 
     </main>
@@ -564,15 +562,15 @@
     <!-- SIDEBAR (STICKY CHECKOUT STYLE) -->
     <aside>
       <div class="offer-box">
-        <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
-        <div class="offer-title">{{HEADLINE_MAIN}}</div>
-        <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
+        <div class="offer-badge">Before you finalize your order</div>
+        <div class="offer-title">You've Made Your Decision. Now, Order Securely.</div>
+        <div class="offer-sub">This is the official, direct order page for Mitolyn. Proceed with confidence.</div>
 
         <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
-            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
+            <img src="https://mitolyn.com/assets/images/product-home.png" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
         </div>
 
-        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
+        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">Visit Official Website</a>
 
         <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
           <span>🔒 Secure Checkout</span>
@@ -583,12 +581,15 @@
 
       <!-- Bonus Section -->
       <div class="bonus-section">
-        <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
-        {{BONUS_IMAGES}}
+        <h4 style="margin-bottom:12px; font-size:15px;">🎁 Available bonuses</h4>
+        <div class="image-grid">
+          <!-- NOTA: Aqui simulamos o erro de duplicidade para demonstração do script -->
+          <!-- O script vai esconder a segunda imagem book-1.jpg -->
+          <img src="https://mitolyn.com/assets/images/book-1.jpg" alt="Bonus material" loading="lazy">
+          <img src="https://mitolyn.com/assets/images/book-1.jpg" alt="Bonus material" loading="lazy">
+          <img src="https://mitolyn.com/assets/images/book-2.jpg" alt="Bonus material" loading="lazy">
+        </div>
       </div>
-
-      <!-- NOTA: Bloco de {{TESTIMONIAL_IMAGES}} foi removido da Sidebar conforme solicitado -->
-
     </aside>
 
   </div>
@@ -598,7 +599,7 @@
     <div class="footer-content">
       
       <div class="footer-brand">
-        <span class="footer-dot"></span> {{SITE_BRAND}}
+        <span class="footer-dot"></span> Buyer Guide
       </div>
 
       <div class="footer-links">
@@ -608,17 +609,17 @@
       </div>
 
       <div class="footer-disclaimer">
-        {{FOOTER_DISCLAIMER}}
+        This content is informational only.
       </div>
       
       <div style="margin-top: 20px; color: #334155; font-size: 11px;">
-        &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.
+        &copy; 2026 Buyer Guide. All rights reserved.
       </div>
     </div>
   </footer>
 
   <script>
-    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+    const AFFILIATE_LINK = "https://mitolyn.com/";
     let clicked = false;
 
     function doRedirect(){
@@ -635,6 +636,29 @@
         window.location.href = AFFILIATE_LINK;
       }
     }
+
+    /* =================================================================
+       NOVA FUNÇÃO: REMOVER IMAGENS DUPLICADAS NA SEÇÃO DE BÔNUS
+       ================================================================= */
+    document.addEventListener("DOMContentLoaded", () => {
+      const bonusSection = document.querySelector('.bonus-section .image-grid');
+      
+      if (bonusSection) {
+        const images = bonusSection.querySelectorAll('img');
+        const seenUrls = new Set();
+
+        images.forEach(img => {
+          const url = img.src;
+          
+          // Se o link (src) já foi visto, esconde essa imagem
+          if (seenUrls.has(url)) {
+            img.style.display = 'none';
+          } else {
+            seenUrls.add(url);
+          }
+        });
+      }
+    });
   </script>
 
 </body>
