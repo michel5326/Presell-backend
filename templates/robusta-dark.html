@@ -151,6 +151,9 @@
 
     /* --- CONTENT BLOCKS --- */
     .content-block { margin-bottom: 60px; }
+    
+    /* Center align helper for the new CTA */
+    .cta-center { text-align: center; padding: 20px 0; }
 
     .section-title {
       font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
@@ -278,6 +281,7 @@
       border: 1px solid var(--border);
       background: #000;
       transition: 0.3s;
+      object-fit: cover;
     }
     .image-grid img:hover {
       border-color: var(--primary);
@@ -315,6 +319,7 @@
 
     /* =========================================
        RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
+       MOVIDO PARA O FINAL PARA SOBRESCREVER O DISPLAY: NONE
        ========================================= */
     
     /* Tablet & Mobile Landscape */
@@ -330,48 +335,58 @@
       .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; }
       
       .container { grid-template-columns: 1fr; }
-      aside { position: static; margin-bottom: 40px; order: -1; } /* Sidebar sobe para o topo */
       
+      /* A sidebar original é ocultada no mobile */
+      aside { display: none; }
+      
+      /* O grupo Mobile (Sidebar + Bonus) é exibido */
+      .mobile-sidebar-group { display: block; margin-bottom: 40px; }
+
       .footer-links { flex-direction: column; gap: 12px; }
     }
 
     /* Mobile Portrait (Ajustes finos para celulares pequenos) */
     @media (max-width: 600px) {
       /* 1. Hero & Typography */
-      .hero { padding: 30px 16px; } /* Menos padding lateral para aproveitar tela */
+      .hero { padding: 30px 16px; }
       
-      /* Força H1 menor em telas muito estreitas para evitar quebras feias */
       h1 { font-size: 32px !important; line-height: 1.15 !important; } 
       
       .hero-part-top, .hero-part-bottom { width: 100%; }
       .hero-label { font-size: 11px; margin-bottom: 8px; }
 
-      /* 2. Botões Full Width (UX de clique) */
-      .btn { width: 100% !important; } /* Força 100% no hero também */
+      /* 2. Botões Full Width */
+      .btn { width: 100% !important; }
       .hero .btn { padding: 16px 24px !important; font-size: 18px; }
 
-      /* 3. Grids Empilhados (Evita colunas apertadas) */
-      .grid-3 { grid-template-columns: 1fr !important; } /* Força 1 coluna */
+      /* 3. Grids Empilhados */
+      .grid-3 { grid-template-columns: 1fr !important; }
       
-      /* Imagens de ingredientes também em 1 coluna para mobile */
-      .image-grid { grid-template-columns: 1fr !important; }
-
-      /* 4. Sidebar Ajustes */
-      aside { margin-bottom: 30px; }
-      .offer-box { padding: 20px; }
-      .offer-title { font-size: 18px; }
-      aside img { max-width: 150px !important; }
-
       /* 5. Header Compacto */
       .logo { font-size: 16px; }
       .header-info a { font-size: 13px; }
       
-      /* 6. Seção de Posicionamento (Texto abaixo da headline) */
+      /* 6. Seção de Posicionamento */
       .positioning-text { font-size: 15px; text-align: left; border-top: 2px solid var(--primary); border-left: none; }
+
+      /* =========================================
+         AJUSTE: BONUS LADO A LADO NO MOBILE
+         ========================================= */
+      .mobile-sidebar-group .bonus-section .image-grid {
+        grid-template-columns: 1fr 1fr !important; /* Força 2 colunas */
+      }
+      .mobile-sidebar-group .bonus-section .image-grid img {
+        aspect-ratio: 1 / 1.2; 
+        object-fit: cover;
+      }
+    }
+    
+    /* Classe auxiliar para esconder no desktop */
+    .mobile-sidebar-group {
+      display: none; 
     }
   </style>
 </head>
-
 <body>
 
   <div class="bg-glow"></div>
@@ -492,6 +507,19 @@
         </p>
       </div>
 
+      <!-- ========================================= -->
+      <!-- NOVO BLOCO: CTA ESTRATÉGICO (Após Ingredients) -->
+      <!-- ========================================= -->
+      <div class="content-block cta-center">
+         <h3 style="margin-bottom: 16px;">Ready to secure your order?</h3>
+         <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 400px;">
+           {{CTA_BUTTON_TEXT}} &rarr;
+         </a>
+         <p style="font-size: 13px; color: var(--text-sec); margin-top: 10px;">
+           Secure checkout • Official Stock
+         </p>
+      </div>
+
       <!-- SECTION: TARGET AUDIENCE -->
       <div class="content-block">
         <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
@@ -528,9 +556,7 @@
         </div>
       </div>
 
-      <!-- ========================================= -->
-      <!-- AJUSTE 1: SEÇÃO DE DEPOIMENTOS (TEXTO) -->
-      <!-- ========================================= -->
+      <!-- SEÇÃO DE DEPOIMENTOS (TEXTO) -->
       <div class="content-block" style="margin-top:24px;">
         <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
 
@@ -542,9 +568,41 @@
           </a>
         </div>
       </div>
-      <!-- ========================================= -->
 
-      <!-- GUARANTEE -->
+      <!-- ========================================= -->
+      <!-- MOBILE ONLY WRAPPER: SIDEBAR + BONUS -->
+      <!-- Posicionado AQUI para ficar ACIMA da Garantia -->
+      <!-- ========================================= -->
+      <div class="mobile-sidebar-group">
+        
+        <!-- SIDEBAR BOX (COPIA PARA MOBILE) -->
+        <div class="offer-box">
+          <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
+          <div class="offer-title">{{HEADLINE_MAIN}}</div>
+          <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
+
+          <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
+              <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
+          </div>
+
+          <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
+
+          <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
+            <span>🔒 Secure Checkout</span>
+            <span>•</span>
+            <span>Official Site</span>
+          </div>
+        </div>
+
+        <!-- BONUS SECTION (MOBILE, AGRUPADO ABAIXO DA SIDEBAR) -->
+        <div class="bonus-section">
+          <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
+          {{BONUS_IMAGES}}
+        </div>
+
+      </div>
+
+      <!-- GUARANTEE (FICA POR ÚLTIMO NO MOBILE E NO DESK) -->
       <div class="content-block">
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
@@ -559,7 +617,7 @@
 
     </main>
 
-    <!-- SIDEBAR (STICKY CHECKOUT STYLE) -->
+    <!-- SIDEBAR (DESKTOP ONLY) -->
     <aside>
       <div class="offer-box">
         <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
@@ -579,14 +637,11 @@
         </div>
       </div>
 
-      <!-- Bonus Section -->
+      <!-- BONUS SECTION (DESKTOP) -->
       <div class="bonus-section">
         <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
         {{BONUS_IMAGES}}
       </div>
-
-      <!-- NOTA: Bloco de {{TESTIMONIAL_IMAGES}} foi removido da Sidebar conforme solicitado -->
-
     </aside>
 
   </div>
@@ -635,12 +690,30 @@
     }
 
     /* =================================================================
-       NOVA FUNÇÃO: REMOVER IMAGENS DUPLICADAS NA SEÇÃO DE BÔNUS
+       CORREÇÃO: RESET AO VOLTAR NO NAVEGADOR (BACK BUTTON)
+       ================================================================= */
+    window.addEventListener('pageshow', (event) => {
+      // Se a página foi restaurada do cache (ex: botão voltar no celular)
+      if (event.persisted) {
+        // Reseta a variável de controle
+        clicked = false;
+        
+        // Restaura o texto original dos botões
+        const btns = document.querySelectorAll('.btn');
+        btns.forEach(btn => {
+          btn.innerHTML = '{{CTA_BUTTON_TEXT}}';
+        });
+      }
+    });
+
+    /* =================================================================
+       REMOVER IMAGENS DUPLICADAS NA SEÇÃO DE BÔNUS (Mobile e Desktop)
        ================================================================= */
     document.addEventListener("DOMContentLoaded", () => {
-      const bonusSection = document.querySelector('.bonus-section .image-grid');
+      // Seleciona todas as grids de bônus (tanto Desktop quanto Mobile)
+      const bonusGrids = document.querySelectorAll('.bonus-section .image-grid');
       
-      if (bonusSection) {
+      bonusGrids.forEach(bonusSection => {
         const images = bonusSection.querySelectorAll('img');
         const seenUrls = new Set();
 
@@ -654,7 +727,7 @@
             seenUrls.add(url);
           }
         });
-      }
+      });
     });
   </script>
 
