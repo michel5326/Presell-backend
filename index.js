@@ -504,6 +504,15 @@ TESTIMONIAL_TITLE
 TESTIMONIAL_NOTICE_TEXT
 TESTIMONIAL_CTA_TEXT
 
+FORMULA SECTION GUIDELINES (CRITICAL):
+- The formula section must be written at a structural level, not ingredient-by-ingredient
+- Do NOT list, name, or assume specific ingredients unless explicitly stated on the official website
+- Describe the formula as a multi-component or blended formulation when appropriate
+- Focus on formulation intent, balance, and overall structure rather than individual components
+- Avoid health claims, effectiveness statements, or medical outcomes
+- Use calm, neutral, pre-purchase confirmation language
+- The purpose of this section is to reinforce legitimacy and formulation coherence, not to educate
+
 IMPORTANT — TESTIMONIAL SECTION:
 - Do NOT invent testimonials
 - Do NOT describe individual users
