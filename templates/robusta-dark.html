@@ -319,9 +319,15 @@
 
     /* =========================================
        RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
-       MOVIDO PARA O FINAL PARA SOBRESCREVER O DISPLAY: NONE
        ========================================= */
     
+    /* CORREÇÃO CRÍTICA: Definições globais (Desktop) vêm antes do Mobile */
+    
+    /* Esconde o mobile wrapper no Desktop */
+    .mobile-sidebar-group {
+      display: none; 
+    }
+
     /* Tablet & Mobile Landscape */
     @media (max-width: 900px) {
       .hero {
@@ -379,11 +385,6 @@
         aspect-ratio: 1 / 1.2; 
         object-fit: cover;
       }
-    }
-    
-    /* Classe auxiliar para esconder no desktop */
-    .mobile-sidebar-group {
-      display: none; 
     }
   </style>
 </head>
