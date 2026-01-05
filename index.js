@@ -210,7 +210,7 @@ async function extractIngredientImages(productUrl) {
 }
 
 /* =========================
-   IMAGE — BONUS
+   IMAGE — BONUS (ROBUSTA)
 ========================= */
 async function extractBonusImages(productUrl) {
   try {
@@ -223,22 +223,73 @@ async function extractBonusImages(productUrl) {
     const base = new URL(productUrl);
     const normalize = (u) => normalizeUrl(u, base);
 
-    const INCLUDE = ["bonus", "bonuses", "free", "gift", "guide", "ebook", "pdf"];
-    const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "badge", "seal", "guarantee"];
+    /* === BÔNUS REAIS (CONTEÚDO) === */
+    const CONTENT_KEYWORDS = [
+      "ebook",
+      "pdf",
+      "guide",
+      "manual",
+      "book",
+      "report",
+      "video",
+      "training",
+      "course",
+      "module",
+      "lesson",
+    ];
+
+    /* === NÃO SÃO BÔNUS === */
+    const HARD_EXCLUDE = [
+      "tick",
+      "check",
+      "icon",
+      "badge",
+      "seal",
+      "logo",
+      "banner",
+      "hero",
+      "bg",
+      "arrow",
+      "cta",
+      "button",
+      "step",
+      "order",
+      "checkout",
+      "cart",
+      "upsell",
+      "downsell",
+      "thank",
+      "confirm",
+      "secure",
+    ];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
 
     for (const m of imgs) {
       if (out.length >= 3) break;
+
       const src = normalize(m[1]);
+      if (!src) continue;
+
       const low = src.toLowerCase();
-      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
-      out.push(`<img src="${src}" alt="Bonus" loading="lazy">`);
+
+      /* --- filtros básicos --- */
+      if (low.startsWith("data:")) continue;
+      if (low.endsWith(".svg")) continue;
+
+      /* --- exclui lixo visual --- */
+      if (HARD_EXCLUDE.some((w) => low.includes(w))) continue;
+
+      /* --- exige contexto de conteúdo real --- */
+      if (!CONTENT_KEYWORDS.some((w) => low.includes(w))) continue;
+
+      out.push(`<img src="${src}" alt="Bonus material" loading="lazy">`);
     }
 
-    return out.length ? `<div class="image-grid">\n${out.join("\n")}\n</div>` : "";
+    return out.length
+      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
+      : "";
   } catch {
     return "";
   }
