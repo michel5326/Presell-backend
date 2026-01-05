@@ -321,7 +321,7 @@
 
     .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; opacity: 0.8; }
 
-    /* --- AJUSTE: ESCONDER ELEMENTOS VAZIOS --- */
+    /* --- AJUSTE: ESCONDER ELEMENTOS VAZIOS (OPCIONAL - BACKUP CSS) --- */
     .sidebar-testimonials:empty {
       display: none;
     }
@@ -634,6 +634,23 @@
         window.location.href = AFFILIATE_LINK;
       }
     }
+
+    /* =================================================================
+       FIX: ESCONDER SIDEBAR DEPOIMENTOS
+       Esconde se estiver vazio OU se a variável {{...}} ainda estiver visível
+       ================================================================= */
+    document.addEventListener("DOMContentLoaded", () => {
+      const sidebarTestimonials = document.querySelector('.sidebar-testimonials');
+      
+      if (sidebarTestimonials) {
+        const content = sidebarTestimonials.innerHTML.trim();
+        
+        // Se estiver vazio OU se ainda tiver o placeholder do backend
+        if (content === '' || content.includes('{{TESTIMONIAL_IMAGES}}')) {
+          sidebarTestimonials.style.display = 'none';
+        }
+      }
+    });
   </script>
 
 </body>
