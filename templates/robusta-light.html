@@ -44,7 +44,7 @@
     }
 
     /* Typography */
-    h1, h2, h3, .btn { font-family: 'Outfit', sans-serif; }
+    h1, h2, h3, h4, .btn { font-family: 'Outfit', sans-serif; }
     a { text-decoration: none; transition: all 0.3s ease; }
     p { margin-bottom: 1rem; }
 
@@ -140,11 +140,11 @@
       border-radius: 24px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Sombra escura realista */
       border: 1px solid var(--border);
-      transform: none; /* <--- AJUSTE: Imagem agora fica totalmente reta (removido o rotate(-2deg)) */
+      transform: none; /* Imagem Reta */
       transition: 0.3s;
       background: #fff;
     }
-    .hero-img:hover { transform: scale(1.02); } /* <--- AJUSTE: Hover mantém apenas o leve zoom */
+    .hero-img:hover { transform: scale(1.02); } /* Hover mantém apenas o leve zoom */
 
     /* --- MAIN LAYOUT --- */
     .container {
@@ -320,6 +320,11 @@
     .footer-links a:hover { color: var(--primary); }
 
     .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; opacity: 0.8; }
+
+    /* --- AJUSTE: ESCONDER ELEMENTOS VAZIOS --- */
+    .sidebar-testimonials:empty {
+      display: none;
+    }
 
     /* =========================================
        RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
@@ -518,6 +523,22 @@
         </div>
       </div>
 
+      <!-- ========================================= -->
+      <!-- AJUSTE 1: SEÇÃO DE DEPOIMENTOS (TEXTO) -->
+      <!-- ========================================= -->
+      <div class="content-block" style="margin-top:24px;">
+        <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
+
+        <div class="alert info" style="font-size:14px;">
+          {{TESTIMONIAL_NOTICE_TEXT}}
+          <br><br>
+          <a href="javascript:void(0)" onclick="doRedirect()" style="color:var(--primary); font-weight:600;">
+            {{TESTIMONIAL_CTA_TEXT}} →
+          </a>
+        </div>
+      </div>
+      <!-- ========================================= -->
+
       <!-- GUARANTEE -->
       <div class="content-block">
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
@@ -559,7 +580,13 @@
         {{BONUS_IMAGES}}
       </div>
 
-      {{TESTIMONIAL_IMAGES}}
+      <!-- ========================================= -->
+      <!-- AJUSTE 2: ESCONDER DEPOIMENTOS SE VAZIOS -->
+      <!-- ========================================= -->
+      <div class="sidebar-testimonials">
+        {{TESTIMONIAL_IMAGES}}
+      </div>
+      <!-- ========================================= -->
 
     </aside>
 

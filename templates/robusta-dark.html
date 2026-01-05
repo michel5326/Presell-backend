@@ -313,6 +313,11 @@
 
     .footer-disclaimer { color: #64748b; font-size: 12px; line-height: 1.7; opacity: 0.8; }
 
+    /* --- NOVA REGRA: ESCONDER ELEMENTOS VAZIOS --- */
+    .sidebar-testimonials:empty {
+      display: none;
+    }
+
     /* =========================================
        RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
        ========================================= */
@@ -527,7 +532,7 @@
       </div>
 
       <!-- ========================================= -->
-      <!-- AJUSTE SOLICITADO: SEÇÃO DE DEPOIMENTOS -->
+      <!-- AJUSTE 1: SEÇÃO DE DEPOIMENTOS (TEXTO) -->
       <!-- ========================================= -->
       <div class="content-block" style="margin-top:24px;">
         <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
@@ -583,8 +588,13 @@
         {{BONUS_IMAGES}}
       </div>
 
-      <!-- Mantendo imagens de depoimentos na sidebar caso existam -->
-      {{TESTIMONIAL_IMAGES}}
+      <!-- ========================================= -->
+      <!-- AJUSTE 2: ESCONDER DEPOIMENTOS SE VAZIOS -->
+      <!-- ========================================= -->
+      <div class="sidebar-testimonials">
+        {{TESTIMONIAL_IMAGES}}
+      </div>
+      <!-- ========================================= -->
 
     </aside>
 
