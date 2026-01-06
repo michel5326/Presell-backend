@@ -29,20 +29,32 @@ const WORKER_TOKEN = process.env.WORKER_TOKEN;
 /* =========================
    SUPABASE ADMIN
 ========================= */
-// Validação e inicialização da instância do Supabase
 console.log("🔍 Configuração do Supabase:");
+
+// Validar as variáveis de ambiente
 console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
 console.log(
   "SUPABASE_SERVICE_ROLE_KEY:",
   process.env.SUPABASE_SERVICE_ROLE_KEY ? "Chave válida" : "Chave ausente"
 );
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+try {
+  // Inicializar o cliente Supabase
+  const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
 
-console.log("✅ Instância Supabase inicializada:", supabaseAdmin);
+  // Verificar se o cliente foi inicializado corretamente
+  if (!supabaseAdmin) {
+    throw new Error("Erro ao inicializar Supabase: Objeto supabaseAdmin vazio.");
+  }
+
+  console.log("✅ Instância Supabase inicializada com sucesso:", supabaseAdmin);
+} catch (error) {
+  console.error("❌ Falha ao inicializar o cliente Supabase:", error.message);
+  process.exit(1); // Forçar o encerramento do processo para corrigir.
+}
 
 /* =========================
    CLOUDFLARE R2 (LEGACY)
