@@ -727,40 +727,43 @@ app.post("/webhooks/kiwify", async (req, res) => {
   console.log("Body:", JSON.stringify(req.body, null, 2));
 
   try {
-    // Log dos cabeçalhos para depuração (verificar o conteúdo enviado pelo webhook)
-    console.log("🔔 Cabeçalhos recebidos no webhook:", req.headers);
+    // Inspecione o corpo recebido no webhook
+    const body = req.body;
 
-    // Extração dos dados da requisição
-    const { order } = req.body;
-
-    if (!order) {
-      console.error("❌ Estrutura do corpo inválida. Campo `order` não encontrado.");
-      return res.status(400).json({ ok: false, error: "Estrutura de dados inválida" });
+    if (!body || typeof body !== "object") {
+      console.error("❌ Corpo inválido recebido no webhook.");
+      return res.status(400).json({ ok: false, error: "Corpo inválido" });
     }
 
-    // Verificação do tipo do evento no webhook
-    const eventType = order.webhook_event_type; // Exemplo: "order_approved"
+    // Acesse o webhook_event_type diretamente no corpo
+    const eventType = body.webhook_event_type; // Exemplo: "order_approved"
 
-    // Apenas processar o evento "order_approved"
+    if (!eventType) {
+      console.error("❌ Evento inválido ou campo ausente: 'webhook_event_type'");
+      return res.status(400).json({ ok: false, error: "Evento inválido ou campo ausente" });
+    }
+
+    // Apenas processar eventos do tipo "order_approved"
     if (eventType !== "order_approved") {
       console.log(`🔕 Evento ignorado: ${eventType}`);
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // Extração de campos importantes
-    const email = order.Customer?.email;
-    const product_id = order.Product?.product_id;
-    const status = order.order_status; // Exemplo: "paid"
+    // Extração de informações importantes diretamente do corpo
+    const email = body.Customer?.email;
+    const product_id = body.Product?.product_id;
+    const status = body.order_status;
 
-    // Campos obrigatórios
+    // Validação dos dados obrigatórios
     if (!email || !product_id || !status) {
-      console.error("❌ Dados obrigatórios ausentes no evento.");
+      console.error("❌ Dados obrigatórios ausentes.");
+      console.error(`email: ${email}, product_id: ${product_id}, status: ${status}`);
       return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
     }
 
-    console.log("✅ Evento processado com sucesso:", { email, product_id, status });
+    console.log("✅ Dados processados com sucesso;", { email, product_id, status });
 
-    // Salvar informações relevantes no Supabase
+    // Salvar os dados no Supabase
     const { data, error } = await supabaseAdmin
       .from("user_access")
       .insert([{ 
@@ -775,7 +778,7 @@ app.post("/webhooks/kiwify", async (req, res) => {
       return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados" });
     }
 
-    console.log("✅ Dados salvos no Supabase com sucesso!");
+    console.log("✅ Dados salvos com sucesso!");
     return res.status(200).json({ ok: true });
   } catch (e) {
     console.error("❌ Erro inesperado no webhook:", e.message);
@@ -783,5 +786,6 @@ app.post("/webhooks/kiwify", async (req, res) => {
   }
 });
 
+// Inicialize o servidor na porta especificada
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 WORKER ${PORT}`));
