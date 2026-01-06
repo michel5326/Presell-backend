@@ -63,10 +63,9 @@ app.post("/webhooks/kiwify", async (req, res) => {
     }
 
     const email = body?.Customer?.email;
-    const productId = body?.Product?.product_id;
 
-    if (!email || !productId) {
-      console.error("❌ Dados obrigatórios ausentes");
+    if (!email) {
+      console.error("❌ Email ausente");
       return res.status(200).json({ ok: false });
     }
 
@@ -78,10 +77,9 @@ app.post("/webhooks/kiwify", async (req, res) => {
       .upsert(
         {
           email,
-          product_id: productId,
           access_until: accessUntil.toISOString(),
         },
-        { onConflict: "email,product_id" }
+        { onConflict: "email" }
       );
 
     if (error) {
