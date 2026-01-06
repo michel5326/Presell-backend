@@ -8,22 +8,30 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuid } = require("uuid");
 const { createClient } = require("@supabase/supabase-js");
-const fetch = require("node-fetch");
+
+// ✅ Node 18+ tem fetch nativo. Se não tiver, usa node-fetch.
+const fetch =
+  global.fetch ||
+  ((...args) => import("node-fetch").then(({ default: f }) => f(...args)));
 
 const app = express();
 
 /* =========================
-   CORS
+   CORS (PRODUÇÃO)
 ========================= */
 app.use(
   cors({
     origin: ["https://clickpage.vercel.app", "https://clickpage.lovable.app"],
     methods: ["POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "x-worker-token", "x-user-email"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-worker-token"],
   })
 );
 
-app.use(express.json());
+// garante preflight ok
+app.options("*", cors());
+
+app.use(express.json({ limit: "2mb" }));
+
 const WORKER_TOKEN = process.env.WORKER_TOKEN;
 
 /* =========================
@@ -62,24 +70,19 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
-/* ✅ GLOBAL PLACEHOLDERS */
 function applyGlobals(html) {
   return html.replaceAll("{{CURRENT_YEAR}}", String(new Date().getFullYear()));
 }
 
-/* =========================
-   ✅ URL NORMALIZER (PATCH)
-========================= */
 function normalizeUrl(u, base) {
   try {
     const url = new URL(u, base).href;
-    return url.replace(/([^:]\/)\/+/g, "$1"); // remove double slashes in path
+    return url.replace(/([^:]\/)\/+/g, "$1");
   } catch {
     return "";
   }
 }
 
-/* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
   await s3
@@ -94,7 +97,7 @@ async function uploadToR2(localPath, remoteKey) {
 }
 
 /* =========================
-   IMAGE — BOTTLE (PRIMARY PRODUCT)
+   IMAGE — BOTTLE
 ========================= */
 async function extractBottleImage(productUrl) {
   try {
@@ -107,7 +110,6 @@ async function extractBottleImage(productUrl) {
     const base = new URL(productUrl);
     const normalize = (u) => normalizeUrl(u, base);
 
-    /* PRIORITY KEYWORDS (STRONG SIGNAL) */
     const INCLUDE = [
       "bottle",
       "product",
@@ -119,7 +121,6 @@ async function extractBottleImage(productUrl) {
       "label",
     ];
 
-    /* EXCLUDE ABSOLUTE */
     const EXCLUDE = [
       "banner",
       "hero",
@@ -137,34 +138,27 @@ async function extractBottleImage(productUrl) {
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
-    /* 1️⃣ FIRST PASS — SEMANTIC MATCH */
     for (const m of imgs) {
       const src = normalize(m[1]);
       const low = src.toLowerCase();
-
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
       if (EXCLUDE.some((w) => low.includes(w))) continue;
       if (!INCLUDE.some((w) => low.includes(w))) continue;
-
       return src;
     }
 
-    /* 2️⃣ FALLBACK — OG IMAGE (ONLY IF NOT BANNER-LIKE) */
-    let og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
     if (og) {
       const src = normalize(og[1]);
       const low = src.toLowerCase();
       if (!EXCLUDE.some((w) => low.includes(w))) return src;
     }
 
-    /* 3️⃣ LAST RESORT — FIRST CLEAN IMAGE */
     for (const m of imgs) {
       const src = normalize(m[1]);
       const low = src.toLowerCase();
-
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
       if (EXCLUDE.some((w) => low.includes(w))) continue;
-
       return src;
     }
 
@@ -210,7 +204,7 @@ async function extractIngredientImages(productUrl) {
 }
 
 /* =========================
-   IMAGE — BONUS (ROBUSTA)
+   IMAGE — BONUS
 ========================= */
 async function extractBonusImages(productUrl) {
   try {
@@ -223,7 +217,6 @@ async function extractBonusImages(productUrl) {
     const base = new URL(productUrl);
     const normalize = (u) => normalizeUrl(u, base);
 
-    /* === BÔNUS REAIS (CONTEÚDO) === */
     const CONTENT_KEYWORDS = [
       "ebook",
       "pdf",
@@ -238,7 +231,6 @@ async function extractBonusImages(productUrl) {
       "lesson",
     ];
 
-    /* === NÃO SÃO BÔNUS === */
     const HARD_EXCLUDE = [
       "tick",
       "check",
@@ -273,35 +265,19 @@ async function extractBonusImages(productUrl) {
       if (!src) continue;
 
       const low = src.toLowerCase();
-
-      /* --- filtros básicos --- */
       if (low.startsWith("data:")) continue;
       if (low.endsWith(".svg")) continue;
-
-      /* --- exclui lixo visual --- */
       if (HARD_EXCLUDE.some((w) => low.includes(w))) continue;
-
-      /* --- exige contexto de conteúdo real --- */
       if (!CONTENT_KEYWORDS.some((w) => low.includes(w))) continue;
 
       out.push(`<img src="${src}" alt="Bonus material" loading="lazy">`);
     }
 
-    return out.length
-      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
-      : "";
+    return out.length ? `<div class="image-grid">\n${out.join("\n")}\n</div>` : "";
   } catch {
     return "";
   }
 }
-/* =========================
-   KIWIFY WEBHOOK (PASSO 1 - TESTE)
-========================= */
-app.post("/webhooks/kiwify", (req, res) => {
-  console.log("✅ KIWIFY WEBHOOK CHEGOU");
-  console.log("Payload:", JSON.stringify(req.body || {}, null, 2));
-  return res.status(200).json({ ok: true });
-});
 
 /* =========================
    IMAGE — GUARANTEE
@@ -338,6 +314,54 @@ async function extractGuaranteeImage(productUrl) {
 }
 
 /* =========================
+   KIWIFY WEBHOOK (PRODUÇÃO)
+   - invitar usuário
+   - liberar acesso 6 meses
+========================= */
+app.post("/webhooks/kiwify", async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const eventType = payload?.order?.webhook_event_type;
+    const email = payload?.order?.Customer?.email;
+
+    if (eventType !== "order_approved") return res.status(200).json({ ok: true, ignored: true });
+    if (!email) return res.status(200).json({ ok: true, missing_email: true });
+
+    const redirectTo =
+      process.env.INVITE_REDIRECT_TO || "https://clickpage.vercel.app/reset-password";
+
+    // invite (se já existir, supabase pode retornar erro — tratamos como ok)
+    const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+      redirectTo,
+    });
+
+    if (inviteError && !String(inviteError.message || "").toLowerCase().includes("already")) {
+      return res.status(200).json({ ok: true, invite_error: true, message: inviteError.message });
+    }
+
+    // acesso 6 meses
+    const accessUntil = new Date();
+    accessUntil.setMonth(accessUntil.getMonth() + 6);
+
+    const { error: accessError } = await supabaseAdmin
+      .from("user_access")
+      .upsert(
+        { email, access_until: accessUntil.toISOString() },
+        { onConflict: "email" }
+      );
+
+    if (accessError) {
+      return res.status(200).json({ ok: false, access_error: true, message: accessError.message });
+    }
+
+    return res.status(200).json({ ok: true, invited: true });
+  } catch (e) {
+    console.error("❌ webhook error:", e);
+    return res.status(200).json({ ok: false });
+  }
+});
+
+/* =========================
    DEEPSEEK
 ========================= */
 async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
@@ -360,7 +384,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
       });
 
       const data = await r.json();
-      const raw = data.choices[0].message.content;
+      const raw = data?.choices?.[0]?.message?.content || "";
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) throw new Error("No JSON");
 
@@ -385,49 +409,15 @@ CRITICAL CONTEXT:
 - This is NOT a VSL, NOT a long-form advertorial, NOT a medical article.
 
 GUIDELINES (IMPORTANT, NOT OVERLY RESTRICTIVE):
-
 AVOID ONLY THE FOLLOWING:
 - Claiming to cure or treat diseases
 - Making explicit medical diagnoses
 - Mentioning doctors, prescriptions, or lab tests (e.g. PSA, blood work)
 - Making hard guarantees of results
 
-LANGUAGE FREEDOM:
-- You MAY describe how the product is intended to work in practical terms
-- You MAY explain ingredients and their commonly understood roles
-- You MAY use confident, persuasive language
-- You MAY highlight why the product stands out compared to generic alternatives
-
-PREFERRED PHRASING (WHEN POSSIBLE):
-- "designed to support"
-- "intended to help"
-- "many users report"
-- "commonly used to support"
-
-USER FEEDBACK / SOCIAL PROOF:
-- Testimonials can describe noticeable improvements
-- Avoid clinical measurements or medical validation
-- Avoid specific timelines (e.g. exact days or weeks)
-
-TONE & STYLE:
-- Confident
-- Direct
-- Persuasive
-- Clear
-- Not overly cautious
-- Not exaggerated or sensational
-
-STRUCTURE:
-- Decision-focused copy
-- Clear sections
-- No long storytelling
-- No educational lectures
-
-OUTPUT REQUIREMENTS (MANDATORY):
-
+OUTPUT REQUIREMENTS:
 Return ONLY valid JSON.
-
-Required keys (ALL are mandatory):
+Required keys:
 HEADLINE
 SUBHEADLINE
 INTRO
@@ -436,9 +426,6 @@ FORMULA_TEXT
 BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
-
-Do NOT include explanations, notes, or commentary.
-Do NOT include markdown.
 
 Language: ${language}`,
     `Product URL: ${productUrl}`
@@ -460,9 +447,7 @@ Language: ${language}`,
     .replaceAll("{{BONUS_IMAGES}}", "")
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 
-  /* ✅ aplica CURRENT_YEAR */
   html = applyGlobals(html);
-
   return html;
 }
 
@@ -472,17 +457,6 @@ Language: ${language}`,
 async function generateRobusta({ templatePath, affiliateUrl, productUrl, language = "en" }) {
   const ai = await callDeepSeekWithRetry(
     `Return ONLY valid JSON.
-
-This page is shown immediately BEFORE the user clicks to the official website.
-The user has already read a full review.
-Your role is NOT to educate, but to CONFIRM the decision and REDUCE risk.
-
-Tone:
-- Confident
-- Calm
-- Direct
-- No hype
-- No exaggerated promises
 
 Required keys:
 PAGE_TITLE
@@ -512,39 +486,15 @@ TESTIMONIAL_TITLE
 TESTIMONIAL_NOTICE_TEXT
 TESTIMONIAL_CTA_TEXT
 
-FORMULA SECTION GUIDELINES (CRITICAL):
-- The formula section must be written at a structural level, not ingredient-by-ingredient
-- Do NOT list, name, or assume specific ingredients unless explicitly stated on the official website
-- Describe the formula as a multi-component or blended formulation when appropriate
-- Focus on formulation intent, balance, and overall structure rather than individual components
-- Avoid health claims, effectiveness statements, or medical outcomes
-- Use calm, neutral, pre-purchase confirmation language
-- The purpose of this section is to reinforce legitimacy and formulation coherence, not to educate
-
-IMPORTANT — TESTIMONIAL SECTION:
-- Do NOT invent testimonials
-- Do NOT describe individual users
-- Do NOT include names, quotes, or personal stories
-- Do NOT claim specific results
-
-The testimonial section must clearly state that:
-- real customer testimonials are available on the official website
-- this page does not reproduce or modify user feedback
-- the goal is transparency and authenticity
-
-Use neutral, compliance-safe language.
-
 Output ONLY valid JSON.`,
     `Product URL: ${productUrl}`
   );
 
-  /* ===== IMAGES ===== */
   const productImage = await extractBottleImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
   const bonusImages = await extractBonusImages(productUrl);
   const guaranteeImage = await extractGuaranteeImage(productUrl);
 
-  /* ===== TESTIMONIAL FALLBACK (MULTI-LANGUAGE) ===== */
   const testimonialFallback = {
     en: {
       title: "What customers are saying",
@@ -564,7 +514,7 @@ Output ONLY valid JSON.`,
       title: "Lo que dicen los clientes",
       text:
         "Los testimonios reales de clientes están disponibles directamente en el sitio oficial. " +
-        "Para preservar la autenticidad, esta página no reproduce ni modifica opiniones individuales.",
+        "Para preservar la autenticidad, esta página não reproduz nem modifica opiniones individuales.",
       cta: "Ver testimonios en el sitio oficial",
     },
     fr: {
@@ -576,10 +526,8 @@ Output ONLY valid JSON.`,
     },
   };
 
-  /* ===== LOAD TEMPLATE ===== */
   let html = fs.readFileSync(templatePath, "utf8");
 
-  /* ===== FIXED STRINGS ===== */
   const fixed = {
     SITE_BRAND: "Buyer Guide",
     UPDATED_DATE: new Date().toISOString().split("T")[0],
@@ -596,12 +544,10 @@ Output ONLY valid JSON.`,
     FOOTER_DISCLAIMER: "This content is informational only.",
   };
 
-  /* ===== APPLY AI + FIXED COPY ===== */
   for (const [k, v] of Object.entries({ ...fixed, ...ai })) {
     html = html.replaceAll(`{{${k}}}`, v || "");
   }
 
-  /* ===== APPLY IMAGES ===== */
   html = html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
@@ -609,7 +555,6 @@ Output ONLY valid JSON.`,
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
     .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "");
 
-  /* ===== APPLY TESTIMONIAL TEXT (AI + FALLBACK) ===== */
   const lang = (language || "en").toLowerCase();
   const t = testimonialFallback[lang] || testimonialFallback.en;
 
@@ -618,22 +563,29 @@ Output ONLY valid JSON.`,
     .replaceAll("{{TESTIMONIAL_NOTICE_TEXT}}", ai.TESTIMONIAL_NOTICE_TEXT || t.text)
     .replaceAll("{{TESTIMONIAL_CTA_TEXT}}", ai.TESTIMONIAL_CTA_TEXT || t.cta);
 
-  /* ===== GLOBAL PLACEHOLDERS ===== */
   html = applyGlobals(html);
-
   return html;
 }
 
 /* =========================
-   GENERATE
+   GENERATE (PRODUÇÃO - JWT)
 ========================= */
 app.post("/generate", async (req, res) => {
   try {
     if (req.headers["x-worker-token"] !== WORKER_TOKEN)
       return res.status(403).json({ error: "forbidden" });
 
-    const userEmail = req.headers["x-user-email"];
-    if (!userEmail) return res.status(401).json({ error: "no user" });
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return res.status(401).json({ error: "no token" });
+
+    const {
+      data: { user },
+      error,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (error || !user) return res.status(401).json({ error: "unauthorized" });
+
+    const userEmail = user.email;
 
     const { data: access } = await supabaseAdmin
       .from("user_access")
@@ -671,11 +623,12 @@ app.post("/generate", async (req, res) => {
         templatePath,
         affiliateUrl,
         productUrl,
+        language,
       });
       return res.status(200).set("Content-Type", "text/html").send(html);
     }
 
-    /* ===== LEGACY (INTOCADO) ===== */
+    /* ===== LEGACY ===== */
     const finalLegacyData = { ...legacyData, ...flatBody };
     delete finalLegacyData.templateId;
     delete finalLegacyData.productUrl;
@@ -689,12 +642,12 @@ app.post("/generate", async (req, res) => {
     const browser = await chromium.launch({ headless: true });
 
     const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
-    await p.goto(productUrl);
+    await p.goto(productUrl, { waitUntil: "domcontentloaded" });
     await p.screenshot({ path: d });
     await p.close();
 
     const p2 = await browser.newPage(devices["iPhone 12"]);
-    await p2.goto(productUrl);
+    await p2.goto(productUrl, { waitUntil: "domcontentloaded" });
     await p2.screenshot({ path: m });
     await p2.close();
 
@@ -705,7 +658,8 @@ app.post("/generate", async (req, res) => {
     safeUnlink(m);
     await browser.close();
 
-    let html = fs.readFileSync(templatePath, "utf8")
+    let html = fs
+      .readFileSync(templatePath, "utf8")
       .replaceAll("{{DESKTOP_PRINT}}", du)
       .replaceAll("{{MOBILE_PRINT}}", mu)
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
@@ -714,12 +668,11 @@ app.post("/generate", async (req, res) => {
       html = html.replaceAll(`{{${k}}}`, String(v));
     }
 
-    /* ✅ aplica CURRENT_YEAR também no legacy */
     html = applyGlobals(html);
 
     return res.status(200).set("Content-Type", "text/html").send(html);
   } catch (e) {
-    console.error("❌", e.message);
+    console.error("❌", e);
     return res.status(502).json({
       error: "generation_failed",
       message: e.message,
