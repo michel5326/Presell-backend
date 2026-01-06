@@ -49,14 +49,53 @@ console.log("✅ Supabase Admin inicializado");
 
 
 /* =========================
-   WEBHOOK — KIWIFY (BÁSICO)
+   WEBHOOK — KIWIFY (ORDER APPROVED)
 ========================= */
-app.post("/webhooks/kiwify", (req, res) => {
-  console.log("🔔 KIWIFY WEBHOOK RECEBIDO");
-  console.log("Headers:", req.headers);
-  console.log("Body:", JSON.stringify(req.body, null, 2));
+app.post("/webhooks/kiwify", async (req, res) => {
+  try {
+    const body = req.body;
 
-  return res.status(200).json({ ok: true });
+    console.log("🔔 KIWIFY WEBHOOK RECEBIDO");
+    console.log(JSON.stringify(body, null, 2));
+
+    if (body?.webhook_event_type !== "order_approved") {
+      return res.status(200).json({ ok: true, ignored: true });
+    }
+
+    const email = body?.Customer?.email;
+    const productId = body?.Product?.product_id;
+
+    if (!email || !productId) {
+      console.error("❌ Dados obrigatórios ausentes");
+      return res.status(200).json({ ok: false });
+    }
+
+    const accessUntil = new Date();
+    accessUntil.setMonth(accessUntil.getMonth() + 6);
+
+    const { error } = await supabaseAdmin
+      .from("user_access")
+      .upsert(
+        {
+          email,
+          product_id: productId,
+          access_until: accessUntil.toISOString(),
+          source: "kiwify",
+        },
+        { onConflict: "email,product_id" }
+      );
+
+    if (error) {
+      console.error("❌ Erro ao salvar acesso:", error.message);
+      return res.status(200).json({ ok: false });
+    }
+
+    console.log("✅ Acesso liberado para:", email);
+    return res.status(200).json({ ok: true });
+  } catch (e) {
+    console.error("🔥 Erro no webhook:", e.message);
+    return res.status(200).json({ ok: false });
+  }
 });
 
 
