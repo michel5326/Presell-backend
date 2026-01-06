@@ -359,53 +359,54 @@ app.post("/webhooks/kiwify", async (req, res) => {
 ========================= */
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
-    const payload = req.body?.order || {};
+    const body = req.body || {};
 
-// DEBUG TOTAL (agora é só o order)
-console.log("DEBUG ORDER:", JSON.stringify(payload, null, 2));
+    console.log("DEBUG RAW BODY:", JSON.stringify(body, null, 2));
 
-// 1️⃣ Evento (vem dentro de order)
-const event = payload?.webhook_event_type;
-console.log("DEBUG EVENT:", event);
+    // 🔍 tenta localizar o order de forma segura
+    const order = body.order ?? body;
 
-if (event !== "order_approved") {
-  return res.status(200).json({ ok: true, ignored: true });
-}
+    console.log("DEBUG ORDER:", JSON.stringify(order, null, 2));
 
-// 2️⃣ Email (vem dentro de order.Customer)
-const email = payload?.Customer?.email;
-console.log("DEBUG EMAIL:", email);
+    // 🔍 evento
+    const event =
+      order.webhook_event_type ||
+      order.event ||
+      body.webhook_event_type;
 
-if (!email) {
-  console.log("❌ Email não encontrado no payload");
-  return res.status(200).json({ ok: true, missing_email: true });
-}
+    console.log("DEBUG EVENT:", event);
 
+    if (event !== "order_approved") {
+      return res.status(200).json({ ok: true, ignored: true });
+    }
+
+    // 🔍 email (busca defensiva)
+    const email =
+      order?.Customer?.email ||
+      order?.customer?.email ||
+      body?.Customer?.email ||
+      body?.customer?.email;
+
+    console.log("DEBUG EMAIL:", email);
 
     if (!email) {
-      console.log("❌ Email não encontrado");
+      console.log("❌ Email não encontrado no webhook");
       return res.status(200).json({ ok: true, missing_email: true });
     }
 
-    // 3️⃣ Criar usuário no Supabase Auth (idempotente)
-    const { data: userData, error: userError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: false,
-      });
-
-    if (userError && !userError.message.includes("already exists")) {
-      console.log("❌ Erro ao criar usuário:", userError.message);
-      return res.status(200).json({ ok: false });
-    }
+    // ✅ criar usuário no Auth (idempotente)
+    await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: false,
+    });
 
     console.log("✅ Usuário criado ou já existia:", email);
 
-    // 4️⃣ Liberar acesso por 6 meses
+    // ✅ acesso por 6 meses
     const accessUntil = new Date();
     accessUntil.setMonth(accessUntil.getMonth() + 6);
 
-    const { error: accessError } = await supabaseAdmin
+    await supabaseAdmin
       .from("user_access")
       .upsert(
         {
@@ -415,29 +416,22 @@ if (!email) {
         { onConflict: "email" }
       );
 
-    if (accessError) {
-      console.log("❌ Erro ao salvar acesso:", accessError.message);
-      return res.status(200).json({ ok: false });
-    }
+    console.log("✅ Acesso liberado até:", accessUntil.toISOString());
 
-    console.log("✅ Acesso válido até:", accessUntil.toISOString());
-
-    // 5️⃣ Enviar email para criar senha
-    const redirectTo =
-      process.env.PASSWORD_REDIRECT_TO ||
-      "https://clickpage.vercel.app/reset-password";
-
+    // ✅ enviar email de criar senha
     await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
       email,
-      options: { redirectTo },
+      options: {
+        redirectTo: "https://clickpage.vercel.app/reset-password",
+      },
     });
 
     console.log("📨 Email de criação de senha enviado");
 
     return res.status(200).json({ ok: true });
-  } catch (e) {
-    console.error("🔥 ERRO NO WEBHOOK:", e);
+  } catch (err) {
+    console.error("🔥 ERRO NO WEBHOOK:", err);
     return res.status(200).json({ ok: false });
   }
 });
