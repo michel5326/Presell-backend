@@ -29,10 +29,20 @@ const WORKER_TOKEN = process.env.WORKER_TOKEN;
 /* =========================
    SUPABASE ADMIN
 ========================= */
+// Validação e inicialização da instância do Supabase
+console.log("🔍 Configuração do Supabase:");
+console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
+console.log(
+  "SUPABASE_SERVICE_ROLE_KEY:",
+  process.env.SUPABASE_SERVICE_ROLE_KEY ? "Chave válida" : "Chave ausente"
+);
+
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+console.log("✅ Instância Supabase inicializada:", supabaseAdmin);
 
 /* =========================
    CLOUDFLARE R2 (LEGACY)
