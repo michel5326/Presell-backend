@@ -1,20 +1,14 @@
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
-const { chromium, devices } = require("playwright");
-const AWS = require("aws-sdk");
-const fs = require("fs");
-const path = require("path");
-const { v4: uuid } = require("uuid");
 const { createClient } = require("@supabase/supabase-js");
-const fetch = require("node-fetch");
 
 const app = express();
+app.use(express.json());
 
-/* =========================
-   CORS
-========================= */
+// =========================
+// CORS
+// =========================
 app.use(
   cors({
     origin: ["https://clickpage.vercel.app", "https://clickpage.lovable.app"],
@@ -23,38 +17,110 @@ app.use(
   })
 );
 
-app.use(express.json());
-const WORKER_TOKEN = process.env.WORKER_TOKEN;
-
-/* =========================
-   SUPABASE ADMIN
-========================= */
+// =========================
+// SUPABASE ADMIN - Global
+// =========================
 console.log("🔍 Configuração do Supabase:");
-
-// Validar as variáveis de ambiente
 console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
 console.log(
   "SUPABASE_SERVICE_ROLE_KEY:",
   process.env.SUPABASE_SERVICE_ROLE_KEY ? "Chave válida" : "Chave ausente"
 );
 
-try {
-  // Inicializar o cliente Supabase
-  const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-  // Verificar se o cliente foi inicializado corretamente
-  if (!supabaseAdmin) {
-    throw new Error("Erro ao inicializar Supabase: Objeto supabaseAdmin vazio.");
+console.log("✅ Instância Supabase inicializada:", supabaseAdmin);
+
+// =========================
+// ROTA PARA WEBHOOK DA KIWIFY
+// =========================
+app.post("/webhooks/kiwify", async (req, res) => {
+  console.log("🔔 Webhook recebido pela rota /webhooks/kiwify!");
+  console.log("Headers:", req.headers);
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+
+  try {
+    if (!supabaseAdmin.auth.api) {
+      return res.status(500).json({
+        ok: false,
+        error: "Supabase API não foi configurada corretamente.",
+      });
+    }
+
+    const body = req.body;
+    const eventType = body.webhook_event_type;
+
+    if (!eventType || typeof body !== "object") {
+      return res.status(400).json({ ok: false, error: "Evento inválido." });
+    }
+
+    switch (eventType) {
+      case "order_approved": {
+        const email = body.Customer?.email;
+        const product_id = body.Product?.product_id;
+        const status = body.order_status;
+
+        if (!email || !product_id || !status) {
+          return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes." });
+        }
+
+        try {
+          const { data: existingUser } = await supabaseAdmin
+            .from("auth.users")
+            .select("*")
+            .eq("email", email)
+            .single();
+
+          let userId;
+          if (!existingUser) {
+            const { data: newUser } = await supabaseAdmin.auth.api.createUser({
+              email,
+              email_confirmed: true,
+            });
+            userId = newUser.id;
+          } else {
+            userId = existingUser.id;
+          }
+
+          const createdAt = new Date();
+          const expiresAt = new Date(createdAt);
+          expiresAt.setMonth(expiresAt.getMonth() + 6);
+
+          const { error } = await supabaseAdmin
+            .from("user_access")
+            .upsert(
+              {
+                email,
+                product_id,
+                status,
+                created_at: createdAt,
+                expires_at: expiresAt,
+                user_id: userId,
+              },
+              { onConflict: ["email", "product_id"] }
+            );
+
+          if (error) {
+            return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados." });
+          }
+
+          return res.status(200).json({ ok: true });
+        } catch (e) {
+          return res.status(500).json({ ok: false, error: "Erro interno ao processar evento." });
+        }
+      }
+
+      default:
+        return res.status(200).json({ ok: true, ignored: true });
+    }
+  } catch (e) {
+    console.error("❌ Erro inesperado no servidor:", e.message);
+    res.status(500).json({ ok: false, error: "Erro no servidor." });
   }
-
-  console.log("✅ Instância Supabase inicializada com sucesso:", supabaseAdmin);
-} catch (error) {
-  console.error("❌ Falha ao inicializar o cliente Supabase:", error.message);
-  process.exit(1); // Forçar o encerramento do processo para corrigir.
-}
+});
 
 /* =========================
    CLOUDFLARE R2 (LEGACY)
@@ -740,139 +806,6 @@ app.post("/generate", async (req, res) => {
     });
   }
 });
-/* =========================
-   ✅ ROTA PARA WEBHOOK DA KIWIFY
-========================== */
-app.post("/webhooks/kiwify", async (req, res) => {
-  console.log("🔔 Webhook recebido pela rota /webhooks/kiwify!");
-  console.log("Headers:", req.headers);
-  console.log("Body:", JSON.stringify(req.body, null, 2));
 
-  try {
-    // Validação inicial do Supabase
-    console.log("🔍 Testando configuração do Supabase...");
-    if (!supabaseAdmin.auth.api) {
-      console.error("❌ supabaseAdmin.auth.api está indefinido! Verifique as variáveis de ambiente.");
-      return res.status(500).json({
-        ok: false,
-        error: "Supabase API não está configurada corretamente. Verifique SUPABASE_SERVICE_ROLE_KEY.",
-      });
-    }
-
-    const body = req.body;
-
-    if (!body || typeof body !== "object") {
-      console.error("❌ Corpo inválido recebido no webhook.");
-      return res.status(400).json({ ok: false, error: "Corpo inválido" });
-    }
-
-    const eventType = body.webhook_event_type;
-
-    if (!eventType) {
-      console.error("❌ Evento inválido ou campo ausente: 'webhook_event_type'");
-      return res.status(400).json({ ok: false, error: "Evento inválido ou campo ausente" });
-    }
-
-    switch (eventType) {
-      case "order_approved": {
-        const email = body.Customer?.email;
-        const product_id = body.Product?.product_id;
-        const status = body.order_status;
-
-        if (!email || !product_id || !status) {
-          console.error("❌ Dados obrigatórios ausentes.");
-          return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
-        }
-
-        try {
-          const { data: existingUser, error: userError } = await supabaseAdmin
-            .from("auth.users")
-            .select("*")
-            .eq("email", email)
-            .single();
-
-          let userId;
-
-          if (!existingUser) {
-            console.log("🔍 Criando novo usuário com o email:", email);
-            const { data: newUser, error: createUserError } = await supabaseAdmin.auth.api.createUser({
-              email: email,
-              email_confirmed: true,
-            });
-
-            if (createUserError) {
-              console.error("❌ Erro ao criar o usuário:", createUserError.message);
-              return res.status(500).json({
-                ok: false,
-                error: `Erro ao criar o usuário: ${createUserError.message}`,
-              });
-            }
-
-            console.log("✅ Usuário criado com sucesso no `auth.users`:", newUser);
-            userId = newUser.id;
-          } else {
-            console.log("✅ Usuário já existente encontrado:", existingUser);
-            userId = existingUser.id;
-          }
-
-          const createdAt = new Date();
-          const expiresAt = new Date(createdAt);
-          expiresAt.setMonth(expiresAt.getMonth() + 6); // 6 meses de acesso
-
-          const { data, error } = await supabaseAdmin
-            .from("user_access")
-            .upsert(
-              { email, product_id, status, created_at: createdAt, expires_at: expiresAt, user_id: userId },
-              { onConflict: ["email", "product_id"] }
-            );
-
-          if (error) {
-            console.error("❌ Erro ao salvar na tabela `user_access`:", error.message);
-            return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados" });
-          }
-
-          console.log("✅ Dados salvos na tabela `user_access` com sucesso!");
-          return res.status(200).json({ ok: true });
-        } catch (e) {
-          console.error("❌ Erro ao processar evento 'order_approved':", e.message);
-          return res.status(500).json({ ok: false, error: "Erro interno ao processar 'order_approved'" });
-        }
-      }
-
-      case "order_refunded": {
-        const email = body.Customer?.email;
-        const product_id = body.Product?.product_id;
-
-        if (!email || !product_id) {
-          console.error("❌ Dados obrigatórios ausentes para reembolso.");
-          return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
-        }
-
-        const { data, error } = await supabaseAdmin
-          .from("user_access")
-          .update({ status: "cancelled" })
-          .match({ email, product_id });
-
-        if (error) {
-          console.error("❌ Erro ao atualizar na tabela `user_access`:", error.message);
-          return res.status(502).json({ ok: false, error: "Erro ao atualizar o banco de dados" });
-        }
-
-        console.log("✅ Reembolso processado e status atualizado para cancelado!");
-        return res.status(200).json({ ok: true });
-      }
-
-      default: {
-        console.log(`🔕 Evento ignorado: ${eventType}`);
-        return res.status(200).json({ ok: true, ignored: true });
-      }
-    }
-  } catch (e) {
-    console.error("❌ Erro inesperado no servidor:", e.message);
-    return res.status(500).json({ ok: false, error: "Erro interno no servidor" });
-  }
-});
-
-// Inicialize o servidor na porta especificada
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 WORKER ${PORT}`));
