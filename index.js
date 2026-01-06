@@ -355,56 +355,48 @@ app.post("/webhooks/kiwify", async (req, res) => {
 
 
 /* =========================
-   KIWIFY WEBHOOK (FINAL - USER SAFE)
+   KIWIFY WEBHOOK (FINAL CORRETO)
 ========================= */
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
     const payload = req.body || {};
 
-    // 🔍 DEBUG TOTAL (não remover agora)
-    console.log("📦 KIWIFY PAYLOAD:", JSON.stringify(payload, null, 2));
+    // DEBUG — NÃO REMOVER AGORA
+    console.log("DEBUG PAYLOAD:", JSON.stringify(payload, null, 2));
 
-    // 1️⃣ valida evento (Kiwify usa order_approved)
-    const event =
-      payload?.event ||
-      payload?.order?.webhook_event_type;
+    // 1️⃣ evento REAL da Kiwify
+    const event = payload?.webhook_event_type;
+    console.log("DEBUG EVENT:", event);
 
-    if (event !== "order_approved" && event !== "order.paid") {
-      console.log("ℹ️ Evento ignorado:", event);
+    if (event !== "order_approved") {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // 2️⃣ extrai email CORRETO da Kiwify
-    const email =
-      payload?.order?.Customer?.email ||
-      payload?.customer?.email ||
-      payload?.buyer?.email ||
-      payload?.email;
-
-    console.log("📧 EMAIL DETECTADO:", email);
+    // 2️⃣ email REAL da Kiwify
+    const email = payload?.Customer?.email;
+    console.log("DEBUG EMAIL:", email);
 
     if (!email) {
-      console.log("❌ Webhook sem email válido");
+      console.log("❌ Email não encontrado no payload");
       return res.status(200).json({ ok: true, missing_email: true });
     }
 
-    // 3️⃣ cria usuário NO AUTH (SEM INVITE)
+    // 3️⃣ cria usuário no Supabase Auth (ou ignora se já existir)
     const { data: userData, error: createError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
-        email_confirm: false, // o usuário vai criar a senha depois
+        email_confirm: false,
       });
 
     if (createError && !createError.message.includes("already exists")) {
-      console.log("❌ ERRO AO CRIAR USUÁRIO:", createError.message);
-      return res.status(200).json({ ok: false, auth_error: true });
+      console.log("❌ Erro ao criar usuário:", createError.message);
+      return res.status(200).json({ ok: false });
     }
 
     const userId = userData?.user?.id;
+    console.log("✅ Usuário OK:", email, userId);
 
-    console.log("✅ USER OK (CRIADO OU JÁ EXISTIA):", email, userId);
-
-    // 4️⃣ registra acesso por 6 meses (idempotente)
+    // 4️⃣ libera acesso por 6 meses
     const accessUntil = new Date();
     accessUntil.setMonth(accessUntil.getMonth() + 6);
 
@@ -419,37 +411,28 @@ app.post("/webhooks/kiwify", async (req, res) => {
       );
 
     if (accessError) {
-      console.log("❌ ERRO AO SALVAR user_access:", accessError.message);
-      return res.status(200).json({ ok: false, access_error: true });
+      console.log("❌ Erro ao salvar acesso:", accessError.message);
+      return res.status(200).json({ ok: false });
     }
 
-    console.log("✅ ACESSO LIBERADO ATÉ:", accessUntil.toISOString());
+    console.log("✅ Acesso liberado até:", accessUntil.toISOString());
 
-    // 5️⃣ envia email de CRIAR SENHA (fluxo confiável)
+    // 5️⃣ envia email para CRIAR SENHA
     const redirectTo =
       process.env.PASSWORD_REDIRECT_TO ||
       "https://clickpage.vercel.app/reset-password";
 
-    const { error: resetError } =
-      await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo },
-      });
-
-    if (resetError) {
-      console.log("⚠️ ERRO AO ENVIAR EMAIL DE SENHA:", resetError.message);
-    } else {
-      console.log("📨 EMAIL DE CRIAÇÃO DE SENHA ENVIADO:", email);
-    }
-
-    return res.status(200).json({
-      ok: true,
-      user: email,
-      access_until: accessUntil,
+    await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: { redirectTo },
     });
+
+    console.log("📨 Email de criação de senha enviado");
+
+    return res.status(200).json({ ok: true });
   } catch (e) {
-    console.error("🔥 ERRO FATAL WEBHOOK KIWIFY:", e);
+    console.error("🔥 ERRO WEBHOOK KIWIFY:", e);
     return res.status(200).json({ ok: false });
   }
 });
