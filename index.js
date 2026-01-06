@@ -295,23 +295,55 @@ async function extractBonusImages(productUrl) {
   }
 }
 /* =========================
-   KIWIFY WEBHOOK (PASSO 2)
+   KIWIFY WEBHOOK (FINAL)
 ========================= */
-app.post("/webhooks/kiwify", (req, res) => {
-  const payload = req.body || {};
+app.post("/webhooks/kiwify", async (req, res) => {
+  try {
+    const payload = req.body || {};
 
-  const email =
-    payload?.customer?.email ||
-    payload?.buyer?.email ||
-    payload?.customer_email ||
-    payload?.email;
+    // 1️⃣ valida evento
+    if (payload?.event !== "order.paid") {
+      return res.status(200).json({ ok: true, ignored: true });
+    }
 
-  console.log("✅ KIWIFY WEBHOOK CHEGOU");
-  console.log("event:", payload?.event);
-  console.log("email_detectado:", email);
-  console.log("Payload:", JSON.stringify(payload, null, 2));
+    // 2️⃣ extrai email
+    const email =
+      payload?.customer?.email ||
+      payload?.buyer?.email ||
+      payload?.customer_email ||
+      payload?.email;
 
-  return res.status(200).json({ ok: true });
+    if (!email) {
+      console.log("⚠️ Webhook sem email");
+      return res.status(200).json({ ok: true, missing_email: true });
+    }
+
+    // 3️⃣ envia invite pelo Supabase
+    const redirectTo =
+      process.env.INVITE_REDIRECT_TO || "https://clickpage.vercel.app/app";
+
+    const { data, error } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        redirectTo,
+      });
+
+    if (error) {
+      // idempotência: se já existir, não quebrar webhook
+      console.log("⚠️ Supabase invite error:", error.message);
+      return res.status(200).json({ ok: true, invite_error: true });
+    }
+
+    console.log("✅ INVITE ENVIADO:", email, data?.user?.id);
+
+    return res.status(200).json({
+      ok: true,
+      invited: true,
+      user_id: data?.user?.id,
+    });
+  } catch (e) {
+    console.error("❌ Kiwify webhook fatal error:", e);
+    return res.status(200).json({ ok: false });
+  }
 });
 
 /* =========================
