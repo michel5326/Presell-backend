@@ -294,23 +294,25 @@ async function extractBonusImages(productUrl) {
     return "";
   }
 }
-/* =========================
-   KIWIFY WEBHOOK (PASSO 1 - TESTE)
+//* =========================
+   KIWIFY WEBHOOK (PASSO 2)
 ========================= */
-const payload = req.body || {};
+app.post("/webhooks/kiwify", (req, res) => {
+  const payload = req.body || {};
 
-const email =
-  payload?.customer?.email ||
-  payload?.buyer?.email ||
-  payload?.customer_email ||
-  payload?.email;
+  const email =
+    payload?.customer?.email ||
+    payload?.buyer?.email ||
+    payload?.customer_email ||
+    payload?.email;
 
-console.log("✅ KIWIFY WEBHOOK CHEGOU");
-console.log("event:", payload?.event);
-console.log("email_detectado:", email);
-console.log("Payload:", JSON.stringify(payload, null, 2));
+  console.log("✅ KIWIFY WEBHOOK CHEGOU");
+  console.log("event:", payload?.event);
+  console.log("email_detectado:", email);
+  console.log("Payload:", JSON.stringify(payload, null, 2));
 
-return res.status(200).json({ ok: true });
+  return res.status(200).json({ ok: true });
+});
 
 /* =========================
    IMAGE — GUARANTEE
