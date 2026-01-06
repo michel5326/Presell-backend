@@ -355,38 +355,105 @@ app.post("/webhooks/kiwify", async (req, res) => {
 
 
 /* =========================
-   IMAGE — GUARANTEE
+   KIWIFY WEBHOOK (FINAL - USER SAFE)
 ========================= */
-async function extractGuaranteeImage(productUrl) {
+app.post("/webhooks/kiwify", async (req, res) => {
   try {
-    const res = await fetch(productUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
-    if (!res.ok) return "";
+    const payload = req.body || {};
 
-    const html = await res.text();
-    const base = new URL(productUrl);
-    const normalize = (u) => normalizeUrl(u, base);
+    // 🔍 DEBUG TOTAL (não remover agora)
+    console.log("📦 KIWIFY PAYLOAD:", JSON.stringify(payload, null, 2));
 
-    const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge"];
-    const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "hero", "banner"];
+    // 1️⃣ valida evento (Kiwify usa order_approved)
+    const event =
+      payload?.event ||
+      payload?.order?.webhook_event_type;
 
-    const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
-
-    for (const m of imgs) {
-      const src = normalize(m[1]);
-      const low = src.toLowerCase();
-      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
-
-      return `<img src="${src}" alt="Guarantee" loading="lazy" style="max-width:190px;width:100%;height:auto;display:block;margin:0 auto 14px;border-radius:12px;">`;
+    if (event !== "order_approved" && event !== "order.paid") {
+      console.log("ℹ️ Evento ignorado:", event);
+      return res.status(200).json({ ok: true, ignored: true });
     }
 
-    return "";
-  } catch {
-    return "";
+    // 2️⃣ extrai email CORRETO da Kiwify
+    const email =
+      payload?.order?.Customer?.email ||
+      payload?.customer?.email ||
+      payload?.buyer?.email ||
+      payload?.email;
+
+    console.log("📧 EMAIL DETECTADO:", email);
+
+    if (!email) {
+      console.log("❌ Webhook sem email válido");
+      return res.status(200).json({ ok: true, missing_email: true });
+    }
+
+    // 3️⃣ cria usuário NO AUTH (SEM INVITE)
+    const { data: userData, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        email_confirm: false, // o usuário vai criar a senha depois
+      });
+
+    if (createError && !createError.message.includes("already exists")) {
+      console.log("❌ ERRO AO CRIAR USUÁRIO:", createError.message);
+      return res.status(200).json({ ok: false, auth_error: true });
+    }
+
+    const userId = userData?.user?.id;
+
+    console.log("✅ USER OK (CRIADO OU JÁ EXISTIA):", email, userId);
+
+    // 4️⃣ registra acesso por 6 meses (idempotente)
+    const accessUntil = new Date();
+    accessUntil.setMonth(accessUntil.getMonth() + 6);
+
+    const { error: accessError } = await supabaseAdmin
+      .from("user_access")
+      .upsert(
+        {
+          email,
+          access_until: accessUntil.toISOString(),
+        },
+        { onConflict: "email" }
+      );
+
+    if (accessError) {
+      console.log("❌ ERRO AO SALVAR user_access:", accessError.message);
+      return res.status(200).json({ ok: false, access_error: true });
+    }
+
+    console.log("✅ ACESSO LIBERADO ATÉ:", accessUntil.toISOString());
+
+    // 5️⃣ envia email de CRIAR SENHA (fluxo confiável)
+    const redirectTo =
+      process.env.PASSWORD_REDIRECT_TO ||
+      "https://clickpage.vercel.app/reset-password";
+
+    const { error: resetError } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo },
+      });
+
+    if (resetError) {
+      console.log("⚠️ ERRO AO ENVIAR EMAIL DE SENHA:", resetError.message);
+    } else {
+      console.log("📨 EMAIL DE CRIAÇÃO DE SENHA ENVIADO:", email);
+    }
+
+    return res.status(200).json({
+      ok: true,
+      user: email,
+      access_until: accessUntil,
+    });
+  } catch (e) {
+    console.error("🔥 ERRO FATAL WEBHOOK KIWIFY:", e);
+    return res.status(200).json({ ok: false });
   }
-}
+});
+
 
 /* =========================
    DEEPSEEK
