@@ -718,6 +718,45 @@ app.post("/generate", async (req, res) => {
     });
   }
 });
+/* =========================
+   ✅ ROTA PARA WEBHOOK DA KIWIFY
+========================== */
+app.post("/kiwify-webhook", async (req, res) => {
+  console.log("🔔 Webhook da Kiwify recebido!");
+  console.log("Headers:", req.headers); // Exibe os cabeçalhos recebidos no terminal
+  console.log("Body:", JSON.stringify(req.body, null, 2)); // Exibe o corpo da requisição no terminal
 
+  try {
+    // Validação do Token associado à Kiwify (cabeçalho `x-worker-token`)
+    if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
+      console.error("❌ Token inválido recebido!");
+      return res.status(403).json({ error: "token inválido" });
+    }
+
+    // Validar e extrair os dados essenciais do corpo da requisição
+    const { email, product_id, status } = req.body;
+
+    if (!email || !product_id || !status) {
+      console.error("❌ Webhook inválido: dados ausentes.");
+      return res.status(400).json({ error: "payload faltando informações obrigatórias" });
+    }
+
+    // Lógica para salvar no Supabase — insere ou atualiza dados no banco de dados
+    const { data, error } = await supabaseAdmin
+      .from("user_access")
+      .insert([{ email, product_id, status, created_at: new Date() }]);
+
+    if (error) {
+      console.error("❌ Erro ao salvar no Supabase:", error.message);
+      return res.status(502).json({ error: "erro ao salvar no banco de dados", details: error.message });
+    }
+
+    console.log("✅ Dados do Webhook salvos com sucesso no Supabase!");
+    return res.status(200).json({ success: true });
+  } catch (e) {
+    console.error("❌ Erro inesperado no processamento do webhook:", e.message);
+    return res.status(500).json({ error: "erro interno do servidor", details: e.message });
+  }
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 WORKER ${PORT}`));
