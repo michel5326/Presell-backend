@@ -80,7 +80,6 @@ app.post("/webhooks/kiwify", async (req, res) => {
           email,
           product_id: productId,
           access_until: accessUntil.toISOString(),
-          source: "kiwify",
         },
         { onConflict: "email,product_id" }
       );
