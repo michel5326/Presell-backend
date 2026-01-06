@@ -727,7 +727,16 @@ app.post("/webhooks/kiwify", async (req, res) => {
   console.log("Body:", JSON.stringify(req.body, null, 2));
 
   try {
-    // Inspecione o corpo recebido
+    // Validação inicial do Supabase
+    console.log("🔍 Testando configuração do Supabase...");
+    if (!supabaseAdmin.auth.api) {
+      console.error("❌ supabaseAdmin.auth.api está indefinido! Verifique as variáveis de ambiente.");
+      return res.status(500).json({
+        ok: false,
+        error: "Supabase API não está configurada corretamente. Verifique SUPABASE_SERVICE_ROLE_KEY.",
+      });
+    }
+
     const body = req.body;
 
     if (!body || typeof body !== "object") {
@@ -735,60 +744,80 @@ app.post("/webhooks/kiwify", async (req, res) => {
       return res.status(400).json({ ok: false, error: "Corpo inválido" });
     }
 
-    // Acesse diretamente o webhook_event_type
-    const eventType = body.webhook_event_type; // Exemplo: "order_approved", "order_refunded"
+    const eventType = body.webhook_event_type;
 
     if (!eventType) {
       console.error("❌ Evento inválido ou campo ausente: 'webhook_event_type'");
       return res.status(400).json({ ok: false, error: "Evento inválido ou campo ausente" });
     }
 
-    // Processar eventos separados
     switch (eventType) {
       case "order_approved": {
-        // Extração de informações importantes
         const email = body.Customer?.email;
         const product_id = body.Product?.product_id;
         const status = body.order_status;
 
-        // Validação dos dados obrigatórios
         if (!email || !product_id || !status) {
           console.error("❌ Dados obrigatórios ausentes.");
           return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
         }
 
-        // Calcula a data de término do acesso (6 meses após a compra)
-        const createdAt = new Date(); // Data atual da compra
-        const expiresAt = new Date(createdAt);
-        expiresAt.setMonth(expiresAt.getMonth() + 6); // Adiciona 6 meses
+        try {
+          const { data: existingUser, error: userError } = await supabaseAdmin
+            .from("auth.users")
+            .select("*")
+            .eq("email", email)
+            .single();
 
-        console.log("✅ Evento de compra processado;", { email, product_id, status, expiresAt });
+          let userId;
 
-        // Insere ou atualiza o lead no Supabase
-        const { data, error } = await supabaseAdmin
-          .from("user_access")
-          .upsert(
-            { 
-              email, 
-              product_id, 
-              status, 
-              created_at: createdAt, 
-              expires_at: expiresAt 
-            },
-            { onConflict: ["email", "product_id"] } // Atualiza se já existir
-          );
+          if (!existingUser) {
+            console.log("🔍 Criando novo usuário com o email:", email);
+            const { data: newUser, error: createUserError } = await supabaseAdmin.auth.api.createUser({
+              email: email,
+              email_confirmed: true,
+            });
 
-        if (error) {
-          console.error("❌ Erro ao salvar no Supabase:", error.message);
-          return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados" });
+            if (createUserError) {
+              console.error("❌ Erro ao criar o usuário:", createUserError.message);
+              return res.status(500).json({
+                ok: false,
+                error: `Erro ao criar o usuário: ${createUserError.message}`,
+              });
+            }
+
+            console.log("✅ Usuário criado com sucesso no `auth.users`:", newUser);
+            userId = newUser.id;
+          } else {
+            console.log("✅ Usuário já existente encontrado:", existingUser);
+            userId = existingUser.id;
+          }
+
+          const createdAt = new Date();
+          const expiresAt = new Date(createdAt);
+          expiresAt.setMonth(expiresAt.getMonth() + 6); // 6 meses de acesso
+
+          const { data, error } = await supabaseAdmin
+            .from("user_access")
+            .upsert(
+              { email, product_id, status, created_at: createdAt, expires_at: expiresAt, user_id: userId },
+              { onConflict: ["email", "product_id"] }
+            );
+
+          if (error) {
+            console.error("❌ Erro ao salvar na tabela `user_access`:", error.message);
+            return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados" });
+          }
+
+          console.log("✅ Dados salvos na tabela `user_access` com sucesso!");
+          return res.status(200).json({ ok: true });
+        } catch (e) {
+          console.error("❌ Erro ao processar evento 'order_approved':", e.message);
+          return res.status(500).json({ ok: false, error: "Erro interno ao processar 'order_approved'" });
         }
-
-        console.log("✅ Dados salvos com sucesso!");
-        return res.status(200).json({ ok: true });
       }
 
       case "order_refunded": {
-        // Extração de informações do reembolso
         const email = body.Customer?.email;
         const product_id = body.Product?.product_id;
 
@@ -797,20 +826,17 @@ app.post("/webhooks/kiwify", async (req, res) => {
           return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
         }
 
-        console.log("✅ Evento de reembolso processado;", { email, product_id });
-
-        // Atualiza o status do lead no Supabase para "cancelado"
         const { data, error } = await supabaseAdmin
           .from("user_access")
-          .update({ status: "cancelled" }) // Marca o status como "cancelled"
-          .match({ email, product_id }); // Localiza o registro pelo email e produto
+          .update({ status: "cancelled" })
+          .match({ email, product_id });
 
         if (error) {
-          console.error("❌ Erro ao atualizar no Supabase:", error.message);
+          console.error("❌ Erro ao atualizar na tabela `user_access`:", error.message);
           return res.status(502).json({ ok: false, error: "Erro ao atualizar o banco de dados" });
         }
 
-        console.log("✅ Status atualizado para cancelado!");
+        console.log("✅ Reembolso processado e status atualizado para cancelado!");
         return res.status(200).json({ ok: true });
       }
 
@@ -820,8 +846,8 @@ app.post("/webhooks/kiwify", async (req, res) => {
       }
     }
   } catch (e) {
-    console.error("❌ Erro inesperado no webhook:", e.message);
-    return res.status(500).json({ ok: false, error: "Erro interno" });
+    console.error("❌ Erro inesperado no servidor:", e.message);
+    return res.status(500).json({ ok: false, error: "Erro interno no servidor" });
   }
 });
 
