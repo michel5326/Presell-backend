@@ -757,61 +757,34 @@ app.post("/webhooks/kiwify", async (req, res) => {
           return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
         }
 
-        try {
-          // Verificar se o usuário já existe no auth.users
-          const { data: existingUser, error: userError } = await supabaseAdmin
-            .from("auth.users")
-            .select("*")
-            .eq("email", email)
-            .single();
+        // Calcula a data de término do acesso (6 meses após a compra)
+        const createdAt = new Date(); // Data atual da compra
+        const expiresAt = new Date(createdAt);
+        expiresAt.setMonth(expiresAt.getMonth() + 6); // Adiciona 6 meses
 
-          let userId;
+        console.log("✅ Evento de compra processado;", { email, product_id, status, expiresAt });
 
-          if (!existingUser) {
-            // Se o usuário não existir, cria um novo registro no Authenticator
-            const { data: newUser, error: createUserError } = await supabaseAdmin.auth.api.createUser({
-              email: email,
-              email_confirmed: true // Marca o e-mail como confirmado já que veio da Kiwify
-            });
+        // Insere ou atualiza o lead no Supabase
+        const { data, error } = await supabaseAdmin
+          .from("user_access")
+          .upsert(
+            { 
+              email, 
+              product_id, 
+              status, 
+              created_at: createdAt, 
+              expires_at: expiresAt 
+            },
+            { onConflict: ["email", "product_id"] } // Atualiza se já existir
+          );
 
-            if (createUserError) {
-              throw new Error(`Erro ao criar o usuário no Supabase Authenticator: ${createUserError.message}`);
-            }
-
-            console.log("✅ Usuário criado no Authenticator:", newUser);
-            userId = newUser.id;
-          } else {
-            // Se o usuário já existir, capturar o userId diretamente
-            console.log("✅ Usuário já existe:", existingUser);
-            userId = existingUser.id;
-          }
-
-          // Depois, associe o user_id ao registro na tabela user_access
-          const createdAt = new Date(); // Data de criação do registro
-          const expiresAt = new Date(createdAt);
-          expiresAt.setMonth(expiresAt.getMonth() + 6); // 6 meses de acesso
-
-          const { data, error } = await supabaseAdmin
-            .from("user_access")
-            .upsert({
-              email,
-              product_id,
-              status,
-              created_at: createdAt,
-              expires_at: expiresAt,
-              user_id: userId // Associar o usuário autenticado ao registro
-            });
-
-          if (error) {
-            throw new Error(`Erro ao salvar os dados na tabela user_access: ${error.message}`);
-          }
-
-          console.log("✅ Dados salvos na tabela user_access com sucesso!");
-          return res.status(200).json({ ok: true });
-        } catch (e) {
-          console.error("❌ Erro ao processar 'order_approved':", e.message);
-          return res.status(500).json({ ok: false, error: "Erro interno ao processar 'order_approved'" });
+        if (error) {
+          console.error("❌ Erro ao salvar no Supabase:", error.message);
+          return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados" });
         }
+
+        console.log("✅ Dados salvos com sucesso!");
+        return res.status(200).json({ ok: true });
       }
 
       case "order_refunded": {
@@ -826,7 +799,7 @@ app.post("/webhooks/kiwify", async (req, res) => {
 
         console.log("✅ Evento de reembolso processado;", { email, product_id });
 
-        // Atualiza o status do usuário no Supabase para "cancelled"
+        // Atualiza o status do lead no Supabase para "cancelado"
         const { data, error } = await supabaseAdmin
           .from("user_access")
           .update({ status: "cancelled" }) // Marca o status como "cancelled"
