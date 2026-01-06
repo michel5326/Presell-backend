@@ -126,9 +126,9 @@ app.post("/auth/login", async (req, res) => {
   },
 });
 
-console.log("DEBUG MAGIC LINK", { data, error });
 
-    if (error) {
+
+if (error) {
       console.error("❌ Erro magic link:", error.message);
       return res.status(500).json({ error: "magic_link_failed" });
     }
