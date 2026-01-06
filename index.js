@@ -727,13 +727,8 @@ app.post("/webhooks/kiwify", async (req, res) => {
   console.log("Body:", JSON.stringify(req.body, null, 2));
 
   try {
-    // Validação de segurança: token do cabeçalho
-    const KIWIFY_TOKEN = process.env.kiwify_integration_token_2026;
-
-if (req.headers["x-worker-token"] !== KIWIFY_TOKEN) {
-      console.error("❌ Token inválido recebido!");
-      return res.status(403).json({ ok: false, error: "Token inválido" });
-    }
+    // Log dos cabeçalhos para depuração (verificar o conteúdo enviado pelo webhook)
+    console.log("🔔 Cabeçalhos recebidos no webhook:", req.headers);
 
     // Extração dos dados da requisição
     const { order } = req.body;
@@ -787,5 +782,6 @@ if (req.headers["x-worker-token"] !== KIWIFY_TOKEN) {
     return res.status(500).json({ ok: false, error: "Erro interno" });
   }
 });
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 WORKER ${PORT}`));
