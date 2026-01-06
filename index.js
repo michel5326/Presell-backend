@@ -294,7 +294,7 @@ async function extractBonusImages(productUrl) {
     return "";
   }
 }
-//* =========================
+/* =========================
    KIWIFY WEBHOOK (PASSO 2)
 ========================= */
 app.post("/webhooks/kiwify", (req, res) => {
