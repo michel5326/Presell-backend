@@ -295,42 +295,54 @@ async function extractBonusImages(productUrl) {
   }
 }
 /* =========================
-   KIWIFY WEBHOOK (FINAL)
+   KIWIFY WEBHOOK (FINAL — CORRETO)
 ========================= */
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
     const payload = req.body || {};
 
-    // 1️⃣ valida evento
-    if (payload?.event !== "order.paid") {
+    // 1️⃣ Detecta corretamente o tipo de evento da Kiwify
+    const eventType =
+      payload?.webhook_event_type ||
+      payload?.order?.webhook_event_type ||
+      payload?.event;
+
+    if (eventType !== "order_approved") {
+      console.log("ℹ️ Evento ignorado:", eventType);
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // 2️⃣ extrai email
+    // 2️⃣ Extrai email do comprador (estrutura real da Kiwify)
     const email =
+      payload?.Customer?.email ||
       payload?.customer?.email ||
       payload?.buyer?.email ||
       payload?.customer_email ||
       payload?.email;
 
     if (!email) {
-      console.log("⚠️ Webhook sem email");
+      console.log("⚠️ Webhook recebido sem email válido");
       return res.status(200).json({ ok: true, missing_email: true });
     }
 
-    // 3️⃣ envia invite pelo Supabase
+    // 3️⃣ Envia invite pelo Supabase
     const redirectTo =
-      process.env.INVITE_REDIRECT_TO || "https://clickpage.vercel.app/app";
+      process.env.INVITE_REDIRECT_TO ||
+      "https://clickpage.vercel.app/reset-password";
 
     const { data, error } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         redirectTo,
       });
 
+    // 4️⃣ Idempotência segura (usuário já existe / já foi convidado)
     if (error) {
-      // idempotência: se já existir, não quebrar webhook
       console.log("⚠️ Supabase invite error:", error.message);
-      return res.status(200).json({ ok: true, invite_error: true });
+      return res.status(200).json({
+        ok: true,
+        invite_error: true,
+        message: error.message,
+      });
     }
 
     console.log("✅ INVITE ENVIADO:", email, data?.user?.id);
@@ -338,13 +350,18 @@ app.post("/webhooks/kiwify", async (req, res) => {
     return res.status(200).json({
       ok: true,
       invited: true,
+      email,
       user_id: data?.user?.id,
     });
   } catch (e) {
     console.error("❌ Kiwify webhook fatal error:", e);
-    return res.status(200).json({ ok: false });
+    return res.status(200).json({
+      ok: false,
+      fatal_error: true,
+    });
   }
 });
+
 
 /* =========================
    IMAGE — GUARANTEE
