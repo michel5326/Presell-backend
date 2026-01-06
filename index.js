@@ -728,7 +728,9 @@ app.post("/webhooks/kiwify", async (req, res) => {
 
   try {
     // Validação de segurança: token do cabeçalho
-    if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
+    const KIWIFY_TOKEN = process.env.kiwify_integration_token_2026;
+
+if (req.headers["x-worker-token"] !== KIWIFY_TOKEN) {
       console.error("❌ Token inválido recebido!");
       return res.status(403).json({ ok: false, error: "Token inválido" });
     }
