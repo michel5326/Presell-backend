@@ -118,10 +118,15 @@ app.post("/auth/login", async (req, res) => {
     }
 
     // 2️⃣ envia magic link
-    const { error } = await supabaseAdmin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-    });
+   const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+  type: "magiclink",
+  email,
+  options: {
+    redirectTo: "https://clickpage.vercel.app",
+  },
+});
+
+console.log("DEBUG MAGIC LINK", { data, error });
 
     if (error) {
       console.error("❌ Erro magic link:", error.message);
