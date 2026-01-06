@@ -301,12 +301,11 @@ app.post("/webhooks/kiwify", async (req, res) => {
   try {
     const payload = req.body || {};
 
-    const eventType =
-      payload?.event ||
-      payload?.order?.webhook_event_type;
+    // 🔍 DEBUG — NÃO REMOVE AINDA
+    console.log("DEBUG EMAIL:", payload?.order?.Customer?.email);
 
-    // 1️⃣ valida evento pago
-    if (!["order.paid", "order_approved"].includes(eventType)) {
+    // 1️⃣ valida evento
+    if (payload?.event !== "order.paid") {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
