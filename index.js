@@ -95,6 +95,47 @@ app.post("/webhooks/kiwify", async (req, res) => {
   }
 });
 
+/* =========================
+   AUTH — MAGIC LINK LOGIN
+========================= */
+app.post("/auth/login", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "email_required" });
+    }
+
+    // 1️⃣ verifica se tem acesso liberado
+    const { data: access } = await supabaseAdmin
+      .from("user_access")
+      .select("access_until")
+      .eq("email", email)
+      .single();
+
+    if (!access || new Date(access.access_until) < new Date()) {
+      return res.status(403).json({ error: "access_denied" });
+    }
+
+    // 2️⃣ envia magic link
+    const { error } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    });
+
+    if (error) {
+      console.error("❌ Erro magic link:", error.message);
+      return res.status(500).json({ error: "magic_link_failed" });
+    }
+
+    console.log("📩 Magic link enviado para:", email);
+    return res.status(200).json({ ok: true });
+  } catch (e) {
+    console.error("❌ Login error:", e.message);
+    return res.status(500).json({ error: "internal_error" });
+  }
+});
+
 
 /* =========================
    SERVER
