@@ -727,7 +727,7 @@ app.post("/webhooks/kiwify", async (req, res) => {
   console.log("Body:", JSON.stringify(req.body, null, 2));
 
   try {
-    // Inspecione o corpo recebido no webhook
+    // Inspecione o corpo recebido
     const body = req.body;
 
     if (!body || typeof body !== "object") {
@@ -735,51 +735,90 @@ app.post("/webhooks/kiwify", async (req, res) => {
       return res.status(400).json({ ok: false, error: "Corpo inválido" });
     }
 
-    // Acesse o webhook_event_type diretamente no corpo
-    const eventType = body.webhook_event_type; // Exemplo: "order_approved"
+    // Acesse diretamente o webhook_event_type
+    const eventType = body.webhook_event_type; // Exemplo: "order_approved", "order_refunded"
 
     if (!eventType) {
       console.error("❌ Evento inválido ou campo ausente: 'webhook_event_type'");
       return res.status(400).json({ ok: false, error: "Evento inválido ou campo ausente" });
     }
 
-    // Apenas processar eventos do tipo "order_approved"
-    if (eventType !== "order_approved") {
-      console.log(`🔕 Evento ignorado: ${eventType}`);
-      return res.status(200).json({ ok: true, ignored: true });
+    // Processar eventos separados
+    switch (eventType) {
+      case "order_approved": {
+        // Extração de informações importantes
+        const email = body.Customer?.email;
+        const product_id = body.Product?.product_id;
+        const status = body.order_status;
+
+        // Validação dos dados obrigatórios
+        if (!email || !product_id || !status) {
+          console.error("❌ Dados obrigatórios ausentes.");
+          return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
+        }
+
+        // Calcula a data de término do acesso (6 meses após a compra)
+        const createdAt = new Date(); // Data atual da compra
+        const expiresAt = new Date(createdAt);
+        expiresAt.setMonth(expiresAt.getMonth() + 6); // Adiciona 6 meses
+
+        console.log("✅ Evento de compra processado;", { email, product_id, status, expiresAt });
+
+        // Insere ou atualiza o lead no Supabase
+        const { data, error } = await supabaseAdmin
+          .from("user_access")
+          .upsert(
+            { 
+              email, 
+              product_id, 
+              status, 
+              created_at: createdAt, 
+              expires_at: expiresAt 
+            },
+            { onConflict: ["email", "product_id"] } // Atualiza se já existir
+          );
+
+        if (error) {
+          console.error("❌ Erro ao salvar no Supabase:", error.message);
+          return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados" });
+        }
+
+        console.log("✅ Dados salvos com sucesso!");
+        return res.status(200).json({ ok: true });
+      }
+
+      case "order_refunded": {
+        // Extração de informações do reembolso
+        const email = body.Customer?.email;
+        const product_id = body.Product?.product_id;
+
+        if (!email || !product_id) {
+          console.error("❌ Dados obrigatórios ausentes para reembolso.");
+          return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
+        }
+
+        console.log("✅ Evento de reembolso processado;", { email, product_id });
+
+        // Atualiza o status do lead no Supabase para "cancelado"
+        const { data, error } = await supabaseAdmin
+          .from("user_access")
+          .update({ status: "cancelled" }) // Marca o status como "cancelled"
+          .match({ email, product_id }); // Localiza o registro pelo email e produto
+
+        if (error) {
+          console.error("❌ Erro ao atualizar no Supabase:", error.message);
+          return res.status(502).json({ ok: false, error: "Erro ao atualizar o banco de dados" });
+        }
+
+        console.log("✅ Status atualizado para cancelado!");
+        return res.status(200).json({ ok: true });
+      }
+
+      default: {
+        console.log(`🔕 Evento ignorado: ${eventType}`);
+        return res.status(200).json({ ok: true, ignored: true });
+      }
     }
-
-    // Extração de informações importantes diretamente do corpo
-    const email = body.Customer?.email;
-    const product_id = body.Product?.product_id;
-    const status = body.order_status;
-
-    // Validação dos dados obrigatórios
-    if (!email || !product_id || !status) {
-      console.error("❌ Dados obrigatórios ausentes.");
-      console.error(`email: ${email}, product_id: ${product_id}, status: ${status}`);
-      return res.status(400).json({ ok: false, error: "Dados obrigatórios ausentes" });
-    }
-
-    console.log("✅ Dados processados com sucesso;", { email, product_id, status });
-
-    // Salvar os dados no Supabase
-    const { data, error } = await supabaseAdmin
-      .from("user_access")
-      .insert([{ 
-        email, 
-        product_id, 
-        status, 
-        created_at: new Date() 
-      }]);
-
-    if (error) {
-      console.error("❌ Erro ao salvar no Supabase:", error.message);
-      return res.status(502).json({ ok: false, error: "Erro ao salvar no banco de dados" });
-    }
-
-    console.log("✅ Dados salvos com sucesso!");
-    return res.status(200).json({ ok: true });
   } catch (e) {
     console.error("❌ Erro inesperado no webhook:", e.message);
     return res.status(500).json({ ok: false, error: "Erro interno" });
