@@ -28,6 +28,18 @@ app.use(
 app.use(express.json());
 
 /* =========================
+   WEBHOOK — KIWIFY (BÁSICO)
+========================= */
+app.post("/webhooks/kiwify", (req, res) => {
+  console.log("🔔 KIWIFY WEBHOOK RECEBIDO");
+  console.log("Headers:", req.headers);
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+
+  return res.status(200).json({ ok: true });
+});
+
+
+/* =========================
    SERVER
 ========================= */
 const PORT = process.env.PORT || 3000;
