@@ -359,22 +359,28 @@ app.post("/webhooks/kiwify", async (req, res) => {
 ========================= */
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
-    const payload = req.body || {};
+    const payload = req.body?.order || {};
 
-    // DEBUG TOTAL
-    console.log("DEBUG PAYLOAD:", JSON.stringify(payload, null, 2));
+// DEBUG TOTAL (agora é só o order)
+console.log("DEBUG ORDER:", JSON.stringify(payload, null, 2));
 
-    // 1️⃣ Evento correto (vem na raiz)
-    const event = payload?.webhook_event_type;
-    console.log("DEBUG EVENT:", event);
+// 1️⃣ Evento (vem dentro de order)
+const event = payload?.webhook_event_type;
+console.log("DEBUG EVENT:", event);
 
-    if (event !== "order_approved") {
-      return res.status(200).json({ ok: true, ignored: true });
-    }
+if (event !== "order_approved") {
+  return res.status(200).json({ ok: true, ignored: true });
+}
 
-    // 2️⃣ Email correto (vem na raiz)
-    const email = payload?.Customer?.email;
-    console.log("DEBUG EMAIL:", email);
+// 2️⃣ Email (vem dentro de order.Customer)
+const email = payload?.Customer?.email;
+console.log("DEBUG EMAIL:", email);
+
+if (!email) {
+  console.log("❌ Email não encontrado no payload");
+  return res.status(200).json({ ok: true, missing_email: true });
+}
+
 
     if (!email) {
       console.log("❌ Email não encontrado");
