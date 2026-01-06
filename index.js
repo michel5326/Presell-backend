@@ -295,70 +295,78 @@ async function extractBonusImages(productUrl) {
   }
 }
 /* =========================
-   KIWIFY WEBHOOK (FINAL — CORRETO)
+   KIWIFY WEBHOOK (FINAL DEFINITIVO)
 ========================= */
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
     const payload = req.body || {};
 
-    // 1️⃣ Detecta corretamente o tipo de evento da Kiwify
     const eventType =
-      payload?.webhook_event_type ||
-      payload?.order?.webhook_event_type ||
-      payload?.event;
+      payload?.event ||
+      payload?.order?.webhook_event_type;
 
-    if (eventType !== "order_approved") {
-      console.log("ℹ️ Evento ignorado:", eventType);
+    // 1️⃣ valida evento pago
+    if (!["order.paid", "order_approved"].includes(eventType)) {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // 2️⃣ Extrai email do comprador (estrutura real da Kiwify)
+    // 2️⃣ extrai dados essenciais
     const email =
       payload?.Customer?.email ||
       payload?.customer?.email ||
       payload?.buyer?.email ||
-      payload?.customer_email ||
       payload?.email;
 
-    if (!email) {
-      console.log("⚠️ Webhook recebido sem email válido");
-      return res.status(200).json({ ok: true, missing_email: true });
+    const orderId =
+      payload?.order?.order_id ||
+      payload?.order_id;
+
+    if (!email || !orderId) {
+      console.log("⚠️ Webhook incompleto", { email, orderId });
+      return res.status(200).json({ ok: true, missing_data: true });
     }
 
-    // 3️⃣ Envia invite pelo Supabase
-    const redirectTo =
-      process.env.INVITE_REDIRECT_TO ||
-      "https://clickpage.vercel.app/reset-password";
-
-    const { data, error } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-        redirectTo,
+    // 3️⃣ cria usuário Auth (se não existir)
+    const { data: userData, error: userError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        email_confirm: true,
       });
 
-    // 4️⃣ Idempotência segura (usuário já existe / já foi convidado)
-    if (error) {
-      console.log("⚠️ Supabase invite error:", error.message);
-      return res.status(200).json({
-        ok: true,
-        invite_error: true,
-        message: error.message,
-      });
+    if (
+      userError &&
+      !userError.message.toLowerCase().includes("already registered")
+    ) {
+      console.log("❌ Erro ao criar usuário:", userError.message);
+      return res.status(200).json({ ok: true, user_error: true });
     }
 
-    console.log("✅ INVITE ENVIADO:", email, data?.user?.id);
+    // 4️⃣ calcula acesso (6 meses)
+    const accessUntil = new Date();
+    accessUntil.setMonth(accessUntil.getMonth() + 6);
+
+    // 5️⃣ UPSERT acesso (fonte da verdade)
+    await supabaseAdmin
+      .from("user_access")
+      .upsert(
+        {
+          email,
+          access_until: accessUntil.toISOString(),
+          status: "active",
+          last_order_id: orderId,
+        },
+        { onConflict: "email" }
+      );
+
+    console.log("✅ ACESSO LIBERADO:", email, accessUntil.toISOString());
 
     return res.status(200).json({
       ok: true,
-      invited: true,
-      email,
-      user_id: data?.user?.id,
+      access_until: accessUntil,
     });
   } catch (e) {
-    console.error("❌ Kiwify webhook fatal error:", e);
-    return res.status(200).json({
-      ok: false,
-      fatal_error: true,
-    });
+    console.error("❌ Webhook fatal:", e);
+    return res.status(200).json({ ok: false });
   }
 });
 
