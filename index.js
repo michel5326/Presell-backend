@@ -295,76 +295,60 @@ async function extractBonusImages(productUrl) {
   }
 }
 /* =========================
-   KIWIFY WEBHOOK (FINAL DEFINITIVO)
+   KIWIFY WEBHOOK (CORRIGIDO)
 ========================= */
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
     const payload = req.body || {};
 
-    // 🔍 DEBUG — NÃO REMOVE AINDA
-    console.log("DEBUG EMAIL:", payload?.order?.Customer?.email);
+    // 🔍 DEBUG — manter por enquanto
+    console.log("DEBUG PAYLOAD:", JSON.stringify(payload, null, 2));
 
-    // 1️⃣ valida evento
-    if (payload?.event !== "order.paid") {
+    const eventType = payload?.order?.webhook_event_type;
+    const email = payload?.order?.Customer?.email;
+
+    console.log("DEBUG EVENT:", eventType);
+    console.log("DEBUG EMAIL:", email);
+
+    // 1️⃣ valida evento correto
+    if (eventType !== "order_approved") {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // 2️⃣ extrai dados essenciais
-    const email =
-      payload?.Customer?.email ||
-      payload?.customer?.email ||
-      payload?.buyer?.email ||
-      payload?.email;
-
-    const orderId =
-      payload?.order?.order_id ||
-      payload?.order_id;
-
-    if (!email || !orderId) {
-      console.log("⚠️ Webhook incompleto", { email, orderId });
-      return res.status(200).json({ ok: true, missing_data: true });
+    // 2️⃣ valida email
+    if (!email) {
+      console.log("⚠️ Webhook sem email");
+      return res.status(200).json({ ok: true, missing_email: true });
     }
 
-    // 3️⃣ cria usuário Auth (se não existir)
-    const { data: userData, error: userError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true,
+    // 3️⃣ cria/invita usuário no Supabase
+    const redirectTo =
+      process.env.INVITE_REDIRECT_TO ||
+      "https://clickpage.vercel.app/reset-password";
+
+    const { data, error } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        redirectTo,
       });
 
-    if (
-      userError &&
-      !userError.message.toLowerCase().includes("already registered")
-    ) {
-      console.log("❌ Erro ao criar usuário:", userError.message);
-      return res.status(200).json({ ok: true, user_error: true });
+    if (error) {
+      console.log("⚠️ Supabase invite error:", error.message);
+      return res.status(200).json({
+        ok: true,
+        invite_error: true,
+        message: error.message,
+      });
     }
 
-    // 4️⃣ calcula acesso (6 meses)
-    const accessUntil = new Date();
-    accessUntil.setMonth(accessUntil.getMonth() + 6);
-
-    // 5️⃣ UPSERT acesso (fonte da verdade)
-    await supabaseAdmin
-      .from("user_access")
-      .upsert(
-        {
-          email,
-          access_until: accessUntil.toISOString(),
-          status: "active",
-          last_order_id: orderId,
-        },
-        { onConflict: "email" }
-      );
-
-    console.log("✅ ACESSO LIBERADO:", email, accessUntil.toISOString());
+    console.log("✅ INVITE ENVIADO:", email, data?.user?.id);
 
     return res.status(200).json({
       ok: true,
-      access_until: accessUntil,
+      invited: true,
+      user_id: data?.user?.id,
     });
   } catch (e) {
-    console.error("❌ Webhook fatal:", e);
+    console.error("❌ Kiwify webhook fatal error:", e);
     return res.status(200).json({ ok: false });
   }
 });
