@@ -355,16 +355,16 @@ app.post("/webhooks/kiwify", async (req, res) => {
 
 
 /* =========================
-   KIWIFY WEBHOOK (FINAL CORRETO)
+   KIWIFY WEBHOOK (FINAL DEFINITIVO)
 ========================= */
 app.post("/webhooks/kiwify", async (req, res) => {
   try {
     const payload = req.body || {};
 
-    // DEBUG — NÃO REMOVER AGORA
+    // DEBUG TOTAL
     console.log("DEBUG PAYLOAD:", JSON.stringify(payload, null, 2));
 
-    // 1️⃣ evento REAL da Kiwify
+    // 1️⃣ Evento correto (vem na raiz)
     const event = payload?.webhook_event_type;
     console.log("DEBUG EVENT:", event);
 
@@ -372,31 +372,30 @@ app.post("/webhooks/kiwify", async (req, res) => {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // 2️⃣ email REAL da Kiwify
+    // 2️⃣ Email correto (vem na raiz)
     const email = payload?.Customer?.email;
     console.log("DEBUG EMAIL:", email);
 
     if (!email) {
-      console.log("❌ Email não encontrado no payload");
+      console.log("❌ Email não encontrado");
       return res.status(200).json({ ok: true, missing_email: true });
     }
 
-    // 3️⃣ cria usuário no Supabase Auth (ou ignora se já existir)
-    const { data: userData, error: createError } =
+    // 3️⃣ Criar usuário no Supabase Auth (idempotente)
+    const { data: userData, error: userError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
         email_confirm: false,
       });
 
-    if (createError && !createError.message.includes("already exists")) {
-      console.log("❌ Erro ao criar usuário:", createError.message);
+    if (userError && !userError.message.includes("already exists")) {
+      console.log("❌ Erro ao criar usuário:", userError.message);
       return res.status(200).json({ ok: false });
     }
 
-    const userId = userData?.user?.id;
-    console.log("✅ Usuário OK:", email, userId);
+    console.log("✅ Usuário criado ou já existia:", email);
 
-    // 4️⃣ libera acesso por 6 meses
+    // 4️⃣ Liberar acesso por 6 meses
     const accessUntil = new Date();
     accessUntil.setMonth(accessUntil.getMonth() + 6);
 
@@ -415,9 +414,9 @@ app.post("/webhooks/kiwify", async (req, res) => {
       return res.status(200).json({ ok: false });
     }
 
-    console.log("✅ Acesso liberado até:", accessUntil.toISOString());
+    console.log("✅ Acesso válido até:", accessUntil.toISOString());
 
-    // 5️⃣ envia email para CRIAR SENHA
+    // 5️⃣ Enviar email para criar senha
     const redirectTo =
       process.env.PASSWORD_REDIRECT_TO ||
       "https://clickpage.vercel.app/reset-password";
@@ -432,10 +431,11 @@ app.post("/webhooks/kiwify", async (req, res) => {
 
     return res.status(200).json({ ok: true });
   } catch (e) {
-    console.error("🔥 ERRO WEBHOOK KIWIFY:", e);
+    console.error("🔥 ERRO NO WEBHOOK:", e);
     return res.status(200).json({ ok: false });
   }
 });
+
 
 
 /* =========================
