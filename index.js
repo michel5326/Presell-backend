@@ -338,6 +338,24 @@ async function resolveHeroProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
+    /* =========================
+       CENTRALIZED FILTERS
+    ========================= */
+    const BAD_IMAGE_RE =
+      /(logo|icon|badge|star|check|seal|bg|cta|button|order|buy|checkout|cart|shop|banner)/i;
+
+    /* =========================
+       SAFE NET — OG IMAGE (NÃO BYPASSA RANKING)
+    ========================= */
+    let ogImage = "";
+    const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    if (og) {
+      const ogSrc = normalizeUrl(og[1], base);
+      if (ogSrc && !BAD_IMAGE_RE.test(ogSrc)) {
+        ogImage = ogSrc;
+      }
+    }
+
     const imgs = [...html.matchAll(/<img[^>]+>/gi)];
 
     let best = { src: "", score: 0 };
@@ -347,6 +365,7 @@ async function resolveHeroProductImage(productUrl) {
       const tag = m[0];
 
       const srcMatch =
+        tag.match(/srcset=["']([^"'\s,]+)["']/i) ||
         tag.match(/src=["']([^"']+)["']/i) ||
         tag.match(/data-src=["']([^"']+)["']/i) ||
         tag.match(/data-original=["']([^"']+)["']/i);
@@ -358,35 +377,34 @@ async function resolveHeroProductImage(productUrl) {
 
       const low = src.toLowerCase();
 
-      // ❌ lixo visual absoluto
+      /* ❌ LIXO VISUAL ABSOLUTO */
       if (
-        low.startsWith("data:") ||
+        /^data:/i.test(low) ||
         low.endsWith(".svg") ||
-        /(logo|icon|badge|star|check|seal|bg|cta|button|order|buy|checkout|cart|shop)/i.test(low)
+        BAD_IMAGE_RE.test(low)
       ) continue;
 
       let score = 0;
 
-      // ✅ semântica forte (produto)
+      /* ✅ SEMÂNTICA FORTE (PRODUTO) */
       if (/(product|bottle|supplement|capsule|jar)/i.test(low)) {
         score += 25;
       }
 
-      // ❗ penalidade — imagem errada porém grande
-      if (/(order|buy|checkout|cart|shop|now)/i.test(low)) {
-        score -= 30;
-      }
-
-      // ✅ tamanho (proxy de importância visual)
+      /* ✅ TAMANHO (PROXY DE IMPORTÂNCIA VISUAL) */
       const w = tag.match(/width=["']?(\d+)/i);
       const h = tag.match(/height=["']?(\d+)/i);
+
       if (w && h) {
         const area = Number(w[1]) * Number(h[1]);
         if (area > 40000) score += 30;
         else if (area > 20000) score += 20;
+      } else {
+        // imagem válida sem dimensões explícitas (ex: ProDentim)
+        score += 10;
       }
 
-      // ✅ posição no HTML (primeira dobra lógica)
+      /* ✅ POSIÇÃO NO HTML (PRIMEIRA DOBRA LÓGICA) */
       const position = html.indexOf(m[0]);
       if (position > -1 && position < html.length * 0.25) {
         score += 40;
@@ -399,7 +417,7 @@ async function resolveHeroProductImage(productUrl) {
       }
     }
 
-    // 🔍 DEBUG OPCIONAL (ative via env)
+    /* 🔍 DEBUG OPCIONAL */
     if (process.env.DEBUG_IMAGES === "true") {
       console.log(
         "🏆 IMAGE RANKING:",
@@ -407,16 +425,19 @@ async function resolveHeroProductImage(productUrl) {
       );
     }
 
-    // 🥇 imagem vencedora
+    /* =========================
+       ORDEM FINAL DE DECISÃO
+    ========================= */
     if (best.src) return best.src;
+    if (ogImage) return ogImage;
 
-    // 🔥 boost semântico final
     const bottle = await extractBottleImage(productUrl);
     if (bottle) return bottle;
 
-    // 🧠 fallback pesado (JS / SPA / lazy)
-    return await extractHeroImageWithPlaywright(productUrl);
+    const pw = await extractHeroImageWithPlaywright(productUrl);
+    if (pw) return pw;
 
+    return "";
   } catch {
     return "";
   }
