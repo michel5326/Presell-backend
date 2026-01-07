@@ -209,6 +209,91 @@ function normalizeUrl(u, base) {
   }
 }
 
+/* =========================
+   🖼️ IMAGE FALLBACK — LARGEST IMAGE
+========================= */
+async function extractLargestImage(productUrl) {
+  try {
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!res.ok) return "";
+
+    const html = await res.text();
+    const base = new URL(productUrl);
+
+    let best = { src: "", area: 0 };
+
+    for (const m of html.matchAll(/<img([^>]+)>/gi)) {
+      const tag = m[1];
+
+      const srcMatch = tag.match(/src=["']([^"']+)["']/i);
+      if (!srcMatch) continue;
+
+      const src = normalizeUrl(srcMatch[1], base);
+      if (!src || src.startsWith("data:") || src.endsWith(".svg")) continue;
+
+      const low = src.toLowerCase();
+      if (
+        low.includes("banner") ||
+        low.includes("logo") ||
+        low.includes("icon") ||
+        low.includes("badge")
+      ) continue;
+
+      const w = tag.match(/width=["']?(\d+)/i);
+      const h = tag.match(/height=["']?(\d+)/i);
+      if (!w || !h) continue;
+
+      const area = Number(w[1]) * Number(h[1]);
+      if (area > best.area) {
+        best = { src, area };
+      }
+    }
+
+    return best.src;
+  } catch {
+    return "";
+  }
+}
+
+/* =========================
+   🧠 IMAGE RESOLVER — PRODUCT
+========================= */
+async function resolveProductImage(productUrl) {
+  // 1️⃣ tentativa atual (heurística existente)
+  const img1 = await extractBottleImage(productUrl);
+  if (img1) return img1;
+
+  // 2️⃣ fallback por tamanho
+  const img2 = await extractLargestImage(productUrl);
+  if (img2) return img2;
+
+  // 3️⃣ último recurso — primeira imagem limpa
+  try {
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!res.ok) return "";
+
+    const html = await res.text();
+    const base = new URL(productUrl);
+
+    for (const m of html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
+      const src = normalizeUrl(m[1], base);
+      if (
+        src &&
+        !src.startsWith("data:") &&
+        !src.endsWith(".svg")
+      ) {
+        return src;
+      }
+    }
+  } catch {}
+
+  return "";
+}
+
 /* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
@@ -222,6 +307,7 @@ async function uploadToR2(localPath, remoteKey) {
     .promise();
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
+
 
 /* =========================
    IMAGE — BOTTLE (PRIMARY PRODUCT)
@@ -566,7 +652,7 @@ Language: ${language}`,
     `Product URL: ${productUrl}`
   );
 
-  const productImage = await extractBottleImage(productUrl);
+  const productImage = await resolveProductImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
 
   let html = fs.readFileSync(templatePath, "utf8");
@@ -661,7 +747,7 @@ Output ONLY valid JSON.`,
   );
 
   /* ===== IMAGES ===== */
-  const productImage = await extractBottleImage(productUrl);
+  const productImage = await resolveProductImage(productUrl);
   const ingredientImages = await extractIngredientImages(productUrl);
   const bonusImages = await extractBonusImages(productUrl);
   const guaranteeImage = await extractGuaranteeImage(productUrl);
@@ -848,8 +934,6 @@ app.post("/generate", async (req, res) => {
     });
   }
 });
-
-
 
 /* =========================
    SERVER
