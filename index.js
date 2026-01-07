@@ -189,40 +189,58 @@ function findTemplate(templateId) {
   return fs.existsSync(file) ? file : null;
 }
 
-/* ✅ GLOBAL PLACEHOLDERS */
+/* =========================
+   GLOBAL PLACEHOLDERS
+========================= */
 function applyGlobals(html) {
-  return html.replaceAll(
-    "{{CURRENT_YEAR}}",
-    String(new Date().getFullYear())
-  );
+  return html.replaceAll("{{CURRENT_YEAR}}", String(new Date().getFullYear()));
 }
 
 /* =========================
-   ✅ URL NORMALIZER (FIX DEFINITIVO)
+   URL NORMALIZER (DEFINITIVO)
 ========================= */
 function normalizeUrl(u, base) {
   try {
     if (!u) return "";
-
     let s = String(u).trim();
 
-    // protocol-relative //cdn.com/img.png
-    if (s.startsWith("//")) {
-      return (base.protocol + s).replace(/([^:]\/)\/+/g, "$1");
-    }
+    if (s.startsWith("//")) return base.protocol + s;
+    if (s.startsWith("/")) return base.origin + s;
+    if (/^https?:\/\//i.test(s)) return s;
 
-    // absolute path /img.png
-    if (s.startsWith("/")) {
-      return (base.origin + s).replace(/([^:]\/)\/+/g, "$1");
-    }
+    return new URL(s, base.href).href;
+  } catch {
+    return "";
+  }
+}
+/* =========================
+   IMAGE VALIDATOR (GLOBAL)
+========================= */
+async function validateImageUrl(url) {
+  try {
+    if (!url) return "";
 
-    // absolute url
-    if (/^https?:\/\//i.test(s)) {
-      return s.replace(/([^:]\/)\/+/g, "$1");
-    }
+    let u = String(url).trim();
+    u = u.replace(/\s+/g, "").replace(/[?#]$/, "");
 
-    // relative path img.png
-    return new URL(s, base.href).href.replace(/([^:]\/)\/+/g, "$1");
+    if (!/^https?:\/\//i.test(u)) return "";
+    if (u.startsWith("data:")) return "";
+    if (/\.svg(\?|#|$)/i.test(u)) return "";
+
+    // aceita se tiver extensão conhecida
+    if (/\.(png|jpe?g|webp)(\?|#|$)/i.test(u)) return u;
+
+    // fallback por Content-Type
+    const head = await fetch(u, {
+      method: "HEAD",
+      redirect: "follow",
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+
+    const ct = head.headers.get("content-type") || "";
+    if (ct.toLowerCase().startsWith("image/")) return u;
+
+    return "";
   } catch {
     return "";
   }
@@ -230,7 +248,7 @@ function normalizeUrl(u, base) {
 
 
 /* =========================
-   🖼️ IMAGE FALLBACK — LARGEST IMAGE
+   FALLBACK 1 — LARGEST IMAGE (HTML)
 ========================= */
 async function extractLargestImage(productUrl) {
   try {
@@ -248,10 +266,10 @@ async function extractLargestImage(productUrl) {
       const tag = m[1];
 
       const srcMatch =
-  tag.match(/src=["']([^"']+)["']/i) ||
-  tag.match(/data-src=["']([^"']+)["']/i) ||
-  tag.match(/data-original=["']([^"']+)["']/i) ||
-  tag.match(/data-lazy=["']([^"']+)["']/i);
+        tag.match(/src=["']([^"']+)["']/i) ||
+        tag.match(/data-src=["']([^"']+)["']/i) ||
+        tag.match(/data-original=["']([^"']+)["']/i) ||
+        tag.match(/data-lazy=["']([^"']+)["']/i);
 
       if (!srcMatch) continue;
 
@@ -259,21 +277,14 @@ async function extractLargestImage(productUrl) {
       if (!src || src.startsWith("data:") || src.endsWith(".svg")) continue;
 
       const low = src.toLowerCase();
-      if (
-        low.includes("banner") ||
-        low.includes("logo") ||
-        low.includes("icon") ||
-        low.includes("badge")
-      ) continue;
+      if (/(logo|icon|badge|banner|bonus|price|star|seal)/i.test(low)) continue;
 
       const w = tag.match(/width=["']?(\d+)/i);
       const h = tag.match(/height=["']?(\d+)/i);
       if (!w || !h) continue;
 
       const area = Number(w[1]) * Number(h[1]);
-      if (area > best.area) {
-        best = { src, area };
-      }
+      if (area > best.area) best = { src, area };
     }
 
     return best.src;
@@ -283,7 +294,55 @@ async function extractLargestImage(productUrl) {
 }
 
 /* =========================
-   🧠 IMAGE RESOLVER — PRODUCT
+   FALLBACK 2 — PLAYWRIGHT (PRIMEIRA DOBRA)
+========================= */
+async function extractHeroImageWithPlaywright(productUrl) {
+  const browser = await chromium.launch({ headless: true });
+
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 1280, height: 800 },
+      userAgent: "Mozilla/5.0",
+    });
+
+    await page.goto(productUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.waitForTimeout(1500);
+
+    const img = await page.evaluate(() => {
+      const vh = window.innerHeight;
+      const bad = /(logo|icon|badge|banner|bonus|price|star|seal|bg)/i;
+
+      return [...document.images]
+        .map(img => {
+          const r = img.getBoundingClientRect();
+          return {
+            src: img.currentSrc || img.src,
+            area: r.width * r.height,
+            top: r.top,
+          };
+        })
+        .filter(i =>
+          i.src &&
+          i.area > 20000 &&
+          i.top >= -50 &&
+          i.top < vh &&
+          !bad.test(i.src) &&
+          !i.src.startsWith("data:") &&
+          !i.src.endsWith(".svg")
+        )
+        .sort((a, b) => b.area - a.area)[0]?.src || "";
+    });
+
+    return img;
+  } catch {
+    return "";
+  } finally {
+    await browser.close();
+  }
+}
+
+/* =========================
+   IMAGE RESOLVER — FINAL (ESTÁVEL)
 ========================= */
 async function resolveProductImage(productUrl) {
   try {
@@ -295,7 +354,7 @@ async function resolveProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    /* 1️⃣ OG / TWITTER IMAGE (PRIORIDADE MÁXIMA) */
+    /* 1️⃣ OG / TWITTER IMAGE */
     const meta =
       html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i) ||
       html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
@@ -307,34 +366,26 @@ async function resolveProductImage(productUrl) {
       }
     }
 
-    /* 2️⃣ IMAGENS COM KEYWORDS (BOTTLE / PRODUCT) */
-    const img1 = await extractBottleImage(productUrl);
-    if (img1) return img1;
+    /* 2️⃣ IMAGEM SEMÂNTICA (BOTTLE / PRODUCT) */
+    if (typeof extractBottleImage === "function") {
+      const bottle = await extractBottleImage(productUrl);
+      if (bottle) return bottle;
+    }
 
-    /* 3️⃣ SRCSET (PEGA A MAIOR) */
-    for (const m of html.matchAll(/<img[^>]+>/gi)) {
-      const tag = m[0];
-      const srcset = tag.match(/srcset=["']([^"']+)["']/i);
-      if (!srcset) continue;
-
-      const candidates = srcset[1]
-        .split(",")
-        .map((p) => p.trim().split(" ")[0])
-        .reverse(); // maior geralmente por último
-
-      for (const c of candidates) {
-        const src = normalizeUrl(c, base);
-        if (src && !src.startsWith("data:") && !/\.svg(\?|#|$)/i.test(src)) {
-          return src;
-        }
+    /* 3️⃣ SRCSET (MAIOR IMAGEM) */
+    for (const m of html.matchAll(/<img[^>]+srcset=["']([^"']+)["']/gi)) {
+      const list = m[1].split(",").map(p => p.trim().split(" ")[0]);
+      const src = normalizeUrl(list.at(-1), base);
+      if (src && !src.startsWith("data:") && !src.endsWith(".svg")) {
+        return src;
       }
     }
 
-    /* 4️⃣ MAIOR IMAGEM POR ÁREA */
-    const img2 = await extractLargestImage(productUrl);
-    if (img2) return img2;
+    /* 4️⃣ MAIOR IMAGEM POR ÁREA (HTML) */
+    const big = await extractLargestImage(productUrl);
+    if (big) return big;
 
-    /* 5️⃣ PRIMEIRO <img> VÁLIDO */
+    /* 5️⃣ PRIMEIRA IMAGEM LIMPA (ÚLTIMO RECURSO) */
     for (const m of html.matchAll(/<img[^>]+>/gi)) {
       const tag = m[0];
 
@@ -347,15 +398,19 @@ async function resolveProductImage(productUrl) {
       if (!srcMatch) continue;
 
       const src = normalizeUrl(srcMatch[1], base);
-      if (!src) continue;
-      if (src.startsWith("data:")) continue;
-      if (/\.svg(\?|#|$)/i.test(src)) continue;
-
-      return src;
+      if (
+        src &&
+        !src.startsWith("data:") &&
+        !/\.svg(\?|#|$)/i.test(src)
+      ) {
+        return src;
+      }
     }
-  } catch {}
 
-  return "";
+    return "";
+  } catch {
+    return "";
+  }
 }
 
 
@@ -722,40 +777,6 @@ Language: ${language}`,
     `Product URL: ${productUrl}`
   );
 
-  /* =========================
-   IMAGE VALIDATOR (GLOBAL)
-========================= */
-async function validateImageUrl(url) {
-  try {
-    if (!url) return "";
-
-    let u = String(url).trim();
-    u = u.replace(/\s+/g, "").replace(/[?#]$/, "");
-
-    if (!/^https?:\/\//i.test(u)) return "";
-    if (u.startsWith("data:")) return "";
-    if (/\.svg(\?|#|$)/i.test(u)) return "";
-
-    // aceita se tiver extensão conhecida
-    if (/\.(png|jpe?g|webp)(\?|#|$)/i.test(u)) return u;
-
-    // fallback: valida via Content-Type
-    const head = await fetch(u, {
-      method: "HEAD",
-      redirect: "follow",
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
-
-    const ct = head.headers.get("content-type") || "";
-    if (ct.toLowerCase().startsWith("image/")) return u;
-
-    return "";
-  } catch {
-    return "";
-  }
-}
-
-
   /* ===== IMAGES ===== */
   const productImageRaw = await resolveProductImage(productUrl);
   const productImage = await validateImageUrl(productImageRaw);
@@ -773,7 +794,7 @@ async function validateImageUrl(url) {
   /* ===== APPLY IMAGES & LINKS ===== */
   html = html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
-    .replaceAll("{{PRODUCT_IMAGE}}", productImage)
+    .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", "")
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
