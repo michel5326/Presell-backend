@@ -362,7 +362,7 @@ async function resolveHeroProductImage(productUrl) {
       if (
         low.startsWith("data:") ||
         low.endsWith(".svg") ||
-        /(logo|icon|badge|star|check|seal|bg|cta|button)/i.test(low)
+        /(logo|icon|badge|star|check|seal|bg|cta|button|order|buy|checkout|cart|shop)/i.test(low)
       ) continue;
 
       let score = 0;
@@ -373,7 +373,7 @@ async function resolveHeroProductImage(productUrl) {
       }
 
       // ❗ penalidade — imagem errada porém grande
-      if (/(price|bonus|guarantee|save|discount)/i.test(low)) {
+      if (/(order|buy|checkout|cart|shop|now)/i.test(low)) {
         score -= 30;
       }
 
