@@ -51,7 +51,6 @@ if (!WORKER_TOKEN) {
   process.exit(1);
 }
 
-
 /* =========================
    SUPABASE ADMIN
 ========================= */
@@ -197,30 +196,37 @@ function applyGlobals(html) {
 }
 
 /* =========================
-   URL NORMALIZER (DEFINITIVO)
+   URL NORMALIZER (DEFINITIVO) - CORRIGIDO
 ========================= */
 function normalizeUrl(u, base) {
   try {
     if (!u) return "";
     let s = String(u).trim();
 
-    if (s.startsWith("//")) return base.protocol + s;
+    // Remove qualquer barra dupla no início da string
+    s = s.replace(/^\/\//, '/');
+    
     if (s.startsWith("/")) return base.origin + s;
     if (/^https?:\/\//i.test(s)) return s;
 
+    // Para URLs relativas (sem protocolo e sem barra inicial)
     return new URL(s, base.href).href;
   } catch {
     return "";
   }
 }
+
 /* =========================
-   IMAGE VALIDATOR (GLOBAL)
+   IMAGE VALIDATOR (GLOBAL) - CORRIGIDO
 ========================= */
 async function validateImageUrl(url) {
   if (!url) return "";
 
-  const u = String(url).trim();
+  let u = String(url).trim();
 
+  // Remove barras duplas consecutivas após o protocolo
+  u = u.replace(/(https?:\/\/[^\/]+)\/\//g, '$1/');
+  
   // bloqueios básicos
   if (!/^https?:\/\//i.test(u)) return "";
   if (u.startsWith("data:")) return "";
@@ -230,6 +236,52 @@ async function validateImageUrl(url) {
   return u;
 }
 
+/* =========================
+   DEBUG PRODENTIM
+========================= */
+async function debugProdentim(productUrl) {
+  console.log("🔍 DEBUG PRODENTIM INICIADO");
+  
+  try {
+    // 1. Testar fetch básico
+    const res = await fetch(productUrl, {
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      },
+    });
+    
+    console.log("📡 Status:", res.status);
+    console.log("📡 Content-Type:", res.headers.get("content-type"));
+    
+    const html = await res.text();
+    console.log("📄 HTML length:", html.length);
+    
+    // 2. Procurar todas as imagens
+    const base = new URL(productUrl);
+    const imgs = [...html.matchAll(/<img[^>]+>/gi)];
+    console.log("🖼️ Total de imagens encontradas:", imgs.length);
+    
+    // 3. Listar as primeiras 10 imagens
+    console.log("📋 Primeiras 10 imagens:");
+    imgs.slice(0, 10).forEach((img, i) => {
+      const tag = img[0];
+      const src = tag.match(/src=["']([^"']+)["']/i);
+      const dataSrc = tag.match(/data-src=["']([^"']+)["']/i);
+      console.log(`  ${i + 1}. src: ${src ? src[1] : 'N/A'}`);
+      console.log(`     data-src: ${dataSrc ? dataSrc[1] : 'N/A'}`);
+    });
+    
+    // 4. Procurar og:image
+    const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    console.log("🏷️ OG Image:", og ? og[1] : "Não encontrada");
+    
+    return { success: true, imageCount: imgs.length };
+    
+  } catch (error) {
+    console.error("🔥 Erro no debug:", error.message);
+    return { success: false, error: error.message };
+  }
+}
 
 /* =========================
    FALLBACK 1 — LARGEST IMAGE (HTML)
@@ -407,9 +459,30 @@ async function extractBottleImage(productUrl) {
 }
 
 /* =========================
-   IMAGE RESOLVER — RANKING ENGINE (FINAL)
+   IMAGE RESOLVER — RANKING ENGINE (FINAL) - COM FALLBACK PRODENTIM
 ========================= */
 async function resolveHeroProductImage(productUrl) {
+  console.log(`🔍 Resolvendo imagem para: ${productUrl}`);
+  
+  // 👉 FALLBACK ESPECÍFICO PARA PRODENTIM
+  if (productUrl.includes('prodentim')) {
+    console.log("🎯 Detectado ProDentim - usando fallback específico");
+    
+    // URL conhecida do ProDentim
+    const prodentimImage = "https://prodentim101.com/statics/img/introducting_prodentim.png";
+    
+    // Verificar se a URL é válida
+    try {
+      const response = await fetch(prodentimImage, { method: 'HEAD' });
+      if (response.ok) {
+        console.log(`✅ ProDentim - usando imagem conhecida: ${prodentimImage}`);
+        return prodentimImage;
+      }
+    } catch (error) {
+      console.log(`⚠️ ProDentim - imagem conhecida falhou, tentando extração normal`);
+    }
+  }
+  
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -509,21 +582,34 @@ async function resolveHeroProductImage(productUrl) {
     /* =========================
        ORDEM FINAL DE DECISÃO
     ========================= */
-    if (best.src) return best.src;
-    if (ogImage) return ogImage;
+    if (best.src) {
+      console.log(`✅ Imagem selecionada (ranking): ${best.src}`);
+      return best.src;
+    }
+    if (ogImage) {
+      console.log(`✅ Imagem selecionada (OG): ${ogImage}`);
+      return ogImage;
+    }
 
     const bottle = await extractBottleImage(productUrl);
-    if (bottle) return bottle;
+    if (bottle) {
+      console.log(`✅ Imagem selecionada (bottle): ${bottle}`);
+      return bottle;
+    }
 
     const pw = await extractHeroImageWithPlaywright(productUrl);
-    if (pw) return pw;
+    if (pw) {
+      console.log(`✅ Imagem selecionada (playwright): ${pw}`);
+      return pw;
+    }
 
+    console.log(`❌ Nenhuma imagem encontrada`);
     return "";
-  } catch {
+  } catch (error) {
+    console.error(`🔥 Erro no resolveHeroProductImage: ${error.message}`);
     return "";
   }
 }
-
 
 /* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
 async function uploadToR2(localPath, remoteKey) {
@@ -538,7 +624,6 @@ async function uploadToR2(localPath, remoteKey) {
     .promise();
   return `${PUBLIC_BASE_URL}/${remoteKey}`;
 }
-
 
 /* =========================
    IMAGE — INGREDIENTS
@@ -730,7 +815,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW
+   BOFU REVIEW - COM DEBUG E FALLBACK PRODENTIM
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -738,8 +823,13 @@ async function generateBofuReview({
   productUrl,
   language,
 }) {
-  const ai = await callDeepSeekWithRetry(
-    `You are generating copy for a BOFU review page used primarily with Google Search traffic.
+  console.log(`🎯 generateBofuReview chamado para: ${productUrl}`);
+  console.log(`📁 Template path: ${templatePath}`);
+  console.log(`🔗 Affiliate URL: ${affiliateUrl}`);
+
+  try {
+    const ai = await callDeepSeekWithRetry(
+      `You are generating copy for a BOFU review page used primarily with Google Search traffic.
 
 CRITICAL CONTEXT:
 - This page is shown BEFORE purchase.
@@ -796,7 +886,7 @@ SUBHEADLINE
 INTRO
 WHY_IT_WORKS
 FORMULA_TEXT
-BENEFITS_LIST
+BENEFITS_LIST (as a comma-separated list of benefit statements)
 SOCIAL_PROOF
 GUARANTEE
 
@@ -804,37 +894,58 @@ Do NOT include explanations, notes, or commentary.
 Do NOT include markdown.
 
 Language: ${language}`,
-    `Product URL: ${productUrl}`
-  );
+      `Product URL: ${productUrl}`
+    );
 
-  /* ===== IMAGES ===== */
-  const productImageRaw = await resolveHeroProductImage(productUrl);
-  const productImage = await validateImageUrl(productImageRaw);
+    console.log(`🤖 AI Response recebida com sucesso`);
 
-  const ingredientImages = await extractIngredientImages(productUrl);
+    /* ===== IMAGES ===== */
+    console.log(`🖼️ Extraindo imagem do produto...`);
+    const productImageRaw = await resolveHeroProductImage(productUrl);
+    console.log(`🖼️ Imagem bruta: ${productImageRaw}`);
+    
+    const productImage = await validateImageUrl(productImageRaw);
+    console.log(`🖼️ Imagem validada: ${productImage}`);
 
-  /* ===== LOAD TEMPLATE ===== */
-  let html = fs.readFileSync(templatePath, "utf8");
+    const ingredientImages = await extractIngredientImages(productUrl);
+    console.log(`🧪 Imagens de ingredientes extraídas: ${ingredientImages ? 'Sim' : 'Não'}`);
 
-  /* ===== APPLY AI TEXT ===== */
-  for (const [k, v] of Object.entries(ai)) {
-    html = html.replaceAll(`{{${k}}}`, v || "");
+    /* ===== LOAD TEMPLATE ===== */
+    let html = fs.readFileSync(templatePath, "utf8");
+    console.log(`📄 Template carregado (${html.length} caracteres)`);
+
+    /* ===== APPLY AI TEXT ===== */
+    let replacements = 0;
+    for (const [k, v] of Object.entries(ai)) {
+      const placeholder = `{{${k}}}`;
+      if (html.includes(placeholder)) {
+        html = html.replaceAll(placeholder, v || "");
+        replacements++;
+      } else {
+        console.warn(`⚠️ Placeholder ${placeholder} não encontrado no template`);
+      }
+    }
+    console.log(`🔄 ${replacements} placeholders substituídos`);
+
+    /* ===== APPLY IMAGES & LINKS ===== */
+    html = html
+      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl || "")
+      .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
+      .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
+      .replaceAll("{{BONUS_IMAGES}}", "")
+      .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+
+    /* ===== GLOBAL PLACEHOLDERS ===== */
+    html = applyGlobals(html);
+
+    console.log(`✅ Review gerado com sucesso (${html.length} caracteres)`);
+    return html;
+    
+  } catch (error) {
+    console.error(`🔥 Erro em generateBofuReview: ${error.message}`);
+    throw error;
   }
-
-  /* ===== APPLY IMAGES & LINKS ===== */
-  html = html
-    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
-    .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
-    .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-    .replaceAll("{{BONUS_IMAGES}}", "")
-    .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
-
-  /* ===== GLOBAL PLACEHOLDERS ===== */
-  html = applyGlobals(html);
-
-  return html;
 }
-
 
 /* =========================
    ROBUSTA
@@ -943,9 +1054,9 @@ const guaranteeImage = await extractGuaranteeImage(productUrl);
     fr: {
       title: "Ce que disent les clients",
       text:
-        "Les témoignages réels de clients sont disponibles directement sur le site officiel. " +
-        "Afin de préserver l’authenticité, cette page ne reproduit ni ne modifie les avis individuels.",
-      cta: "Voir les témoignages sur le site officiel",
+        "Les témoignages réels de clients sont disponibles directamente sur le site officiel. " +
+        "Afin de préserver l’authenticité, esta página ne reproduit ni ne modifie les avis individuels.",
+      cta: "Voir les témoignages sur le site oficial",
     },
   };
 
@@ -1002,11 +1113,20 @@ const guaranteeImage = await extractGuaranteeImage(productUrl);
 ========================= */
 app.post("/generate", async (req, res) => {
   try {
-    if (req.headers["x-worker-token"] !== WORKER_TOKEN)
+    console.log("📥 Recebida requisição para /generate");
+    
+    if (req.headers["x-worker-token"] !== WORKER_TOKEN) {
+      console.error("❌ Token inválido");
       return res.status(403).json({ error: "forbidden" });
+    }
 
     const userEmail = req.headers["x-user-email"];
-    if (!userEmail) return res.status(401).json({ error: "no user" });
+    if (!userEmail) {
+      console.error("❌ Email não fornecido");
+      return res.status(401).json({ error: "no user" });
+    }
+
+    console.log(`👤 Usuário: ${userEmail}`);
 
     const { data: access } = await supabaseAdmin
       .from("user_access")
@@ -1014,8 +1134,10 @@ app.post("/generate", async (req, res) => {
       .eq("email", userEmail)
       .single();
 
-    if (!access || new Date(access.access_until) < new Date())
+    if (!access || new Date(access.access_until) < new Date()) {
+      console.error("❌ Acesso expirado ou não encontrado");
       return res.status(403).json({ error: "expired" });
+    }
 
     const {
       templateId,
@@ -1026,10 +1148,21 @@ app.post("/generate", async (req, res) => {
       ...flatBody
     } = req.body;
 
+    console.log(`🎯 Template ID: ${templateId}`);
+    console.log(`🔗 Product URL: ${productUrl}`);
+    console.log(`💰 Affiliate URL: ${affiliateUrl}`);
+    console.log(`🌐 Language: ${language}`);
+
     const templatePath = findTemplate(templateId);
-    if (!templatePath) return res.status(404).json({ error: "no template" });
+    if (!templatePath) {
+      console.error(`❌ Template não encontrado: ${templateId}`);
+      return res.status(404).json({ error: "no template" });
+    }
+
+    console.log(`📁 Template encontrado: ${templatePath}`);
 
     if (templateId.startsWith("review")) {
+      console.log("🚀 Executando fluxo BOFU Review");
       const html = await generateBofuReview({
         templatePath,
         affiliateUrl,
@@ -1040,6 +1173,7 @@ app.post("/generate", async (req, res) => {
     }
 
     if (templateId.startsWith("robusta")) {
+      console.log("🚀 Executando fluxo Robusta");
       const html = await generateRobusta({
         templatePath,
         affiliateUrl,
@@ -1049,6 +1183,7 @@ app.post("/generate", async (req, res) => {
     }
 
     /* ===== LEGACY (INTOCADO) ===== */
+    console.log("🔄 Executando fluxo Legacy");
     const finalLegacyData = { ...legacyData, ...flatBody };
     delete finalLegacyData.templateId;
     delete finalLegacyData.productUrl;
@@ -1092,11 +1227,40 @@ app.post("/generate", async (req, res) => {
 
     return res.status(200).set("Content-Type", "text/html").send(html);
   } catch (e) {
-    console.error("❌", e.message);
+    console.error("❌ Erro em /generate:", e.message);
+    console.error(e.stack);
     return res.status(502).json({
       error: "generation_failed",
       message: e.message,
     });
+  }
+});
+
+/* =========================
+   TESTE PRODENTIM
+========================= */
+app.post("/test-prodentim", async (req, res) => {
+  try {
+    console.log("🧪 Iniciando teste ProDentim");
+    
+    const result = await debugProdentim("https://prodentim.com");
+    
+    // Testar todas as estratégias
+    const strategies = {
+      resolveHeroProductImage: await resolveHeroProductImage("https://prodentim.com"),
+      extractBottleImage: await extractBottleImage("https://prodentim.com"),
+      extractHeroImageWithPlaywright: await extractHeroImageWithPlaywright("https://prodentim.com")
+    };
+    
+    res.json({
+      debug: result,
+      strategies,
+      knownUrl: "https://prodentim101.com/statics/img/introducting_prodentim.png"
+    });
+    
+  } catch (error) {
+    console.error("❌ Erro no teste ProDentim:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -1106,4 +1270,5 @@ app.post("/generate", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 WORKER rodando na porta ${PORT}`);
+  console.log(`🔧 Modo DEBUG: ${process.env.DEBUG_IMAGES || 'false'}`);
 });
