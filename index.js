@@ -207,18 +207,20 @@ function normalizeUrl(u, base) {
     if (!u) return "";
     let s = String(u).trim();
 
-    // Remove qualquer barra dupla no início da string
-    s = s.replace(/^\/\//, '/');
-    
+    // URLs protocol-relative
+    if (s.startsWith("//")) {
+      return base.protocol + s;
+    }
+
     if (s.startsWith("/")) return base.origin + s;
     if (/^https?:\/\//i.test(s)) return s;
 
-    // Para URLs relativas (sem protocolo e sem barra inicial)
     return new URL(s, base.href).href;
   } catch {
     return "";
   }
 }
+
 
 /* =========================
    IMAGE VALIDATOR (GLOBAL) - CORRIGIDO
