@@ -692,14 +692,43 @@ Language: ${language}`,
     `Product URL: ${productUrl}`
   );
 
+  /* =========================
+   IMAGE VALIDATOR (GLOBAL)
+========================= */
+async function validateImageUrl(url) {
+  try {
+    if (!url) return "";
+
+    let u = String(url).trim();
+    u = u.replace(/\s+/g, "").replace(/[?#]$/, "");
+
+    if (!/^https?:\/\//i.test(u)) return "";
+    if (u.startsWith("data:")) return "";
+    if (/\.svg(\?|#|$)/i.test(u)) return "";
+
+    // aceita se tiver extensão conhecida
+    if (/\.(png|jpe?g|webp)(\?|#|$)/i.test(u)) return u;
+
+    // fallback: valida via Content-Type
+    const head = await fetch(u, {
+      method: "HEAD",
+      redirect: "follow",
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+
+    const ct = head.headers.get("content-type") || "";
+    if (ct.toLowerCase().startsWith("image/")) return u;
+
+    return "";
+  } catch {
+    return "";
+  }
+}
+
+
   /* ===== IMAGES ===== */
   const productImageRaw = await resolveProductImage(productUrl);
-
-  const productImage =
-    productImageRaw &&
-    /^https?:\/\/.+\.(png|jpg|jpeg|webp)(\?.*)?$/i.test(productImageRaw)
-      ? productImageRaw
-      : "";
+  const productImage = await validateImageUrl(productImageRaw);
 
   const ingredientImages = await extractIngredientImages(productUrl);
 
@@ -800,16 +829,12 @@ Output ONLY valid JSON.`,
 
  /* ===== IMAGES ===== */
 const productImageRaw = await resolveProductImage(productUrl);
-
-const productImage =
-  productImageRaw &&
-  /^https?:\/\/.+\.(png|jpg|jpeg|webp)(\?.*)?$/i.test(productImageRaw)
-    ? productImageRaw
-    : "";
+const productImage = await validateImageUrl(productImageRaw);
 
 const ingredientImages = await extractIngredientImages(productUrl);
 const bonusImages = await extractBonusImages(productUrl);
 const guaranteeImage = await extractGuaranteeImage(productUrl);
+
 
   /* ===== TESTIMONIAL FALLBACK (MULTI-LANGUAGE) ===== */
   const testimonialFallback = {
