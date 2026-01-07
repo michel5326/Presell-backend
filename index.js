@@ -227,7 +227,12 @@ async function extractLargestImage(productUrl) {
     for (const m of html.matchAll(/<img([^>]+)>/gi)) {
       const tag = m[1];
 
-      const srcMatch = tag.match(/src=["']([^"']+)["']/i);
+      const srcMatch =
+  tag.match(/src=["']([^"']+)["']/i) ||
+  tag.match(/data-src=["']([^"']+)["']/i) ||
+  tag.match(/data-original=["']([^"']+)["']/i) ||
+  tag.match(/data-lazy=["']([^"']+)["']/i);
+
       if (!srcMatch) continue;
 
       const src = normalizeUrl(srcMatch[1], base);
@@ -269,7 +274,7 @@ async function resolveProductImage(productUrl) {
   const img2 = await extractLargestImage(productUrl);
   if (img2) return img2;
 
-  // 3️⃣ último recurso — primeira imagem limpa
+  // 3️⃣ último recurso — primeira imagem limpa (suporta lazy-load)
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -279,8 +284,18 @@ async function resolveProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    for (const m of html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
-      const src = normalizeUrl(m[1], base);
+    for (const m of html.matchAll(/<img[^>]+>/gi)) {
+      const tag = m[0];
+
+      const srcMatch =
+        tag.match(/src=["']([^"']+)["']/i) ||
+        tag.match(/data-src=["']([^"']+)["']/i) ||
+        tag.match(/data-original=["']([^"']+)["']/i) ||
+        tag.match(/data-lazy=["']([^"']+)["']/i);
+
+      if (!srcMatch) continue;
+
+      const src = normalizeUrl(srcMatch[1], base);
       if (
         src &&
         !src.startsWith("data:") &&
