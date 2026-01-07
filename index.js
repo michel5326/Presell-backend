@@ -29,6 +29,10 @@ app.use(
     origin: [
       "https://clickpage.vercel.app",
       "https://clickpage.lovable.app",
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "http://localhost:8080",
+      "http://localhost:3000"
     ],
     methods: ["POST", "OPTIONS"],
     allowedHeaders: [
@@ -459,35 +463,21 @@ async function extractBottleImage(productUrl) {
 }
 
 /* =========================
-   IMAGE RESOLVER — RANKING ENGINE (FINAL) - COM FALLBACK PRODENTIM
+   IMAGE RESOLVER — RANKING ENGINE (FINAL) - CORRIGIDO
 ========================= */
 async function resolveHeroProductImage(productUrl) {
   console.log(`🔍 Resolvendo imagem para: ${productUrl}`);
   
-  // 👉 FALLBACK ESPECÍFICO PARA PRODENTIM
-  if (productUrl.includes('prodentim')) {
-    console.log("🎯 Detectado ProDentim - usando fallback específico");
-    
-    // URL conhecida do ProDentim
-    const prodentimImage = "https://prodentim101.com/statics/img/introducting_prodentim.png";
-    
-    // Verificar se a URL é válida
-    try {
-      const response = await fetch(prodentimImage, { method: 'HEAD' });
-      if (response.ok) {
-        console.log(`✅ ProDentim - usando imagem conhecida: ${prodentimImage}`);
-        return prodentimImage;
-      }
-    } catch (error) {
-      console.log(`⚠️ ProDentim - imagem conhecida falhou, tentando extração normal`);
-    }
-  }
-  
   try {
     const res = await fetch(productUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      },
     });
-    if (!res.ok) return "";
+    if (!res.ok) {
+      console.log(`❌ Fetch falhou: ${res.status}`);
+      return "";
+    }
 
     const html = await res.text();
     const base = new URL(productUrl);
@@ -507,6 +497,7 @@ async function resolveHeroProductImage(productUrl) {
       const ogSrc = normalizeUrl(og[1], base);
       if (ogSrc && !BAD_IMAGE_RE.test(ogSrc)) {
         ogImage = ogSrc;
+        console.log(`🏷️ OG Image encontrada: ${ogSrc}`);
       }
     }
 
@@ -518,15 +509,26 @@ async function resolveHeroProductImage(productUrl) {
     for (const m of imgs) {
       const tag = m[0];
 
+      // 🔥 CORREÇÃO CRÍTICA: srcset agora pega a MAIOR imagem
+      const srcsetMatch = tag.match(/srcset=["']([^"']+)["']/i);
+      let srcCandidate = "";
+
+      if (srcsetMatch) {
+        srcCandidate = srcsetMatch[1]
+          .split(",")
+          .map(s => s.trim().split(" ")[0])
+          .pop(); // pega a MAIOR (última do array)
+      }
+
       const srcMatch =
-        tag.match(/srcset=["']([^"'\s,]+)["']/i) ||
-        tag.match(/src=["']([^"']+)["']/i) ||
-        tag.match(/data-src=["']([^"']+)["']/i) ||
-        tag.match(/data-original=["']([^"']+)["']/i);
+        srcCandidate ||
+        tag.match(/src=["']([^"']+)["']/i)?.[1] ||
+        tag.match(/data-src=["']([^"']+)["']/i)?.[1] ||
+        tag.match(/data-original=["']([^"']+)["']/i)?.[1];
 
       if (!srcMatch) continue;
 
-      const src = normalizeUrl(srcMatch[1], base);
+      const src = normalizeUrl(srcMatch, base);
       if (!src) continue;
 
       const low = src.toLowerCase();
@@ -554,7 +556,7 @@ async function resolveHeroProductImage(productUrl) {
         if (area > 40000) score += 30;
         else if (area > 20000) score += 20;
       } else {
-        // imagem válida sem dimensões explícitas (ex: ProDentim)
+        // imagem válida sem dimensões explícitas
         score += 10;
       }
 
@@ -571,32 +573,68 @@ async function resolveHeroProductImage(productUrl) {
       }
     }
 
+    /* =========================
+       FALLBACK — ASSETS SOLTOS (CSS / JS / HTML CRU)
+    ========================= */
+    const assetCandidates = [...html.matchAll(
+      /(?:https?:\/\/|\/)[^"'()\s]+?\.(png|jpe?g|webp|avif)(\?[^"'()\s]*)?/gi
+    )]
+      .map(m => normalizeUrl(m[0], base))
+      .filter(u =>
+        u &&
+        !BAD_IMAGE_RE.test(u) &&
+        !/\.svg(\?|#|$)/i.test(u)
+      );
+
+    const assetPreferred =
+      assetCandidates.find(u =>
+        /(product|bottle|supplement|introduc|container)/i.test(u)
+      ) ||
+      assetCandidates[0];
+
     /* 🔍 DEBUG OPCIONAL */
     if (process.env.DEBUG_IMAGES === "true") {
       console.log(
-        "🏆 IMAGE RANKING:",
+        "🏆 IMAGE RANKING (top 5):",
         debug.sort((a, b) => b.score - a.score).slice(0, 5)
+      );
+      console.log(
+        "🔍 ASSET CANDIDATES (top 5):",
+        assetCandidates.slice(0, 5)
       );
     }
 
     /* =========================
-       ORDEM FINAL DE DECISÃO
+       ORDEM FINAL DE DECISÃO - CORRIGIDA
+       🔥 CRÍTICO: Ranking primeiro, assets depois
     ========================= */
+    
+    // 1️⃣ RANKING TEM PRIORIDADE MÁXIMA
     if (best.src) {
-      console.log(`✅ Imagem selecionada (ranking): ${best.src}`);
+      console.log(`✅ Imagem selecionada (ranking): ${best.src} (score: ${best.score})`);
       return best.src;
     }
+
+    // 2️⃣ ASSETS SOLTOS (fallback para sites sem <img> tags)
+    if (assetPreferred) {
+      console.log(`✅ Imagem encontrada em assets: ${assetPreferred}`);
+      return assetPreferred;
+    }
+
+    // 3️⃣ OG IMAGE
     if (ogImage) {
       console.log(`✅ Imagem selecionada (OG): ${ogImage}`);
       return ogImage;
     }
 
+    // 4️⃣ BOTTLE EXTRACTION
     const bottle = await extractBottleImage(productUrl);
     if (bottle) {
       console.log(`✅ Imagem selecionada (bottle): ${bottle}`);
       return bottle;
     }
 
+    // 5️⃣ PLAYWRIGHT (último recurso)
     const pw = await extractHeroImageWithPlaywright(productUrl);
     if (pw) {
       console.log(`✅ Imagem selecionada (playwright): ${pw}`);
@@ -815,7 +853,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW - COM DEBUG E FALLBACK PRODENTIM
+   BOFU REVIEW - COM DEBUG
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -1054,7 +1092,7 @@ const guaranteeImage = await extractGuaranteeImage(productUrl);
     fr: {
       title: "Ce que disent les clients",
       text:
-        "Les témoignages réels de clients sont disponibles directamente sur le site officiel. " +
+        "Les témoignages réels de clients sont disponibles directamente sur le site oficial. " +
         "Afin de préserver l’authenticité, esta página ne reproduit ni ne modifie les avis individuels.",
       cta: "Voir les témoignages sur le site oficial",
     },
