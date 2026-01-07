@@ -217,33 +217,17 @@ function normalizeUrl(u, base) {
    IMAGE VALIDATOR (GLOBAL)
 ========================= */
 async function validateImageUrl(url) {
-  try {
-    if (!url) return "";
+  if (!url) return "";
 
-    let u = String(url).trim();
-    u = u.replace(/\s+/g, "").replace(/[?#]$/, "");
+  const u = String(url).trim();
 
-    if (!/^https?:\/\//i.test(u)) return "";
-    if (u.startsWith("data:")) return "";
-    if (/\.svg(\?|#|$)/i.test(u)) return "";
+  // bloqueios básicos
+  if (!/^https?:\/\//i.test(u)) return "";
+  if (u.startsWith("data:")) return "";
+  if (/\.svg(\?|#|$)/i.test(u)) return "";
 
-    // aceita se tiver extensão conhecida
-    if (/\.(png|jpe?g|webp)(\?|#|$)/i.test(u)) return u;
-
-    // fallback por Content-Type
-    const head = await fetch(u, {
-      method: "HEAD",
-      redirect: "follow",
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
-
-    const ct = head.headers.get("content-type") || "";
-    if (ct.toLowerCase().startsWith("image/")) return u;
-
-    return "";
-  } catch {
-    return "";
-  }
+  // aceita imagens mesmo sem extensão (CDNs modernas)
+  return u;
 }
 
 
