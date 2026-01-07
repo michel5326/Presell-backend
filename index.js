@@ -326,9 +326,9 @@ async function extractHeroImageWithPlaywright(productUrl) {
 }
 
 /* =========================
-   IMAGE RESOLVER — FINAL (ESTÁVEL)
+   IMAGE RESOLVER — RANKING ENGINE (FINAL)
 ========================= */
-async function resolveProductImage(productUrl) {
+async function resolveHeroProductImage(productUrl) {
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -338,60 +338,85 @@ async function resolveProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    /* 1️⃣ OG / TWITTER IMAGE */
-    const meta =
-      html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i) ||
-      html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
+    const imgs = [...html.matchAll(/<img[^>]+>/gi)];
 
-    if (meta?.[1]) {
-      const src = normalizeUrl(meta[1], base);
-      if (src && !src.startsWith("data:") && !/\.svg(\?|#|$)/i.test(src)) {
-        return src;
-      }
-    }
+    let best = { src: "", score: 0 };
+    let debug = [];
 
-    /* 2️⃣ IMAGEM SEMÂNTICA (BOTTLE / PRODUCT) */
-    if (typeof extractBottleImage === "function") {
-      const bottle = await extractBottleImage(productUrl);
-      if (bottle) return bottle;
-    }
-
-    /* 3️⃣ SRCSET (MAIOR IMAGEM) */
-    for (const m of html.matchAll(/<img[^>]+srcset=["']([^"']+)["']/gi)) {
-      const list = m[1].split(",").map(p => p.trim().split(" ")[0]);
-      const src = normalizeUrl(list.at(-1), base);
-      if (src && !src.startsWith("data:") && !src.endsWith(".svg")) {
-        return src;
-      }
-    }
-
-    /* 4️⃣ MAIOR IMAGEM POR ÁREA (HTML) */
-    const big = await extractLargestImage(productUrl);
-    if (big) return big;
-
-    /* 5️⃣ PRIMEIRA IMAGEM LIMPA (ÚLTIMO RECURSO) */
-    for (const m of html.matchAll(/<img[^>]+>/gi)) {
+    for (const m of imgs) {
       const tag = m[0];
 
       const srcMatch =
         tag.match(/src=["']([^"']+)["']/i) ||
         tag.match(/data-src=["']([^"']+)["']/i) ||
-        tag.match(/data-original=["']([^"']+)["']/i) ||
-        tag.match(/data-lazy=["']([^"']+)["']/i);
+        tag.match(/data-original=["']([^"']+)["']/i);
 
       if (!srcMatch) continue;
 
       const src = normalizeUrl(srcMatch[1], base);
+      if (!src) continue;
+
+      const low = src.toLowerCase();
+
+      // ❌ lixo visual absoluto
       if (
-        src &&
-        !src.startsWith("data:") &&
-        !/\.svg(\?|#|$)/i.test(src)
-      ) {
-        return src;
+        low.startsWith("data:") ||
+        low.endsWith(".svg") ||
+        /(logo|icon|badge|star|check|seal|bg|cta|button)/i.test(low)
+      ) continue;
+
+      let score = 0;
+
+      // ✅ semântica forte (produto)
+      if (/(product|bottle|supplement|capsule|jar)/i.test(low)) {
+        score += 25;
+      }
+
+      // ❗ penalidade — imagem errada porém grande
+      if (/(price|bonus|guarantee|save|discount)/i.test(low)) {
+        score -= 30;
+      }
+
+      // ✅ tamanho (proxy de importância visual)
+      const w = tag.match(/width=["']?(\d+)/i);
+      const h = tag.match(/height=["']?(\d+)/i);
+      if (w && h) {
+        const area = Number(w[1]) * Number(h[1]);
+        if (area > 40000) score += 30;
+        else if (area > 20000) score += 20;
+      }
+
+      // ✅ posição no HTML (primeira dobra lógica)
+      const position = html.indexOf(m[0]);
+      if (position > -1 && position < html.length * 0.25) {
+        score += 40;
+      }
+
+      debug.push({ src, score });
+
+      if (score > best.score) {
+        best = { src, score };
       }
     }
 
-    return "";
+    // 🔍 DEBUG OPCIONAL (ative via env)
+    if (process.env.DEBUG_IMAGES === "true") {
+      console.log(
+        "🏆 IMAGE RANKING:",
+        debug.sort((a, b) => b.score - a.score).slice(0, 5)
+      );
+    }
+
+    // 🥇 imagem vencedora
+    if (best.src) return best.src;
+
+    // 🔥 boost semântico final
+    const bottle = await extractBottleImage(productUrl);
+    if (bottle) return bottle;
+
+    // 🧠 fallback pesado (JS / SPA / lazy)
+    return await extractHeroImageWithPlaywright(productUrl);
+
   } catch {
     return "";
   }
@@ -762,7 +787,7 @@ Language: ${language}`,
   );
 
   /* ===== IMAGES ===== */
-  const productImageRaw = await resolveProductImage(productUrl);
+  const productImageRaw = await resolveHeroProductImage(productUrl);
   const productImage = await validateImageUrl(productImageRaw);
 
   const ingredientImages = await extractIngredientImages(productUrl);
@@ -863,7 +888,7 @@ Output ONLY valid JSON.`,
   );
 
  /* ===== IMAGES ===== */
-const productImageRaw = await resolveProductImage(productUrl);
+const productImageRaw = await resolveHeroProductImage(productUrl);
 const productImage = await validateImageUrl(productImageRaw);
 
 const ingredientImages = await extractIngredientImages(productUrl);
