@@ -198,16 +198,36 @@ function applyGlobals(html) {
 }
 
 /* =========================
-   ✅ URL NORMALIZER (PATCH)
+   ✅ URL NORMALIZER (FIX DEFINITIVO)
 ========================= */
 function normalizeUrl(u, base) {
   try {
-    const url = new URL(u, base).href;
-    return url.replace(/([^:]\/)\/+/g, "$1"); // remove double slashes in path
+    if (!u) return "";
+
+    const raw = u.trim();
+
+    // //example.com/image.png
+    if (raw.startsWith("//")) {
+      return base.protocol + raw;
+    }
+
+    // /image.png
+    if (raw.startsWith("/")) {
+      return base.origin + raw;
+    }
+
+    // image.png
+    if (!raw.startsWith("http")) {
+      return base.origin + "/" + raw.replace(/^\/+/, "");
+    }
+
+    // https://...
+    return raw;
   } catch {
     return "";
   }
 }
+
 
 /* =========================
    🖼️ IMAGE FALLBACK — LARGEST IMAGE
@@ -597,7 +617,12 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 /* =========================
    BOFU REVIEW
 ========================= */
-async function generateBofuReview({ templatePath, affiliateUrl, productUrl, language }) {
+async function generateBofuReview({
+  templatePath,
+  affiliateUrl,
+  productUrl,
+  language,
+}) {
   const ai = await callDeepSeekWithRetry(
     `You are generating copy for a BOFU review page used primarily with Google Search traffic.
 
@@ -667,27 +692,39 @@ Language: ${language}`,
     `Product URL: ${productUrl}`
   );
 
-  const productImage = await resolveProductImage(productUrl);
+  /* ===== IMAGES ===== */
+  const productImageRaw = await resolveProductImage(productUrl);
+
+  const productImage =
+    productImageRaw &&
+    /^https?:\/\/.+\.(png|jpg|jpeg|webp)(\?.*)?$/i.test(productImageRaw)
+      ? productImageRaw
+      : "";
+
   const ingredientImages = await extractIngredientImages(productUrl);
 
+  /* ===== LOAD TEMPLATE ===== */
   let html = fs.readFileSync(templatePath, "utf8");
 
+  /* ===== APPLY AI TEXT ===== */
   for (const [k, v] of Object.entries(ai)) {
-    html = html.replaceAll(`{{${k}}}`, v);
+    html = html.replaceAll(`{{${k}}}`, v || "");
   }
 
+  /* ===== APPLY IMAGES & LINKS ===== */
   html = html
     .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
-    .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
+    .replaceAll("{{PRODUCT_IMAGE}}", productImage)
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", "")
     .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 
-  /* ✅ aplica CURRENT_YEAR */
+  /* ===== GLOBAL PLACEHOLDERS ===== */
   html = applyGlobals(html);
 
   return html;
 }
+
 
 /* =========================
    ROBUSTA
@@ -761,11 +798,18 @@ Output ONLY valid JSON.`,
     `Product URL: ${productUrl}`
   );
 
-  /* ===== IMAGES ===== */
-  const productImage = await resolveProductImage(productUrl);
-  const ingredientImages = await extractIngredientImages(productUrl);
-  const bonusImages = await extractBonusImages(productUrl);
-  const guaranteeImage = await extractGuaranteeImage(productUrl);
+ /* ===== IMAGES ===== */
+const productImageRaw = await resolveProductImage(productUrl);
+
+const productImage =
+  productImageRaw &&
+  /^https?:\/\/.+\.(png|jpg|jpeg|webp)(\?.*)?$/i.test(productImageRaw)
+    ? productImageRaw
+    : "";
+
+const ingredientImages = await extractIngredientImages(productUrl);
+const bonusImages = await extractBonusImages(productUrl);
+const guaranteeImage = await extractGuaranteeImage(productUrl);
 
   /* ===== TESTIMONIAL FALLBACK (MULTI-LANGUAGE) ===== */
   const testimonialFallback = {
