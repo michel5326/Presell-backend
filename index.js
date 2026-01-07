@@ -204,25 +204,25 @@ function normalizeUrl(u, base) {
   try {
     if (!u) return "";
 
-    const raw = u.trim();
+    let s = String(u).trim();
 
-    // //example.com/image.png
-    if (raw.startsWith("//")) {
-      return base.protocol + raw;
+    // protocol-relative //cdn.com/img.png
+    if (s.startsWith("//")) {
+      return (base.protocol + s).replace(/([^:]\/)\/+/g, "$1");
     }
 
-    // /image.png
-    if (raw.startsWith("/")) {
-      return base.origin + raw;
+    // absolute path /img.png
+    if (s.startsWith("/")) {
+      return (base.origin + s).replace(/([^:]\/)\/+/g, "$1");
     }
 
-    // image.png
-    if (!raw.startsWith("http")) {
-      return base.origin + "/" + raw.replace(/^\/+/, "");
+    // absolute url
+    if (/^https?:\/\//i.test(s)) {
+      return s.replace(/([^:]\/)\/+/g, "$1");
     }
 
-    // https://...
-    return raw;
+    // relative path img.png
+    return new URL(s, base.href).href.replace(/([^:]\/)\/+/g, "$1");
   } catch {
     return "";
   }
@@ -286,15 +286,6 @@ async function extractLargestImage(productUrl) {
    🧠 IMAGE RESOLVER — PRODUCT
 ========================= */
 async function resolveProductImage(productUrl) {
-  // 1️⃣ tentativa atual (heurística existente)
-  const img1 = await extractBottleImage(productUrl);
-  if (img1) return img1;
-
-  // 2️⃣ fallback por tamanho
-  const img2 = await extractLargestImage(productUrl);
-  if (img2) return img2;
-
-  // 3️⃣ último recurso — primeira imagem limpa (suporta lazy-load)
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -304,6 +295,46 @@ async function resolveProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
+    /* 1️⃣ OG / TWITTER IMAGE (PRIORIDADE MÁXIMA) */
+    const meta =
+      html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i) ||
+      html.match(/name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
+
+    if (meta?.[1]) {
+      const src = normalizeUrl(meta[1], base);
+      if (src && !src.startsWith("data:") && !/\.svg(\?|#|$)/i.test(src)) {
+        return src;
+      }
+    }
+
+    /* 2️⃣ IMAGENS COM KEYWORDS (BOTTLE / PRODUCT) */
+    const img1 = await extractBottleImage(productUrl);
+    if (img1) return img1;
+
+    /* 3️⃣ SRCSET (PEGA A MAIOR) */
+    for (const m of html.matchAll(/<img[^>]+>/gi)) {
+      const tag = m[0];
+      const srcset = tag.match(/srcset=["']([^"']+)["']/i);
+      if (!srcset) continue;
+
+      const candidates = srcset[1]
+        .split(",")
+        .map((p) => p.trim().split(" ")[0])
+        .reverse(); // maior geralmente por último
+
+      for (const c of candidates) {
+        const src = normalizeUrl(c, base);
+        if (src && !src.startsWith("data:") && !/\.svg(\?|#|$)/i.test(src)) {
+          return src;
+        }
+      }
+    }
+
+    /* 4️⃣ MAIOR IMAGEM POR ÁREA */
+    const img2 = await extractLargestImage(productUrl);
+    if (img2) return img2;
+
+    /* 5️⃣ PRIMEIRO <img> VÁLIDO */
     for (const m of html.matchAll(/<img[^>]+>/gi)) {
       const tag = m[0];
 
@@ -316,18 +347,17 @@ async function resolveProductImage(productUrl) {
       if (!srcMatch) continue;
 
       const src = normalizeUrl(srcMatch[1], base);
-      if (
-        src &&
-        !src.startsWith("data:") &&
-        !src.endsWith(".svg")
-      ) {
-        return src;
-      }
+      if (!src) continue;
+      if (src.startsWith("data:")) continue;
+      if (/\.svg(\?|#|$)/i.test(src)) continue;
+
+      return src;
     }
   } catch {}
 
   return "";
 }
+
 
 /* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
 async function uploadToR2(localPath, remoteKey) {
