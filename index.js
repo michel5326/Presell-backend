@@ -732,6 +732,17 @@ async function resolveHeroProductImage(productUrl) {
     const base = new URL(productUrl);
 
     const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
+    // ❌ IMAGENS QUE NÃO SÃO DE VENDA (mock / composição / single)
+const BAD_PRODUCT_PATTERNS = [
+  /single/i,
+  /mock/i,
+  /composition/i,
+  /scene/i,
+  /background/i,
+  /@2x/i,
+  /@3x/i,
+  /hero-bg/i
+];
 
     // 🔥 PADRÕES DE NOME DE ARQUIVO DE PRODUTO (EXPANDIDO)
     const PRODUCT_PATTERNS = [
@@ -884,6 +895,11 @@ async function resolveHeroProductImage(productUrl) {
 
       /* ❌ FILTROS BÁSICOS */
       if (/^data:/i.test(low) || low.endsWith(".svg")) continue;
+      // ❌ PENALIZAR IMAGENS DE MOCK / COMPOSIÇÃO
+      if (BAD_PRODUCT_PATTERNS.some(p => p.test(low))) {
+      score -= 200;
+     }
+
 
       /* ❌ BAD_IMAGE_RE RELAXADO */
       if (BAD_IMAGE_RE.test(low)) continue;
@@ -904,6 +920,11 @@ async function resolveHeroProductImage(productUrl) {
       if (/(product|bottle|supplement|capsule|jar|pack|bundle|introducting)/i.test(low)) {
         score += 40;
       }
+       // ✅ BÔNUS EXTRA PARA IMAGEM DE VENDA REAL
+       if (/(one|bottle|pack|product)(?!.*single)/i.test(low)) {
+        score += 120;
+       }
+
 
       /* ✅ URL COM // DUPLO - PRIORIDADE ABSOLUTA */
       if (hasDoubleSlash) {
@@ -1809,8 +1830,7 @@ app.post("/generate", async (req, res) => {
     html = applyGlobals(html);
     
     // Aplicar limpeza mesmo no legacy
-    html = cleanTemplateAfterReplacements(html);
-
+   
     return res.status(200).set("Content-Type", "text/html").send(html);
   } catch (e) {
     console.error("❌ Erro em /generate:", e.message);
