@@ -527,19 +527,51 @@ async function resolveHeroProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    // 🔥 FILTRO MAIS INTELIGENTE: Bloqueia apenas o essencial
+    // 🔥 FILTRO INTELIGENTE: Só bloqueia o realmente ruim
     const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon|ads|adservice|doubleclick)(?![a-z])/i;
 
-    // 🔥 PADRÕES DE PRODUTO (FOCADO EM BOTTLE/JAR/CONTAINER)
-    const PRODUCT_PATTERNS = [
-      /tsl-main/i,
-      /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
-      /jar.*\.(png|jpg|jpeg|webp|avif)/i,
-      /container.*\.(png|jpg|jpeg|webp|avif)/i,
-      /product.*\.(png|jpg|jpeg|webp|avif)/i,
-      /main.*\.(png|jpg|jpeg|webp|avif)/i,
-      /hero.*\.(png|jpg|jpeg|webp|avif)/i,
-      /supplement.*\.(png|jpg|jpeg|webp|avif)/i
+    // 🔥 FUNÇÕES AUXILIARES PARA FILTRAGEM INTELIGENTE
+    function isBadBanner(src) {
+      const low = src.toLowerCase();
+      // Banners ruins (anúncios, sidebars)
+      return /(header-banner|top-banner|ad-banner|sidebar-banner|skyscraper|leaderboard)/i.test(low);
+    }
+
+    function isEcommerceNoise(src) {
+      const low = src.toLowerCase();
+      // Elementos de UI de e-commerce
+      return /(cart-icon|checkout-button|buy-now|add-to-cart|shop-now|shopping-cart|payment-icon)/i.test(low);
+    }
+
+    function isLikelyProduct(src) {
+      const low = src.toLowerCase();
+      
+      // 🔥 PADRÕES FORTES DE PRODUTO
+      const STRONG_PRODUCT_PATTERNS = [
+        /bottle.*\.(webp|png|jpg|jpeg|avif)/i,
+        /jar.*\.(webp|png|jpg|jpeg|avif)/i,
+        /container.*\.(webp|png|jpg|jpeg|avif)/i,
+        /product.*\.(webp|png|jpg|jpeg|avif)/i,
+        /main.*product/i,
+        /hero.*product/i,
+        /tsl-main/i,
+        /pack.*shot/i
+      ];
+      
+      return STRONG_PRODUCT_PATTERNS.some(pattern => pattern.test(low));
+    }
+
+    // 🔥 PADRÕES EXPANDIDOS (inclui banners bons)
+    const GOOD_IMAGE_PATTERNS = [
+      /images\/.*\.(webp|png|jpg|jpeg|avif)/i,
+      /img\/.*\.(webp|png|jpg|jpeg|avif)/i,
+      /assets\/.*\.(webp|png|jpg|jpeg|avif)/i,
+      /static\/.*\.(webp|png|jpg|jpeg|avif)/i,
+      /banner-img\.(webp|png|jpg|jpeg)/i,
+      /hero-banner\.(webp|png|jpg|jpeg)/i,
+      /main-banner\.(webp|png|jpg|jpeg)/i,
+      /product.*\.(webp|png|jpg|jpeg|avif)/i,
+      /bottle.*\.(webp|png|jpg|jpeg|avif)/i
     ];
 
     /* =========================
@@ -550,7 +582,7 @@ async function resolveHeroProductImage(productUrl) {
     if (og) {
       const ogSrc = normalizeUrl(og[1], base);
       const fixedOgSrc = fixImageUrl(ogSrc);
-      if (fixedOgSrc && !BAD_IMAGE_RE.test(fixedOgSrc)) {
+      if (fixedOgSrc && !BAD_IMAGE_RE.test(fixedOgSrc) && !isBadBanner(fixedOgSrc)) {
         ogImage = fixedOgSrc;
         console.log(`🏷️ OG Image encontrada: ${ogSrc}`);
       }
@@ -561,46 +593,21 @@ async function resolveHeroProductImage(productUrl) {
     let debug = [];
 
     /* =========================
-       ETAPA 1: BUSCA PRIORITÁRIA POR BOTTLE
+       ETAPA 1: BUSCA PRIORITÁRIA
     ========================= */
     for (const m of imgs) {
       const tag = m[0];
       const lowTag = tag.toLowerCase();
       
-      // 🔥 DETECÇÃO PRIORITÁRIA DE BOTTLE
-      const bottleKeywords = ['bottle', 'jar', 'container', 'capsule', 'supplement'];
-      const isBottleImage = bottleKeywords.some(keyword => lowTag.includes(keyword));
+      // 🔥 VERIFICAÇÃO DE BADGES/ICONES (mais precisa)
+      const isBadElement = 
+        /(icon|badge|button|cart|checkout|order|shop)(?![a-z])/i.test(lowTag) &&
+        !/(product|bottle|jar)/i.test(lowTag); // Exceto se for de produto
       
-      if (isBottleImage) {
-        const srcMatch = tag.match(/src=["']([^"']+)["']/i)?.[1] ||
-                        tag.match(/data-src=["']([^"']+)["']/i)?.[1] ||
-                        tag.match(/data-original=["']([^"']+)["']/i)?.[1] ||
-                        tag.match(/data-lazy=["']([^"']+)["']/i)?.[1];
-        
-        if (srcMatch) {
-          let src = normalizeUrl(srcMatch, base);
-          src = fixImageUrl(src);
-          
-          if (src && !/^data:/i.test(src.toLowerCase()) && !src.endsWith('.svg')) {
-            console.log(`🎯 IMAGEM DE PRODUTO DETECTADA E PRIORIZADA: ${src}`);
-            
-            // Verifica se não é um logo/ícone
-            const lowSrc = src.toLowerCase();
-            const isLogo = /(logo|icon|badge|button|shop|carts?|checkout|order)/i.test(lowSrc);
-            
-            if (!isLogo && !BAD_IMAGE_RE.test(lowSrc)) {
-              return src; // RETORNA IMEDIATAMENTE
-            }
-          }
-        }
+      if (isBadElement) {
+        console.log(`⏭️ Pulando elemento de UI: ${lowTag.substring(0, 50)}...`);
+        continue;
       }
-    }
-
-    /* =========================
-       ETAPA 2: SCORING TRADICIONAL (SE NÃO ENCONTROU BOTTLE)
-    ========================= */
-    for (const m of imgs) {
-      const tag = m[0];
       
       const srcMatch = tag.match(/src=["']([^"']+)["']/i)?.[1] ||
                       tag.match(/data-src=["']([^"']+)["']/i)?.[1] ||
@@ -619,60 +626,81 @@ async function resolveHeroProductImage(productUrl) {
       /* ❌ FILTROS BÁSICOS */
       if (/^data:/i.test(low) || low.endsWith(".svg")) continue;
       if (BAD_IMAGE_RE.test(low)) continue;
+      if (isEcommerceNoise(src)) continue;
+      if (isBadBanner(src)) continue;
 
       let score = 0;
 
-      /* ✅ BÔNUS MASSIVO PARA BOTTLE E TERMOS DE PRODUTO */
-      const PRODUCT_BONUS = {
-        'bottle': 100,
-        'jar': 90,
-        'container': 90,
-        'product': 80,
-        'supplement': 80,
-        'capsule': 70,
-        'main': 60,
-        'hero': 60,
-        'pack': 50,
-        'bundle': 50
-      };
-
-      for (const [term, bonus] of Object.entries(PRODUCT_BONUS)) {
-        if (low.includes(term)) {
-          score += bonus;
-          console.log(`🏆 BÔNUS "${term}": +${bonus}`);
-          break; // Só conta o termo mais forte
-        }
+      /* ✅ BÔNUS PARA PRODUTO DETECTADO */
+      if (isLikelyProduct(src)) {
+        score += 150; // Bônus MASSIVO para produto claro
+        console.log(`🏆 PRODUTO DETECTADO: +150`);
       }
 
-      /* ✅ PADRÕES DE ARQUIVO */
-      PRODUCT_PATTERNS.forEach(pattern => {
+      /* ✅ BÔNUS PARA PADRÕES DE ARQUIVO */
+      GOOD_IMAGE_PATTERNS.forEach(pattern => {
         if (pattern.test(low)) {
           score += 40;
-          console.log(`🎯 Padrão de arquivo: ${pattern} (+40)`);
+          console.log(`🎯 Padrão bom: ${pattern} (+40)`);
         }
       });
 
-      /* ✅ TAMANHO (mais importante que antes) */
+      /* ✅ BÔNUS PARA PALAVRAS-CHAVE */
+      const KEYWORD_BONUS = {
+        'bottle': 100, 'jar': 90, 'container': 90,
+        'product': 80, 'supplement': 80, 'capsule': 70,
+        'main': 60, 'hero': 60, 'banner-img': 50, // 🔥 "banner-img" agora dá pontos!
+        'images/': 40, 'img/': 40, 'assets/': 40
+      };
+
+      for (const [keyword, bonus] of Object.entries(KEYWORD_BONUS)) {
+        if (low.includes(keyword)) {
+          score += bonus;
+          console.log(`🔑 "${keyword}": +${bonus}`);
+          break;
+        }
+      }
+
+      /* ✅ TAMANHO (importante para banners também) */
       const w = tag.match(/width=["']?(\d+)/i);
       const h = tag.match(/height=["']?(\d+)/i);
 
       if (w && h) {
-        const area = Number(w[1]) * Number(h[1]);
-        if (area > 80000) score += 50; // Imagens grandes são boas
-        else if (area > 40000) score += 30;
-        else if (area > 20000) score += 15;
+        const width = Number(w[1]);
+        const height = Number(h[1]);
+        const area = width * height;
+        const ratio = width / height;
+        
+        // Banners têm proporção larga (2:1 a 4:1)
+        const isBannerRatio = ratio >= 1.8 && ratio <= 4.5;
+        
+        if (area > 200000) score += 60; // Imagem muito grande
+        else if (area > 100000) score += 40;
+        else if (area > 50000) score += 25;
+        
+        if (isBannerRatio && area > 50000) {
+          score += 30; // Bônus para banners grandes
+          console.log(`📏 Proporção de banner detectada: +30`);
+        }
       }
 
-      /* ✅ POSIÇÃO (menos importante) */
+      /* ✅ FORMATO MODERNO */
+      if (low.endsWith('.webp') || low.endsWith('.avif')) {
+        score += 25;
+        console.log(`🌐 Formato moderno: +25`);
+      }
+
+      /* ✅ POSIÇÃO NO HTML */
       const position = html.indexOf(m[0]);
-      if (position > -1 && position < html.length * 0.3) {
-        score += 20;
+      if (position > -1 && position < html.length * 0.4) {
+        score += 25;
       }
 
-      /* ✅ ALT TEXT */
+      /* ✅ ALT TEXT DESCRITIVO */
       const alt = tag.match(/alt=["']([^"']+)["']/i);
-      if (alt && alt[1].length > 3) {
-        score += 10;
+      if (alt && alt[1].length > 5 && !/(icon|button|link)/i.test(alt[1])) {
+        score += 20;
+        console.log(`📝 Alt text bom: "${alt[1].substring(0, 30)}..." (+20)`);
       }
 
       debug.push({ src, score });
@@ -686,63 +714,87 @@ async function resolveHeroProductImage(productUrl) {
        ASSETS SOLTOS
     ========================= */
     const assetCandidates = [...html.matchAll(
-      /(?:https?:\/\/|\/)[^"'()\s]*?\.(png|jpe?g|webp|avif)(\?[^"'()\s]*)?/gi
+      /(?:https?:\/\/|\/)[^"'()\s]*?\.(webp|png|jpe?g|avif)(\?[^"'()\s]*)?/gi
     )]
       .map(m => {
         let url = normalizeUrl(m[0], base);
         return fixImageUrl(url);
       })
-      .filter(u =>
-        u &&
-        !BAD_IMAGE_RE.test(u) &&
-        !/\.svg(\?|#|$)/i.test(u)
-      );
+      .filter(u => {
+        if (!u) return false;
+        const low = u.toLowerCase();
+        return !BAD_IMAGE_RE.test(low) && 
+               !/\.svg(\?|#|$)/i.test(low) &&
+               !isEcommerceNoise(u) &&
+               !isBadBanner(u);
+      })
+      .sort((a, b) => {
+        // Ordena por: 1) tem "product", 2) tem "images/", 3) tamanho do caminho
+        const aLow = a.toLowerCase();
+        const bLow = b.toLowerCase();
+        
+        if (aLow.includes('product') && !bLow.includes('product')) return -1;
+        if (!aLow.includes('product') && bLow.includes('product')) return 1;
+        
+        if (aLow.includes('images/') && !bLow.includes('images/')) return -1;
+        if (!aLow.includes('images/') && bLow.includes('images/')) return 1;
+        
+        return a.length - b.length;
+      });
 
     /* 🔍 DEBUG */
     if (process.env.DEBUG_IMAGES === "true") {
-      console.log("🏆 IMAGE RANKING:", debug.sort((a, b) => b.score - a.score).slice(0, 5));
-      console.log("🔍 ASSETS:", assetCandidates.slice(0, 3));
+      console.log("🏆 TOP 5 IMAGENS:", debug.sort((a, b) => b.score - a.score).slice(0, 5));
+      console.log("🔍 TOP 3 ASSETS:", assetCandidates.slice(0, 3));
     }
 
     /* =========================
-       DECISÃO FINAL SIMPLIFICADA
+       DECISÃO FINAL - ESTRATÉGIA INTELIGENTE
     ========================= */
     
-    // 1️⃣ Qualquer imagem com score > 10
-    if (best.src && best.score > 10) {
-      console.log(`✅ Imagem selecionada (score ${best.score}): ${best.src}`);
+    console.log(`📊 Melhor score: ${best.score}, Assets encontrados: ${assetCandidates.length}`);
+    
+    // 1️⃣ Imagem com score muito bom (> 50)
+    if (best.score > 50) {
+      console.log(`✅ Selecionada (score alto ${best.score}): ${best.src}`);
       return best.src;
     }
     
-    // 2️⃣ Assets com termos de produto
-    const productAssets = assetCandidates.filter(u => 
-      /(bottle|jar|product|main|hero)/i.test(u)
-    );
-    
-    if (productAssets.length > 0) {
-      console.log(`✅ Imagem selecionada (assets com produto): ${productAssets[0]}`);
-      return productAssets[0];
+    // 2️⃣ Imagem em /images/ ou /img/ (mesmo score baixo)
+    if (best.src && (best.src.includes('/images/') || best.src.includes('/img/'))) {
+      console.log(`✅ Selecionada (em pasta de imagens): ${best.src}`);
+      return best.src;
     }
     
-    // 3️⃣ OG Image decente
-    if (ogImage && !/(logo|banner|header)/i.test(ogImage)) {
-      console.log(`✅ Imagem selecionada (OG): ${ogImage}`);
+    // 3️⃣ Primeiro asset em /images/ ou /img/
+    const folderAssets = assetCandidates.filter(u => 
+      u.includes('/images/') || u.includes('/img/')
+    );
+    
+    if (folderAssets.length > 0) {
+      console.log(`✅ Selecionada (asset em pasta): ${folderAssets[0]}`);
+      return folderAssets[0];
+    }
+    
+    // 4️⃣ OG Image decente
+    if (ogImage && !/(logo|header)/i.test(ogImage)) {
+      console.log(`✅ Selecionada (OG Image): ${ogImage}`);
       return ogImage;
     }
     
-    // 4️⃣ Qualquer imagem válida
-    if (best.src) {
-      console.log(`⚠️ Imagem selecionada (fallback): ${best.src}`);
+    // 5️⃣ Qualquer imagem com score > 10
+    if (best.score > 10) {
+      console.log(`✅ Selecionada (score ${best.score}): ${best.src}`);
       return best.src;
     }
     
-    // 5️⃣ Primeiro asset não-bloqueado
+    // 6️⃣ Primeiro asset não-bloqueado
     if (assetCandidates.length > 0) {
-      console.log(`⚠️ Imagem selecionada (último recurso): ${assetCandidates[0]}`);
+      console.log(`⚠️  Selecionada (último recurso): ${assetCandidates[0]}`);
       return assetCandidates[0];
     }
 
-    console.log(`❌ Nenhuma imagem encontrada`);
+    console.log(`❌ Nenhuma imagem adequada encontrada`);
     return "";
     
   } catch (error) {
