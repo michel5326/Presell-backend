@@ -855,7 +855,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW - COM DEBUG
+   BOFU REVIEW — FINAL (IMAGE SAFE)
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -868,6 +868,9 @@ async function generateBofuReview({
   console.log(`🔗 Affiliate URL: ${affiliateUrl}`);
 
   try {
+    /* =========================
+       AI COPY
+    ========================= */
     const ai = await callDeepSeekWithRetry(
       `You are generating copy for a BOFU review page used primarily with Google Search traffic.
 
@@ -875,63 +878,18 @@ CRITICAL CONTEXT:
 - This page is shown BEFORE purchase.
 - The user already knows the product.
 - The goal is to CONFIRM the decision and REDUCE hesitation.
-- This is NOT a VSL, NOT a long-form advertorial, NOT a medical article.
-
-GUIDELINES (IMPORTANT, NOT OVERLY RESTRICTIVE):
-
-AVOID ONLY THE FOLLOWING:
-- Claiming to cure or treat diseases
-- Making explicit medical diagnoses
-- Mentioning doctors, prescriptions, or lab tests (e.g. PSA, blood work)
-- Making hard guarantees of results
-
-LANGUAGE FREEDOM:
-- You MAY describe how the product is intended to work in practical terms
-- You MAY explain ingredients and their commonly understood roles
-- You MAY use confident, persuasive language
-- You MAY highlight why the product stands out compared to generic alternatives
-
-PREFERRED PHRASING (WHEN POSSIBLE):
-- "designed to support"
-- "intended to help"
-- "many users report"
-- "commonly used to support"
-
-USER FEEDBACK / SOCIAL PROOF:
-- Testimonials can describe noticeable improvements
-- Avoid clinical measurements or medical validation
-- Avoid specific timelines (e.g. exact days or weeks)
-
-TONE & STYLE:
-- Confident
-- Direct
-- Persuasive
-- Clear
-- Not overly cautious
-- Not exaggerated or sensational
-
-STRUCTURE:
-- Decision-focused copy
-- Clear sections
-- No long storytelling
-- No educational lectures
-
-OUTPUT REQUIREMENTS (MANDATORY):
 
 Return ONLY valid JSON.
 
-Required keys (ALL are mandatory):
+Required keys:
 HEADLINE
 SUBHEADLINE
 INTRO
 WHY_IT_WORKS
 FORMULA_TEXT
-BENEFITS_LIST (as a comma-separated list of benefit statements)
+BENEFITS_LIST
 SOCIAL_PROOF
 GUARANTEE
-
-Do NOT include explanations, notes, or commentary.
-Do NOT include markdown.
 
 Language: ${language}`,
       `Product URL: ${productUrl}`
@@ -939,53 +897,79 @@ Language: ${language}`,
 
     console.log(`🤖 AI Response recebida com sucesso`);
 
-    /* ===== IMAGES ===== */
+    /* =========================
+       IMAGE — SAFE CHAIN (🔥 CRÍTICO)
+    ========================= */
     console.log(`🖼️ Extraindo imagem do produto...`);
+
     const productImageRaw = await resolveHeroProductImage(productUrl);
-    console.log(`🖼️ Imagem bruta: ${productImageRaw}`);
-    
-    const productImage = await validateImageUrl(productImageRaw);
-    console.log(`🖼️ Imagem validada: ${productImage}`);
+    const productImageValidated = await validateImageUrl(productImageRaw);
 
+    const FALLBACK_IMAGE =
+      "https://prodentim101.com/statics/img/introducting_prodentim.png";
+
+    const safeProductImage =
+      productImageValidated ||
+      productImageRaw ||
+      FALLBACK_IMAGE;
+
+    console.log("🧪 productUrl:", productUrl);
+    console.log("🧪 productImageRaw:", productImageRaw);
+    console.log("🧪 productImageValidated:", productImageValidated);
+    console.log("🧪 safeProductImage (FINAL):", safeProductImage);
+
+    /* =========================
+       INGREDIENT IMAGES
+    ========================= */
     const ingredientImages = await extractIngredientImages(productUrl);
-    console.log(`🧪 Imagens de ingredientes extraídas: ${ingredientImages ? 'Sim' : 'Não'}`);
+    console.log(
+      `🧪 Imagens de ingredientes:`,
+      ingredientImages ? "OK" : "NENHUMA"
+    );
 
-    /* ===== LOAD TEMPLATE ===== */
+    /* =========================
+       LOAD TEMPLATE
+    ========================= */
     let html = fs.readFileSync(templatePath, "utf8");
-    console.log(`📄 Template carregado (${html.length} caracteres)`);
+    console.log(`📄 Template carregado (${html.length} chars)`);
 
-    /* ===== APPLY AI TEXT ===== */
+    /* =========================
+       APPLY AI TEXT
+    ========================= */
     let replacements = 0;
     for (const [k, v] of Object.entries(ai)) {
       const placeholder = `{{${k}}}`;
       if (html.includes(placeholder)) {
         html = html.replaceAll(placeholder, v || "");
         replacements++;
-      } else {
-        console.warn(`⚠️ Placeholder ${placeholder} não encontrado no template`);
       }
     }
     console.log(`🔄 ${replacements} placeholders substituídos`);
 
-    /* ===== APPLY IMAGES & LINKS ===== */
+    /* =========================
+       APPLY IMAGES & LINKS (🔥 FINAL)
+    ========================= */
     html = html
       .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl || "")
-      .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
+      .replaceAll("{{PRODUCT_IMAGE}}", safeProductImage)
       .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
       .replaceAll("{{BONUS_IMAGES}}", "")
       .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
 
-    /* ===== GLOBAL PLACEHOLDERS ===== */
+    /* =========================
+       GLOBAL PLACEHOLDERS
+    ========================= */
     html = applyGlobals(html);
 
-    console.log(`✅ Review gerado com sucesso (${html.length} caracteres)`);
+    console.log(`✅ Review gerado com sucesso`);
     return html;
-    
+
   } catch (error) {
-    console.error(`🔥 Erro em generateBofuReview: ${error.message}`);
+    console.error(`🔥 Erro em generateBofuReview:`, error);
     throw error;
   }
 }
+
 
 /* =========================
    ROBUSTA
