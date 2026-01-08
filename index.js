@@ -406,6 +406,7 @@ function fixImageUrl(url) {
   fixed = fixed.replace(/\?v=\d+$/, ''); // Remove ?v=123
   fixed = fixed.replace(/\?version=\d+$/, ''); // Remove ?version=123
   fixed = fixed.replace(/\?t=\d+$/, ''); // Remove ?t=123
+  fixed = fixed.replace(/\?$/, ''); // Remove ? no final
   
   // CORREÇÃO CRÍTICA 3: Corrige caminhos com ../ repetidos
   fixed = fixed.replace(/(\.\.\/)+/g, '');
@@ -674,33 +675,39 @@ async function resolveHeroProductImage(productUrl) {
   console.log(`🔍 Resolvendo imagem para: ${productUrl}`);
   
   try {
-    // ETAPA 0: REGRA DE EMERGÊNCIA - VERIFICAR IMAGENS CONHECIDAS COM // DUPLO
+    // ETAPA 0: REGRA DE EMERGÊNCIA
     const baseDomain = new URL(productUrl).hostname;
     const domain = baseDomain.replace('www.', '');
     
-    // Lista de domínios conhecidos com problemas de // duplo
-    const problematicDomains = ['primebiome24.com', 'prodentim.com', 'primebiome.com'];
+    // 🔥 LISTA ATUALIZADA
+    const problematicDomains = [
+      'primebiome24.com', 'prodentim.com', 'primebiome.com',
+      'prostavive.org', 'prostavive.com'  // Domínios conhecidos
+    ];
     
     if (problematicDomains.some(d => domain.includes(d))) {
       console.log(`🚨 Domínio problemático detectado: ${domain}`);
       
+      // 🔥 URLs ATUALIZADAS COM NOVOS PADRÕES
       const possibleUrls = [
+        // Padrões antigos
         `https://${baseDomain}//statics/img/tsl-main.png`,
         `https://${baseDomain}/statics/img/tsl-main.png`,
-        `https://${baseDomain}//statics/img/introducting_prodentim.png`,
-        `https://${baseDomain}/statics/img/introducting_prodentim.png`,
-        `https://${baseDomain}//statics/img/product-home.png`,
-        `https://${baseDomain}/statics/img/product-home.png`
+        // Padrões novos
+        `https://${baseDomain}//home-assets/images/bottles.png`,
+        `https://${baseDomain}/home-assets/images/bottles.png`,
+        `https://${baseDomain}//assets/images/product-home.png`,
+        `https://${baseDomain}/assets/images/product-home.png`
       ];
       
       for (const url of possibleUrls) {
-        const correctedUrl = url.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+        const correctedUrl = fixImageUrl(url); // 🔥 Agora remove "?" também
         console.log(`🔍 Testando URL conhecida: ${correctedUrl}`);
         
         try {
           const isAccessible = await testImageAccessibility(correctedUrl);
           if (isAccessible) {
-            console.log(`✅ REGRA DE EMERGÊNCIA ATIVADA: Imagem encontrada via teste direto`);
+            console.log(`✅ REGRA DE EMERGÊNCIA ATIVADA: ${correctedUrl}`);
             return correctedUrl;
           }
         } catch (e) {
