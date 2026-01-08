@@ -986,9 +986,17 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA - COM CORREÇÕES
+   ROBUSTA — FINAL (ALINHADA COM REVIEW)
 ========================= */
-async function generateRobusta({ templatePath, affiliateUrl, productUrl, language = "en" }) {
+async function generateRobusta({
+  templatePath,
+  affiliateUrl,
+  productUrl,
+  language = "en",
+}) {
+  console.log(`🎯 generateRobusta chamado para: ${productUrl}`);
+
+  /* ===== AI COPY ===== */
   const ai = await callDeepSeekWithRetry(
     `Return ONLY valid JSON.
 
@@ -1031,77 +1039,66 @@ TESTIMONIAL_TITLE
 TESTIMONIAL_NOTICE_TEXT
 TESTIMONIAL_CTA_TEXT
 
-FORMULA SECTION GUIDELINES (CRITICAL):
-- The formula section must be written at a structural level, not ingredient-by-ingredient
-- Do NOT list, name, or assume specific ingredients unless explicitly stated on the official website
-- Describe the formula as a multi-component or blended formulation when appropriate
-- Focus on formulation intent, balance, and overall structure rather than individual components
-- Avoid health claims, effectiveness statements, or medical outcomes
-- Use calm, neutral, pre-purchase confirmation language
-- The purpose of this section is to reinforce legitimacy and formulation coherence, not to educate
-
-IMPORTANT — TESTIMONIAL SECTION:
-- Do NOT invent testimonials
-- Do NOT describe individual users
-- Do NOT include names, quotes, or personal stories
-- Do NOT claim specific results
-
-The testimonial section must clearly state that:
-- real customer testimonials are available on the official website
-- this page does not reproduce or modify user feedback
-- the goal is transparency and authenticity
-
-Use neutral, compliance-safe language.
-
 Output ONLY valid JSON.`,
     `Product URL: ${productUrl}`
   );
 
- /* ===== IMAGES ===== */
-const productImageRaw = await resolveHeroProductImage(productUrl);
-const productImage = await validateImageUrl(productImageRaw);
+  /* =========================
+     IMAGENS — PIPELINE IGUAL AO REVIEW
+  ========================= */
+  console.log("🖼️ Robusta — extraindo imagem do produto");
+  const productImageRaw = await resolveHeroProductImage(productUrl);
+  console.log("🖼️ Robusta — imagem bruta:", productImageRaw);
 
-const ingredientImages = await extractIngredientImages(productUrl);
-const bonusImages = await extractBonusImages(productUrl);
-const guaranteeImage = await extractGuaranteeImage(productUrl);
+  const productImage = await validateImageUrl(productImageRaw);
+  console.log("🖼️ Robusta — imagem validada:", productImage);
 
+  const ingredientImages = await extractIngredientImages(productUrl);
+  const bonusImages = await extractBonusImages(productUrl);
+  const guaranteeImage = await extractGuaranteeImage(productUrl);
 
-  /* ===== TESTIMONIAL FALLBACK (MULTI-LANGUAGE) ===== */
+  /* =========================
+     TESTIMONIAL FALLBACK
+  ========================= */
   const testimonialFallback = {
     en: {
       title: "What customers are saying",
       text:
         "Real customer testimonials are available directly on the official website. " +
-        "To preserve authenticity and accuracy, this page does not reproduce or modify individual user feedback.",
+        "This page does not reproduce or modify individual user feedback.",
       cta: "View real testimonials on the official site",
     },
     pt: {
       title: "O que clientes reais dizem",
       text:
-        "Depoimentos reais de clientes estão disponíveis diretamente no site oficial. " +
-        "Para preservar a autenticidade, esta página não reproduz nem modifica avaliações individuais.",
+        "Depoimentos reais estão disponíveis no site oficial. " +
+        "Esta página não reproduz nem modifica avaliações individuais.",
       cta: "Ver depoimentos no site oficial",
     },
     es: {
       title: "Lo que dicen los clientes",
       text:
-        "Los testimonios reales de clientes estão disponibles directamente en el sitio oficial. " +
-        "Para preservar la autenticidad, esta página não reproduce ni modifica opiniones individuales.",
+        "Los testimonios reales están disponibles en el sitio oficial. " +
+        "Esta página no reproduce ni modifica opiniones individuales.",
       cta: "Ver testimonios en el sitio oficial",
     },
     fr: {
       title: "Ce que disent les clients",
       text:
-        "Les témoignages réels de clients sont disponibles directamente sur le site oficial. " +
-        "Afin de préserver l’authenticité, esta página ne reproduit ni ne modifie les avis individuels.",
-      cta: "Voir les témoignages sur le site oficial",
+        "Les témoignages réels sont disponibles sur le site officiel. " +
+        "Cette page ne reproduit ni ne modifie les avis individuels.",
+      cta: "Voir les témoignages sur le site officiel",
     },
   };
 
-  /* ===== LOAD TEMPLATE ===== */
+  /* =========================
+     LOAD TEMPLATE
+  ========================= */
   let html = fs.readFileSync(templatePath, "utf8");
 
-  /* ===== FIXED STRINGS ===== */
+  /* =========================
+     FIXED STRINGS
+  ========================= */
   const fixed = {
     SITE_BRAND: "Buyer Guide",
     UPDATED_DATE: new Date().toISOString().split("T")[0],
@@ -1118,33 +1115,49 @@ const guaranteeImage = await extractGuaranteeImage(productUrl);
     FOOTER_DISCLAIMER: "This content is informational only.",
   };
 
-  /* ===== APPLY AI + FIXED COPY ===== */
+  /* =========================
+     APPLY COPY (AI + FIXED)
+  ========================= */
   for (const [k, v] of Object.entries({ ...fixed, ...ai })) {
     html = html.replaceAll(`{{${k}}}`, v || "");
   }
 
-  /* ===== APPLY IMAGES ===== */
+  /* =========================
+     APPLY IMAGES & LINKS
+  ========================= */
   html = html
-    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
+    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl || "")
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
     .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "");
 
-  /* ===== APPLY TESTIMONIAL TEXT (AI + FALLBACK) ===== */
+  /* =========================
+     APPLY TESTIMONIAL FALLBACK
+  ========================= */
   const lang = (language || "en").toLowerCase();
   const t = testimonialFallback[lang] || testimonialFallback.en;
 
   html = html
     .replaceAll("{{TESTIMONIAL_TITLE}}", ai.TESTIMONIAL_TITLE || t.title)
-    .replaceAll("{{TESTIMONIAL_NOTICE_TEXT}}", ai.TESTIMONIAL_NOTICE_TEXT || t.text)
-    .replaceAll("{{TESTIMONIAL_CTA_TEXT}}", ai.TESTIMONIAL_CTA_TEXT || t.cta);
+    .replaceAll(
+      "{{TESTIMONIAL_NOTICE_TEXT}}",
+      ai.TESTIMONIAL_NOTICE_TEXT || t.text
+    )
+    .replaceAll(
+      "{{TESTIMONIAL_CTA_TEXT}}",
+      ai.TESTIMONIAL_CTA_TEXT || t.cta
+    );
 
-  /* ===== GLOBAL PLACEHOLDERS ===== */
+  /* =========================
+     GLOBAL PLACEHOLDERS
+  ========================= */
   html = applyGlobals(html);
 
+  console.log("✅ Robusta gerada com sucesso");
   return html;
 }
+
 
 /* =========================
    GENERATE
