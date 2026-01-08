@@ -228,63 +228,62 @@ function cleanHandlebarsSyntax(html) {
 }
 
 /* =========================
-   CLEAN TEMPLATE HELPER
+   FIX HTML STRUCTURE
 ========================= */
-function cleanTemplateAfterReplacements(html) {
-  console.log('🧹 Iniciando limpeza pós-substituições...');
+function fixHtmlStructure(html) {
+  console.log('🔧 Corrigindo estrutura HTML...');
   
-  // 1. REMOVER IMAGENS COM src="" ou src vazio
-  html = html.replace(/<img[^>]*src=["']{2}[^>]*>/g, '');
-  html = html.replace(/<img[^>]*src=["']\s+["'][^>]*>/g, '');
+  // CORREÇÃO 1: Fechar divs abertas corretamente
+  const divCount = (html.match(/<div[^>]*>/g) || []).length;
+  const closeDivCount = (html.match(/<\/div>/g) || []).length;
   
-  // 2. REMOVER DIVS COM class="bonus-grid" vazias
-  html = html.replace(/<div class="bonus-grid">\s*<\/div>/g, '');
-  
-  // 3. CORRIGIR DIVS DUPLICADAS EM BÔNUS
-  html = html.replace(/<div class="bonus-grid">\s*<div class="bonus-grid">/g, '<div class="bonus-grid">');
-  html = html.replace(/<\/div>\s*<\/div>\s*<\/section>/g, '</div></section>');
-  
-  // 4. REMOVER SEÇÕES COM APENAS TÍTULO (sem conteúdo real)
-  const sectionRegex = /<section[^>]*class="[^"]*auto-hide-section[^"]*"[^>]*>([\s\S]*?)<\/section>/g;
-  html = html.replace(sectionRegex, (match, content) => {
-    // Verifica se tem conteúdo além do título
-    const hasRealContent = content.match(/<(img|div|p|a)[^>]*>/);
-    const hasTitleOnly = content.match(/<h2[^>]*>.*?<\/h2>/);
-    
-    if (hasTitleOnly && !hasRealContent) {
-      console.log('🗑️ Removendo seção vazia');
-      return ''; // Remove a seção inteira
+  if (divCount > closeDivCount) {
+    console.log(`   ⚠️ Divs desbalanceadas: ${divCount} abertas, ${closeDivCount} fechadas`);
+    // Adicionar divs faltantes
+    for (let i = 0; i < divCount - closeDivCount; i++) {
+      html += '</div>';
     }
-    return match;
-  });
+  }
   
-  // 5. REMOVER ELEMENTOS hide-if-empty vazios
-  const hideIfEmptyRegex = /<(div|section)[^>]*class="[^"]*hide-if-empty[^"]*"[^>]*>([\s\S]*?)<\/\1>/g;
-  html = html.replace(hideIfEmptyRegex, (match, tag, content) => {
-    const hasContent = content.trim().length > 0 && 
-                      !content.match(/^\s*$/);
-    return hasContent ? match : '';
-  });
+  // CORREÇÃO 2: Fechar sections abertas corretamente
+  const sectionCount = (html.match(/<section[^>]*>/g) || []).length;
+  const closeSectionCount = (html.match(/<\/section>/g) || []).length;
   
-  // 6. REMOVER CLASSES auto-hide-section VAZIAS
-  html = html.replace(/<section[^>]*>\s*<h2[^>]*>.*?<\/h2>\s*<\/section>/g, '');
+  if (sectionCount > closeSectionCount) {
+    console.log(`   ⚠️ Sections desbalanceadas: ${sectionCount} abertas, ${closeSectionCount} fechadas`);
+    for (let i = 0; i < sectionCount - closeSectionCount; i++) {
+      html += '</section>';
+    }
+  }
   
-  // 7. REMOVER IMAGENS PROBLEMÁTICAS
-  const badPatterns = [
-    'facebook.com/tr?id=',
-    'google-analytics',
-    '/pixel.',
-    'tracking',
-    'analytics'
-  ];
+  // CORREÇÃO 3: Remover fechamentos duplos errados
+  html = html.replace(/<\/div><\/section><\/section>/g, '</div></section>');
+  html = html.replace(/<\/div><\/section>/g, '</div></section>');
   
-  badPatterns.forEach(pattern => {
-    const regex = new RegExp(`<img[^>]*src=["'][^"']*${pattern}[^"']*["'][^>]*>`, 'gi');
-    html = html.replace(regex, '');
-  });
+  // CORREÇÃO 4: Garantir que cada section tenha conteúdo estruturado
+  const sectionRegex = /<section[^>]*>([\s\S]*?)<\/section>/g;
+  let match;
+  let lastIndex = 0;
+  let result = '';
   
-  console.log('✅ Limpeza concluída');
-  return html;
+  while ((match = sectionRegex.exec(html)) !== null) {
+    const sectionContent = match[1];
+    
+    // Verificar se a section tem estrutura correta
+    if (!sectionContent.includes('</div>') && sectionContent.includes('<div')) {
+      console.log('   🔧 Corrigindo section com div não fechada');
+      const fixedSection = match[0].replace(/<\/section>/, '</div></section>');
+      result += html.substring(lastIndex, match.index) + fixedSection;
+    } else {
+      result += html.substring(lastIndex, match.index + match[0].length);
+    }
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  result += html.substring(lastIndex);
+  
+  return result;
 }
 
 /* =========================
@@ -300,6 +299,10 @@ function safeReplace(html, placeholder, value) {
       const imgRegex = new RegExp(`<img[^>]*\\{\\{${placeholder.replace('{{', '').replace('}}', '')}\\}\\}[^>]*>`, 'gi');
       html = html.replace(imgRegex, '');
       console.log(`   🗑️ Removida tag img vazia para: ${placeholder}`);
+      
+      // Também remove o container se estiver vazio
+      const containerRegex = new RegExp(`<div[^>]*>\\s*<img[^>]*\\{\\{${placeholder.replace('{{', '').replace('}}', '')}\\}\\}[^>]*>\\s*</div>`, 'gi');
+      html = html.replace(containerRegex, '');
     }
     
     // Remover placeholder vazio
@@ -317,6 +320,54 @@ function safeReplace(html, placeholder, value) {
   
   // Aplicar substituição normal
   return html.replaceAll(placeholder, value);
+}
+
+/* =========================
+   CLEAN TEMPLATE HELPER
+========================= */
+function cleanTemplateAfterReplacements(html) {
+  console.log('🧹 Iniciando limpeza pós-substituições...');
+  
+  // ETAPA 1: Remover elementos vazios sem quebrar estrutura
+  const emptyElements = [
+    /<div class="ingredient-grid">\s*<\/div>/g,
+    /<div class="bonus-grid">\s*<\/div>/g,
+    /<div class="row gy-4 hide-if-empty">\s*<\/div>/g,
+    /<div class="col-md-6">\s*<\/div>/g,
+    /<div class="col-lg-6 text-center hide-if-empty">\s*<\/div>/g,
+    /<div[^>]*>\s*<\/div>/g
+  ];
+  
+  emptyElements.forEach(regex => {
+    const before = html.length;
+    html = html.replace(regex, '');
+    if (html.length !== before) {
+      console.log(`   🗑️ Removidos elementos vazios`);
+    }
+  });
+  
+  // ETAPA 2: Remover imagens com src vazio
+  html = html.replace(/<img[^>]*src=["']\s*["'][^>]*>/g, '');
+  html = html.replace(/<img[^>]*src=["']{2}[^>]*>/g, '');
+  
+  // ETAPA 3: Remover sections vazias (apenas título)
+  const sections = html.match(/<section[^>]*>([\s\S]*?)<\/section>/g) || [];
+  sections.forEach(section => {
+    const content = section.replace(/<h2[^>]*>.*?<\/h2>/g, '').trim();
+    if (content.length < 50 && !content.includes('<img') && !content.includes('<div')) {
+      console.log('   🗑️ Removendo section vazia');
+      html = html.replace(section, '');
+    }
+  });
+  
+  // ETAPA 4: Remover placeholders restantes
+  html = html.replace(/\{\{[^}]*\}\}/g, '');
+  
+  // ETAPA 5: Corrigir estrutura HTML
+  html = fixHtmlStructure(html);
+  
+  console.log('✅ Limpeza concluída');
+  return html;
 }
 
 /* =========================
@@ -1144,7 +1195,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW - COMPLETAMENTE REFAZIDA
+   BOFU REVIEW - COM ESTRUTURA GARANTIDA
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -1153,60 +1204,36 @@ async function generateBofuReview({
   language,
 }) {
   console.log(`🎯 generateBofuReview chamado para: ${productUrl}`);
-  console.log(`📁 Template: ${templatePath}`);
   
   try {
     // 1. CARREGAR TEMPLATE
     let html = fs.readFileSync(templatePath, "utf8");
     console.log(`📄 Template carregado (${html.length} chars)`);
 
-    // 2. DETECTAR PLACEHOLDERS NECESSÁRIOS
+    // 2. DETECTAR PLACEHOLDERS
     const needs = {
       productImage: html.includes('{{PRODUCT_IMAGE}}'),
       ingredientImages: html.includes('{{INGREDIENT_IMAGES}}'),
       testimonialImages: html.includes('{{TESTIMONIAL_IMAGES}}'),
       bonusImages: html.includes('{{BONUS_IMAGES}}'),
       guaranteeImage: html.includes('{{GUARANTEE_IMAGE}}'),
-      guaranteeText: html.includes('{{GUARANTEE}}')
     };
 
     // 3. GERAR CONTEÚDO AI
-    let systemPrompt = `You are generating copy for a BOFU review page used primarily with Google Search traffic.
+    const ai = await callDeepSeekWithRetry(
+      `You are generating copy for a BOFU review page.
+       Return ONLY valid JSON with these keys as strings:
+       HEADLINE, SUBHEADLINE, INTRO, WHY_IT_WORKS, FORMULA_TEXT, 
+       BENEFITS_LIST (6 comma-separated benefits), 
+       SOCIAL_PROOF, GUARANTEE
+       
+       Language: ${language}`,
+      `Product URL: ${productUrl}`
+    );
 
-CRITICAL CONTEXT:
-- This page is shown BEFORE purchase.
-- The user already knows the product.
-- The goal is to CONFIRM the decision and REDUCE hesitation.
-
-Return ONLY valid JSON.`;
-
-    const additionalInstructions = [];
-
-    // Adicionar instruções baseadas no template
-    additionalInstructions.push(`BENEFITS_LIST: Return exactly 6 benefits as comma-separated list. Each benefit should be 2-4 words maximum. Include relevant emojis where appropriate.`);
-
-    if (additionalInstructions.length > 0) {
-      systemPrompt += `\n\nTEMPLATE-SPECIFIC INSTRUCTIONS:\n${additionalInstructions.join('\n')}`;
-    }
-
-    const requiredKeys = [
-      'HEADLINE',
-      'SUBHEADLINE', 
-      'INTRO',
-      'WHY_IT_WORKS',
-      'FORMULA_TEXT',
-      'BENEFITS_LIST',
-      'SOCIAL_PROOF',
-      'GUARANTEE'
-    ].filter(Boolean);
-
-    systemPrompt += `\n\nRequired keys (return ALL as strings):\n${requiredKeys.join('\n')}`;
-    systemPrompt += `\n\nLanguage: ${language}`;
-
-    const ai = await callDeepSeekWithRetry(systemPrompt, `Product URL: ${productUrl}`);
     console.log(`🤖 AI Response recebida`);
 
-    // 4. FORMATAR BENEFITS_LIST
+    // 4. FORMATAR BENEFÍCIOS
     if (ai.BENEFITS_LIST) {
       const benefits = String(ai.BENEFITS_LIST)
         .split(",")
@@ -1219,50 +1246,45 @@ Return ONLY valid JSON.`;
       ai.BENEFITS_LIST = benefits.map((benefit, index) => {
         const parts = benefit.split(':');
         const title = parts[0]?.trim() || `Benefit ${index + 1}`;
-        const description = parts[1]?.trim() || `Improves ${title.toLowerCase()} effectively.`;
+        const desc = parts[1]?.trim() || `Improves ${title.toLowerCase()} effectively.`;
         
         return `
 <div class="col">
   <div class="card card-universal h-100 text-center p-3">
     <div class="card-icon mb-2 fs-2">${emojis[index] || '✅'}</div>
     <h5 class="card-title">${title}</h5>
-    <p class="card-text">${description}</p>
+    <p class="card-text">${desc}</p>
   </div>
 </div>`;
       }).join("\n");
     }
 
-    // 5. EXTRAIR IMAGENS (APENAS SE NECESSÁRIO)
+    // 5. EXTRAIR IMAGENS
     const images = {};
     
     if (needs.productImage) {
       console.log(`🖼️ Extraindo imagem do produto...`);
       images.productImage = await resolveHeroProductImage(productUrl);
-      console.log(`   ${images.productImage ? '✅ Encontrada' : '❌ Não encontrada'}`);
     }
     
     if (needs.ingredientImages) {
       console.log(`🧪 Extraindo imagens de ingredientes...`);
       images.ingredientImages = await extractIngredientImages(productUrl);
-      console.log(`   ${images.ingredientImages ? '✅ Encontradas' : '❌ Não encontradas'}`);
     }
     
     if (needs.testimonialImages) {
       console.log(`🌟 Extraindo imagens de depoimentos...`);
       images.testimonialImages = await extractTestimonialImages(productUrl);
-      console.log(`   ${images.testimonialImages ? '✅ Encontradas' : '❌ Não encontradas'}`);
     }
     
     if (needs.bonusImages) {
       console.log(`🎁 Extraindo imagens de bônus...`);
       images.bonusImages = await extractBonusImages(productUrl);
-      console.log(`   ${images.bonusImages ? '✅ Encontradas' : '❌ Não encontradas'}`);
     }
     
     if (needs.guaranteeImage) {
       console.log(`💰 Extraindo imagem de garantia...`);
       images.guaranteeImage = await extractGuaranteeImage(productUrl);
-      console.log(`   ${images.guaranteeImage ? '✅ Encontrada' : '❌ Não encontrada'}`);
     }
 
     // 6. APLICAR SUBSTITUIÇÕES COM SEGURANÇA
@@ -1293,21 +1315,34 @@ Return ONLY valid JSON.`;
     // 8. APLICAR PLACEHOLDERS GLOBAIS
     html = applyGlobals(html);
     
-    // 9. LIMPEZA FINAL INTELIGENTE
+    // 9. GARANTIR IMAGEM DE GARANTIA CORRETA
+    if (images.guaranteeImage) {
+      const correctImg = `<img src="${images.guaranteeImage}" alt="Guarantee Badge" class="guarantee-badge mb-4">`;
+      html = html.replace(/{{GUARANTEE_IMAGE}}/g, correctImg);
+      
+      // Também corrigir qualquer tag img quebrada
+      const brokenImgRegex = /<img[^>]*class="guarantee-badge"[^>]*>/g;
+      if (html.match(brokenImgRegex)) {
+        html = html.replace(brokenImgRegex, correctImg);
+      }
+    }
+    
+    // 10. LIMPEZA FINAL INTELIGENTE
     html = cleanTemplateAfterReplacements(html);
     
-    // 10. GARANTIR QUE IMAGENS DE GARANTIA TENHAM HTML CORRETO
-    if (images.guaranteeImage) {
-      // Substituir qualquer img com class guarantee-badge pela correta
-      const guaranteeImgRegex = /<img[^>]*class="guarantee-badge"[^>]*>/g;
-      const correctGuaranteeImg = `<img src="${images.guaranteeImage}" alt="Guarantee Badge" class="guarantee-badge mb-4">`;
-      
-      if (html.match(guaranteeImgRegex)) {
-        html = html.replace(guaranteeImgRegex, correctGuaranteeImg);
-      } else {
-        // Se não encontrou a tag, inserir no lugar do placeholder
-        html = html.replace('{{GUARANTEE_IMAGE}}', correctGuaranteeImg);
-      }
+    // 11. VERIFICAÇÃO FINAL DE ESTRUTURA
+    console.log(`📏 Verificando estrutura final...`);
+    const openDivs = (html.match(/<div[^>]*>/g) || []).length;
+    const closeDivs = (html.match(/<\/div>/g) || []).length;
+    const openSections = (html.match(/<section[^>]*>/g) || []).length;
+    const closeSections = (html.match(/<\/section>/g) || []).length;
+    
+    console.log(`   Divs: ${openDivs} abertas, ${closeDivs} fechadas`);
+    console.log(`   Sections: ${openSections} abertas, ${closeSections} fechadas`);
+    
+    if (openDivs !== closeDivs || openSections !== closeSections) {
+      console.log(`   ⚠️ Estrutura desbalanceada, aplicando correção...`);
+      html = fixHtmlStructure(html);
     }
     
     console.log(`✅ Review gerado (${html.length} chars)`);
@@ -1315,7 +1350,7 @@ Return ONLY valid JSON.`;
 
   } catch (error) {
     console.error(`🔥 Erro em generateBofuReview:`, error);
-    return `<html><body><h1>Error generating page</h1><p>${error.message}</p><a href="${affiliateUrl}">Visit Official Site</a></body></html>`;
+    return `<html><body><h1>Error</h1><p>${error.message}</p><a href="${affiliateUrl}">Visit Site</a></body></html>`;
   }
 }
 
