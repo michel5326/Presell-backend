@@ -204,6 +204,12 @@ display: none !important;
 display: none !important;
 }
 
+/* --- EXCEÇÃO PARA IMAGEM DO PRODUTO (NOVA REGRA) --- */
+.product-img-container,
+.col-lg-6.text-center.hide-if-empty:has(img.product-img) {
+display: block !important;
+}
+
 /* RESPONSIVIDADE */
 @media (max-width: 768px) {
 .section-header {
@@ -262,7 +268,8 @@ max-width: 100%;
 </div>
 </div>
 
-<div class="col-lg-6 text-center hide-if-empty">
+<!-- CONTAINER DA IMAGEM COM CLASSE ESPECIAL -->
+<div class="col-lg-6 text-center product-img-container">
 <!-- IMAGEM DO PRODUTO -->
 {{#PRODUCT_IMAGE}}
 <img src="{{PRODUCT_IMAGE}}" alt="Product Image" class="product-img img-fluid">
@@ -444,7 +451,7 @@ console.log('CTA clicked - Product: {{HEADLINE}}');
 });
 });
 
-// 🔥 FUNÇÃO PARA OCULTAR ELEMENTOS VAZIOS
+// 🔥 FUNÇÃO CORRIGIDA PARA OCULTAR ELEMENTOS VAZIOS
 function hideEmptyOrProblematicElements() {
 console.log('🔍 Iniciando limpeza de elementos...');
             
@@ -470,12 +477,17 @@ problematicImages.forEach(img => {
 img.style.display = 'none';
 img.style.opacity = '0';
 img.style.visibility = 'hidden';
-img.style.position = 'absolute';
 img.parentNode?.removeChild(img);
 });
             
-// 3. Verificar seções vazias
+// 3. Verificar seções vazias (IGNORAR SEÇÃO DA IMAGEM DO PRODUTO)
 document.querySelectorAll('section.auto-hide-section').forEach(section => {
+// Pular a seção do herói (onde está a imagem do produto)
+if (section.querySelector('.product-img')) {
+console.log('✅ Mantendo seção com imagem do produto');
+return;
+}
+                    
 const hasContent = Array.from(section.children).some(child => {
 // Ignora cabeçalhos e HR
 if (child.tagName === 'H2' || 
@@ -504,17 +516,34 @@ section.style.overflow = 'hidden';
 }
 });
             
-// 4. Verificar divs com hide-if-empty
+// 4. Verificar divs com hide-if-empty (CORREÇÃO CRÍTICA)
 document.querySelectorAll('.hide-if-empty').forEach(element => {
+// NUNCA ocultar o container da imagem do produto
+if (element.classList.contains('product-img-container') || element.querySelector('.product-img')) {
+console.log('✅ Mantendo container da imagem do produto');
+element.style.display = 'block';
+return;
+}
+                    
 if (!element.hasChildNodes() || 
 (element.children.length === 0 && element.textContent.trim() === '')) {
 element.style.display = 'none';
 } else {
-// Verifica se todos os filhos estão vazios
-const allChildrenEmpty = Array.from(element.children).every(child => 
-child.textContent.trim() === '' && 
-!child.querySelector('img, .card, .btn')
-);
+// Verifica se todos os filhos estão vazios (CORREÇÃO DA LÓGICA)
+const allChildrenEmpty = Array.from(element.children).every(child => {
+// Se for uma imagem, NÃO está vazio
+if (child.tagName === 'IMG') {
+return false;
+}
+                            
+// Se contém uma imagem, card ou botão, NÃO está vazio
+if (child.querySelector('img, .card-universal, .btn-universal')) {
+return false;
+}
+                            
+// Verifica conteúdo de texto
+return !child.textContent || child.textContent.trim() === '';
+});
                         
 if (allChildrenEmpty) {
 element.style.display = 'none';
@@ -525,7 +554,7 @@ element.style.display = 'none';
 // 5. Limpar bônus inválidos
 document.querySelectorAll('.bonus-img').forEach(img => {
 if (img.src.includes('facebook.com/tr?id=') || 
-img.src.includes('breatheagain.io') && !img.src.includes('bottle')) {
+(img.src.includes('breatheagain.io') && !img.src.includes('bottle'))) {
 const parent = img.parentElement;
 img.style.display = 'none';
 img.remove();
@@ -544,11 +573,34 @@ section.style.display = 'none';
 console.log('✅ Limpeza concluída:', problematicImages.length, 'elementos removidos');
 }
             
-// Executar após carregamento e depois de um pequeno delay
-setTimeout(hideEmptyOrProblematicElements, 300);
+// 6. GARANTIR QUE A IMAGEM DO PRODUTO SEMPRE SEJA EXIBIDA
+function ensureProductImageVisible() {
+const productImage = document.querySelector('.product-img');
+const productContainer = document.querySelector('.product-img-container, .col-lg-6.text-center');
+                
+if (productImage && productContainer) {
+console.log('👁️ Garantindo visibilidade da imagem do produto');
+productContainer.style.display = 'block';
+productContainer.style.visibility = 'visible';
+productContainer.style.opacity = '1';
+productContainer.style.height = 'auto';
+                    
+// Remover classes que podem estar ocultando
+productContainer.classList.remove('hide-if-empty');
+}
+}
+            
+// Executar após carregamento
+setTimeout(() => {
+ensureProductImageVisible();
+hideEmptyOrProblematicElements();
+}, 300);
             
 // Também executar quando todas as imagens carregarem
-window.addEventListener('load', hideEmptyOrProblematicElements);
+window.addEventListener('load', () => {
+ensureProductImageVisible();
+hideEmptyOrProblematicElements();
+});
 });
 </script>
 </body>
