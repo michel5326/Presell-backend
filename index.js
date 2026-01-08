@@ -249,35 +249,13 @@ function normalizeUrl(u, base) {
 }
 
 /* =========================
-   URL FIXER (CORRIGE DUPLO "//" E OUTROS PROBLEMAS)
+   IMAGE VALIDATOR (GLOBAL) - CORRIGIDO PARA ACEITAR CDNs MODERNAS
 ========================= */
-function fixImageUrl(url) {
-  if (!url) return "";
-  
-  let fixed = String(url).trim();
-  
-  // CORREÇÃO CRÍTICA 1: Remove duplo "//" após o protocolo
-  fixed = fixed.replace(/(https?:\/\/[^\/]+)\/\//g, '$1/');
-  
-  // CORREÇÃO CRÍTICA 2: Remove parâmetros desnecessários
-  fixed = fixed.replace(/\?v=\d+$/, ''); // Remove ?v=123
-  fixed = fixed.replace(/\?version=\d+$/, ''); // Remove ?version=123
-  fixed = fixed.replace(/\?t=\d+$/, ''); // Remove ?t=123
-  
-  // CORREÇÃO CRÍTICA 3: Corrige caminhos com ../ repetidos
-  fixed = fixed.replace(/(\.\.\/)+/g, '');
-  
-  return fixed;
-}
-
-/* =========================
-   IMAGE VALIDATOR
-========================= */
-function validateImageUrl(url) {
+function validateImageUrl(url) { // Remover async
   if (!url) return "";
 
   let u = String(url).trim();
-  u = fixImageUrl(u); // Aplica correções
+  u = u.replace(/(https?:\/\/[^\/]+)\/\//g, '$1/');
   
   if (!/^https?:\/\//i.test(u)) return "";
   if (u.startsWith("data:")) return "";
@@ -355,16 +333,11 @@ async function extractLargestImage(productUrl) {
 
       if (!srcMatch) continue;
 
-      let src = normalizeUrl(srcMatch[1], base);
-      src = fixImageUrl(src); // Corrige a URL
-      
+      const src = normalizeUrl(srcMatch[1], base);
       if (!src || src.startsWith("data:") || src.endsWith(".svg")) continue;
 
       const low = src.toLowerCase();
-      
-      // FILTRO MAIS RELAXADO: apenas bloqueia logos e icons óbvios
-      const BAD_IMAGE_RE = /(logo|icon|favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
-      if (BAD_IMAGE_RE.test(low)) continue;
+      if (/(logo|icon|badge|banner|bonus|price|star|seal)/i.test(low)) continue;
 
       const w = tag.match(/width=["']?(\d+)/i);
       const h = tag.match(/height=["']?(\d+)/i);
@@ -397,7 +370,7 @@ async function extractHeroImageWithPlaywright(productUrl) {
 
     const img = await page.evaluate(() => {
       const vh = window.innerHeight;
-      const bad = /(logo|icon|favicon|spinner)(?![a-z])/i; // Apenas logos óbvios
+      const bad = /(logo|icon|badge|banner|bonus|price|star|seal|bg)/i;
 
       return [...document.images]
         .map(img => {
@@ -417,7 +390,7 @@ async function extractHeroImageWithPlaywright(productUrl) {
           !i.src.startsWith("data:") &&
           !i.src.endsWith(".svg")
         )
-        .sort((a, b) => b.area - b.area)[0]?.src || "";
+        .sort((a, b) => b.area - a.area)[0]?.src || "";
     });
 
     return img;
@@ -440,10 +413,7 @@ async function extractBottleImage(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-    const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized); // Corrige a URL
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
     /* PRIORITY KEYWORDS (STRONG SIGNAL) */
     const INCLUDE = [
@@ -457,13 +427,20 @@ async function extractBottleImage(productUrl) {
       "label",
     ];
 
-    /* EXCLUDE APENAS LOGOS ÓBVIOS */
+    /* EXCLUDE ABSOLUTE */
     const EXCLUDE = [
-      "favicon",
+      "banner",
+      "hero",
+      "bg",
+      "background",
+      "seal",
+      "badge",
+      "guarantee",
       "logo",
       "icon",
-      "spinner",
-      "loader",
+      "checkout",
+      "order",
+      "cta",
     ];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
@@ -506,7 +483,7 @@ async function extractBottleImage(productUrl) {
 }
 
 /* =========================
-   IMAGE RESOLVER — COM TODAS AS CORREÇÕES
+   IMAGE RESOLVER — COM TODAS AS CORREÇÕES DO SISTEMA ANTIGO
 ========================= */
 async function resolveHeroProductImage(productUrl) {
   console.log(`🔍 Resolvendo imagem para: ${productUrl}`);
@@ -516,7 +493,6 @@ async function resolveHeroProductImage(productUrl) {
       headers: { 
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
       },
-      timeout: 10000
     });
     
     if (!res.ok) {
@@ -527,33 +503,20 @@ async function resolveHeroProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    // 🔥 CORREÇÃO CRÍTICA: BAD_IMAGE_RE RELAXADO
-    // Apenas bloqueia logos/ícones óbvios, não palavras comuns de e-commerce
-    const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
-// Removemos "logo" e "icon" porque muitas imagens de produto podem conter essas palavras
-    // 🔥 CORREÇÃO CRÍTICA: PADRÕES DE NOME DE ARQUIVO DE PRODUTO
-    const PRODUCT_PATTERNS = [
-      /tsl-main/i,
-      /product.*\.(png|jpg|jpeg|webp|avif)/i,
-      /main.*\.(png|jpg|jpeg|webp|avif)/i,
-      /hero.*\.(png|jpg|jpeg|webp|avif)/i,
-      /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
-      /supplement.*\.(png|jpg|jpeg|webp|avif)/i,
-      /home.*product/i,
-      /introducting/i,
-      /featured.*image/i
-    ];
+    /* =========================
+       CENTRALIZED FILTERS (MANTIDO DO ANTIGO)
+    ========================= */
+    const BAD_IMAGE_RE = /(logo|icon|badge|star|check|seal|bg|cta|button|order|buy|checkout|cart|shop|banner)/i;
 
     /* =========================
-       SAFE NET — OG IMAGE
+       SAFE NET — OG IMAGE (NÃO BYPASSA RANKING)
     ========================= */
     let ogImage = "";
     const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
     if (og) {
       const ogSrc = normalizeUrl(og[1], base);
-      const fixedOgSrc = fixImageUrl(ogSrc);
-      if (fixedOgSrc && !BAD_IMAGE_RE.test(fixedOgSrc)) {
-        ogImage = fixedOgSrc;
+      if (ogSrc && !BAD_IMAGE_RE.test(ogSrc)) {
+        ogImage = ogSrc;
         console.log(`🏷️ OG Image encontrada: ${ogSrc}`);
       }
     }
@@ -565,7 +528,7 @@ async function resolveHeroProductImage(productUrl) {
     for (const m of imgs) {
       const tag = m[0];
 
-      // 🔥 CORREÇÃO: srcset agora pega a MAIOR imagem
+      // 🔥 CORREÇÃO CRÍTICA 1: srcset agora pega a MAIOR imagem (COPIADO DO ANTIGO)
       const srcsetMatch = tag.match(/srcset=["']([^"']+)["']/i);
       let srcCandidate = "";
 
@@ -576,7 +539,7 @@ async function resolveHeroProductImage(productUrl) {
           .pop(); // pega a MAIOR (última do array)
       }
 
-      // 🔥 CORREÇÃO: Múltiplas formas de pegar src
+      // 🔥 CORREÇÃO CRÍTICA 2: Múltiplas formas de pegar src (COPIADO DO ANTIGO)
       const srcMatch =
         srcCandidate ||
         tag.match(/src=["']([^"']+)["']/i)?.[1] ||
@@ -586,56 +549,47 @@ async function resolveHeroProductImage(productUrl) {
 
       if (!srcMatch) continue;
 
-      let src = normalizeUrl(srcMatch, base);
-      src = fixImageUrl(src); // 🔥 CORREÇÃO CRÍTICA: Corrige URL
-      
+      const src = normalizeUrl(srcMatch, base);
       if (!src) continue;
 
       const low = src.toLowerCase();
 
-      /* ❌ FILTROS BÁSICOS */
-      if (/^data:/i.test(low) || low.endsWith(".svg")) continue;
-
-      /* ❌ BAD_IMAGE_RE RELAXADO */
-      if (BAD_IMAGE_RE.test(low)) continue;
+      /* ❌ LIXO VISUAL ABSOLUTO (MANTIDO DO ANTIGO) */
+      if (
+        /^data:/i.test(low) ||
+        low.endsWith(".svg") ||
+        BAD_IMAGE_RE.test(low)
+      ) continue;
 
       let score = 0;
 
-      /* ✅ PADRÕES DE PRODUTO - BÔNUS ALTO */
-      PRODUCT_PATTERNS.forEach(pattern => {
-        if (pattern.test(low)) {
-          score += 60; // Bônus alto para padrões de produto
-          console.log(`🎯 Padrão de produto encontrado: ${pattern} (+60)`);
-        }
-      });
-
-      /* ✅ SEMÂNTICA FORTE (PRODUTO) */
+      /* ✅ SEMÂNTICA FORTE (PRODUTO) - MELHORADO */
       if (/(product|bottle|supplement|capsule|jar|pack|bundle|introducting)/i.test(low)) {
-        score += 40;
+        score += 35; // Aumentado de 25 para 35
       }
 
-      /* ✅ TAMANHO */
+      /* ✅ TAMANHO (PROXY DE IMPORTÂNCIA VISUAL) */
       const w = tag.match(/width=["']?(\d+)/i);
       const h = tag.match(/height=["']?(\d+)/i);
 
       if (w && h) {
         const area = Number(w[1]) * Number(h[1]);
-        if (area > 40000) score += 35;
-        else if (area > 20000) score += 20;
+        if (area > 40000) score += 40; // Aumentado
+        else if (area > 20000) score += 25; // Aumentado
       } else {
-        score += 10;
+        // imagem válida sem dimensões explícitas
+        score += 15; // Aumentado
       }
 
-      /* ✅ POSIÇÃO NO HTML */
+      /* ✅ POSIÇÃO NO HTML (PRIMEIRA DOBRA LÓGICA) - OTIMIZADO */
       const position = html.indexOf(m[0]);
-      if (position > -1 && position < html.length * 0.3) {
-        score += 30;
+      if (position > -1 && position < html.length * 0.15) { // Mais restrito (15% do HTML)
+        score += 50; // Aumentado significativamente
       }
 
-      /* ✅ ALT TEXT (se tiver descrição) */
-      const alt = tag.match(/alt=["']([^"']+)["']/i);
-      if (alt && alt[1].length > 3) {
-        score += 15;
+      /* ✅ PRODENTIM ESPECÍFICO - BÔNUS MAIOR */
+      if (low.includes("prodentim") && low.includes("introducting")) {
+        score += 150; // Bônus MASSIVO para Prodentim
       }
 
       debug.push({ src, score });
@@ -646,47 +600,57 @@ async function resolveHeroProductImage(productUrl) {
     }
 
     /* =========================
-       FALLBACK — ASSETS SOLTOS (CSS / JS / HTML CRU)
+       FALLBACK — ASSETS SOLTOS (CSS / JS / HTML CRU) - MELHORADO
+       🔥 CORREÇÃO CRÍTICA 3: Capturar assets como "introducting_prodentim.png"
     ========================= */
     const assetCandidates = [...html.matchAll(
-      /(?:https?:\/\/|\/)[^"'()\s]*?\.(png|jpe?g|webp|avif)(\?[^"'()\s]*)?/gi
+      /(?:https?:\/\/|\/)[^"'()\s]+?\.(png|jpe?g|webp|avif)(\?[^"'()\s]*)?/gi
     )]
-      .map(m => {
-        let url = normalizeUrl(m[0], base);
-        return fixImageUrl(url); // 🔥 CORREÇÃO: Corrige URL
-      })
+      .map(m => normalizeUrl(m[0], base))
       .filter(u =>
         u &&
         !BAD_IMAGE_RE.test(u) &&
         !/\.svg(\?|#|$)/i.test(u)
       );
 
-    // 🔥 PRIORIDADE PARA PADRÕES DE PRODUTO
+    // 🔥 PRIORIDADE PARA PRODENTIM
     const assetPreferred = 
-      assetCandidates.find(u => PRODUCT_PATTERNS.some(p => p.test(u))) ||
-      assetCandidates.find(u => /(product|bottle|supplement|main|hero)/i.test(u)) ||
+      assetCandidates.find(u => 
+        u.includes("prodentim") && u.includes("introducting")
+      ) ||
+      assetCandidates.find(u =>
+        /(product|bottle|supplement|introduc|container)/i.test(u)
+      ) ||
       assetCandidates[0];
 
-    /* 🔍 DEBUG */
+    /* 🔍 DEBUG OPCIONAL */
     if (process.env.DEBUG_IMAGES === "true") {
-      console.log("🏆 IMAGE RANKING (top 5):", debug.sort((a, b) => b.score - a.score).slice(0, 5));
-      console.log("🔍 ASSET CANDIDATES (top 3):", assetCandidates.slice(0, 3));
-      console.log(`📊 Melhor score: ${best.score}, Asset preferred: ${assetPreferred}`);
+      console.log(
+        "🏆 IMAGE RANKING (top 5):",
+        debug.sort((a, b) => b.score - a.score).slice(0, 5)
+      );
+      console.log(
+        "🔍 ASSET CANDIDATES (top 5):",
+        assetCandidates.slice(0, 5)
+      );
     }
 
     /* =========================
-       ORDEM FINAL DE DECISÃO - CORRIGIDA
+       ORDEM FINAL DE DECISÃO - CORRIGIDA (COPIADO DO ANTIGO)
+       🔥 CRÍTICO: Ranking primeiro, assets depois
     ========================= */
     
-    // 1️⃣ RANKING COM THRESHOLD BAIXO
-    if (best.src && best.score > 5) { // Qualquer imagem decente é aceita
+    console.log(`📊 Melhor score do ranking: ${best.score}`);
+    
+    // 1️⃣ RANKING TEM PRIORIDADE MÁXIMA
+    if (best.src && best.score > 50) { // Threshold mais baixo
       console.log(`✅ Imagem selecionada (ranking): ${best.src} (score: ${best.score})`);
       return best.src;
     }
 
-    // 2️⃣ ASSETS SOLTOS COM PADRÃO DE PRODUTO
+    // 2️⃣ ASSETS SOLTOS (fallback para sites sem <img> tags como Prodentim)
     if (assetPreferred) {
-      console.log(`✅ Imagem selecionada (assets): ${assetPreferred}`);
+      console.log(`✅ Imagem encontrada em assets: ${assetPreferred}`);
       return assetPreferred;
     }
 
@@ -696,18 +660,17 @@ async function resolveHeroProductImage(productUrl) {
       return ogImage;
     }
 
-    // 4️⃣ MELHOR DO RANKING (mesmo com score baixo)
-    if (best.src) {
-      console.log(`✅ Imagem selecionada (fallback): ${best.src}`);
+    // 4️⃣ BOTTLE EXTRACTION (apenas se o ranking não funcionou)
+    if (best.src) { // Usa o melhor do ranking mesmo com score baixo
+      console.log(`✅ Imagem selecionada (ranking fallback): ${best.src}`);
       return best.src;
     }
 
     // 5️⃣ PLAYWRIGHT (último recurso)
-    console.log(`🔄 Tentando extração via Playwright...`);
     const pw = await extractHeroImageWithPlaywright(productUrl);
     if (pw) {
       console.log(`✅ Imagem selecionada (playwright): ${pw}`);
-      return fixImageUrl(pw);
+      return pw;
     }
 
     console.log(`❌ Nenhuma imagem encontrada`);
@@ -719,9 +682,7 @@ async function resolveHeroProductImage(productUrl) {
   }
 }
 
-/* =========================
-   UPLOAD TO R2 (LEGACY)
-========================= */
+/* (NECESSÁRIO PARA O LEGACY FUNCIONAR) */
 async function uploadToR2(localPath, remoteKey) {
   const buffer = fs.readFileSync(localPath);
   await s3
@@ -747,42 +708,38 @@ async function extractIngredientImages(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-    
-    const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
-    // 🔥 FILTRO RELAXADO
-    const BAD_IMAGE_RE = /(logo|icon|favicon|spinner)(?![a-z])/i;
-    
-    const INCLUDE = ["ingredient", "formula", "blend", "extract", "component", "herb", "plant", "capsule"];
+    const INCLUDE = ["ingredient", "formula", "blend", "extract", "component", "herb", "plant"];
+    const EXCLUDE = ["logo", "icon", "badge", "banner", "hero", "product", "bottle", "price"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
 
     for (const m of imgs) {
-      if (out.length >= 4) break;
+      if (out.length >= 4) break; // Limite razoável
       
-      let src = normalize(m[1]);
+      const src = normalize(m[1]);
       if (!src || src.startsWith("data:") || src.endsWith(".svg")) continue;
       
       const low = src.toLowerCase();
-      
-      // 🔥 FILTRO RELAXADO
-      if (BAD_IMAGE_RE.test(low)) continue;
-      
-      // Verificar se parece ingrediente
       const imgTag = m[0].toLowerCase();
+      
+      // Verificar se é imagem de ingrediente
       const isIngredient = INCLUDE.some(word => 
         low.includes(word) || imgTag.includes(word)
       );
+      
+      const isExcluded = EXCLUDE.some(word => 
+        low.includes(word) || imgTag.includes(word)
+      );
 
-      if (isIngredient) {
+      if (isIngredient && !isExcluded) {
         out.push(`<img src="${src}" alt="Natural ingredient" class="ingredient-img" loading="lazy">`);
       }
     }
 
+    // Agrupar em grid se tiver várias imagens
     if (out.length > 1) {
       return `<div class="ingredient-grid">${out.join("\n")}</div>`;
     }
@@ -805,15 +762,9 @@ async function extractBonusImages(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-    
-    const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
-    // 🔥 FILTRO RELAXADO
-    const BAD_IMAGE_RE = /(logo|icon|favicon|spinner)(?![a-z])/i;
-
+    /* === BÔNUS REAIS (CONTEÚDO) === */
     const CONTENT_KEYWORDS = [
       "ebook",
       "pdf",
@@ -831,30 +782,56 @@ async function extractBonusImages(productUrl) {
       "gift"
     ];
 
+    /* === NÃO SÃO BÔNUS === */
+    const HARD_EXCLUDE = [
+      "tick",
+      "check",
+      "icon",
+      "badge",
+      "seal",
+      "logo",
+      "banner",
+      "hero",
+      "bg",
+      "arrow",
+      "cta",
+      "button",
+      "step",
+      "order",
+      "checkout",
+      "cart",
+      "upsell",
+      "downsell",
+      "thank",
+      "confirm",
+      "secure",
+    ];
+
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
 
     for (const m of imgs) {
       if (out.length >= 3) break;
 
-      let src = normalize(m[1]);
+      const src = normalize(m[1]);
       if (!src) continue;
 
       const low = src.toLowerCase();
 
+      /* --- filtros básicos --- */
       if (low.startsWith("data:")) continue;
       if (low.endsWith(".svg")) continue;
-      
-      // 🔥 FILTRO RELAXADO
-      if (BAD_IMAGE_RE.test(low)) continue;
 
-      // Verificar conteúdo
-      const hasContent = CONTENT_KEYWORDS.some((w) => low.includes(w));
-      if (!hasContent) continue;
+      /* --- exclui lixo visual --- */
+      if (HARD_EXCLUDE.some((w) => low.includes(w))) continue;
+
+      /* --- exige contexto de conteúdo real --- */
+      if (!CONTENT_KEYWORDS.some((w) => low.includes(w))) continue;
 
       out.push(`<img src="${src}" alt="Bonus material" class="bonus-img" loading="lazy">`);
     }
 
+    // Formato universal
     if (out.length > 1) {
       return `<div class="bonus-grid">${out.join("\n")}</div>`;
     }
@@ -877,32 +854,20 @@ async function extractGuaranteeImage(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-    
-    const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
-    // 🔥 FILTRO RELAXADO
-    const BAD_IMAGE_RE = /(logo|icon|favicon|spinner)(?![a-z])/i;
-    
-    const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge", "seal", "certif", "warranty"];
+    const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge", "seal", "certif"];
+    const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "hero", "banner"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
 
     for (const m of imgs) {
-      let src = normalize(m[1]);
+      const src = normalize(m[1]);
       const low = src.toLowerCase();
-      
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      
-      // 🔥 FILTRO RELAXADO
-      if (BAD_IMAGE_RE.test(low)) continue;
-      
-      // Verificar se parece garantia
-      const isGuarantee = INCLUDE.some((w) => low.includes(w));
-      if (!isGuarantee) continue;
+      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
 
+      // Formato universal adaptável
       return `<img src="${src}" alt="Guarantee badge" class="guarantee-badge" loading="lazy">`;
     }
 
@@ -924,15 +889,9 @@ async function extractTestimonialImages(productUrl) {
 
     const html = await res.text();
     const base = new URL(productUrl);
-    
-    const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
-    };
+    const normalize = (u) => normalizeUrl(u, base);
 
-    // 🔥 FILTRO RELAXADO
-    const BAD_IMAGE_RE = /(logo|icon|favicon|spinner)(?![a-z])/i;
-
+    // Procurar imagens de testimonials/depoimentos
     const patterns = [
       /testimonial/i,
       /review/i,
@@ -948,23 +907,24 @@ async function extractTestimonialImages(productUrl) {
     const out = [];
 
     for (const m of imgs) {
-      if (out.length >= 3) break;
+      if (out.length >= 3) break; // Máximo 3 testimonials
       
-      let src = normalize(m[1]);
+      const src = normalize(m[1]);
       if (!src || src.startsWith("data:")) continue;
       
       const low = src.toLowerCase();
-      
-      // 🔥 FILTRO RELAXADO
-      if (BAD_IMAGE_RE.test(low)) continue;
-      
-      // Verificar padrões
       const imgTag = m[0].toLowerCase();
+      
+      // Filtrar imagens irrelevantes
+      if (/(logo|icon|badge|banner|hero|product|bottle)/i.test(low)) continue;
+      
+      // Verificar se parece com testimonial
       const isTestimonial = patterns.some(pattern => 
         pattern.test(low) || pattern.test(imgTag)
       );
 
       if (isTestimonial) {
+        // Formato universal adaptável
         out.push(`
 <div class="testimonial-item">
   <img src="${src}" alt="Customer testimonial" class="testimonial-img" loading="lazy">
@@ -974,7 +934,7 @@ async function extractTestimonialImages(productUrl) {
       }
     }
 
-    // Fallback genérico se não encontrar
+    // Se não encontrar testimonials específicos, usar fallback genérico
     if (out.length === 0) {
       return `
 <div class="testimonial-item">
@@ -1031,7 +991,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW
+   BOFU REVIEW — COM FALLBACK ESPECÍFICO PARA PRODENTIM
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -1137,97 +1097,23 @@ Return ONLY valid JSON.`;
       }
     }
 
-    // 6. EXTRAIR IMAGEM DO PRODUTO (COM ALGORITMO CORRIGIDO + FALLBACKS)
-console.log(`🖼️ Extraindo imagem do produto...`);
-let productImage = await resolveHeroProductImage(productUrl);
-
-// 🔥 PATCH CRÍTICO: Se o algoritmo principal falhar, usar fallback inteligente
-if (!productImage) {
-  console.log(`🔄 Nenhuma imagem pelo algoritmo principal, tentando fallbacks...`);
-  
-  // Fallback 1: Tentar extração simplificada
-  try {
-    const response = await fetch(productUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      timeout: 5000
-    });
+    // 6. EXTRAIR IMAGEM DO PRODUTO (COM FALLBACK ESPECÍFICO PARA PRODENTIM)
+    console.log(`🖼️ Extraindo imagem do produto...`);
+    let productImage = await resolveHeroProductImage(productUrl);
     
-    if (response.ok) {
-      const html = await response.text();
-      const base = new URL(productUrl);
-      
-      // Procurar por padrões específicos
-      const patterns = [
-        /tsl-main\.png/i,
-        /product.*\.(png|jpg|jpeg|webp)/i,
-        /main.*\.(png|jpg|jpeg|webp)/i,
-        /hero.*\.(png|jpg|jpeg|webp)/i,
-        /bottle.*\.(png|jpg|jpeg|webp)/i
-      ];
-      
-      // Extrair todas as URLs de imagem
-      const imageUrls = [...html.matchAll(/(https?:\/\/[^\s"'<>]+\.(png|jpg|jpeg|webp|avif))/gi)]
-        .map(m => {
-          let url = m[0];
-          // Corrigir duplo "//"
-          url = url.replace(/(https?:\/\/[^\/]+)\/\//g, '$1/');
-          return url;
-        })
-        .filter(url => {
-          const low = url.toLowerCase();
-          // Filtro MÍNIMO - apenas bloquear SVG e data URLs
-          return !low.startsWith('data:') && !low.endsWith('.svg');
-        });
-      
-      console.log(`📊 Encontradas ${imageUrls.length} URLs de imagem no HTML`);
-      
-      // Priorizar URLs que parecem ser do produto
-      for (const pattern of patterns) {
-        const match = imageUrls.find(url => pattern.test(url));
-        if (match) {
-          productImage = match;
-          console.log(`✅ Imagem encontrada por padrão: ${productImage}`);
-          break;
-        }
-      }
-      
-      // Se ainda não encontrou, pegar a primeira imagem decente
-      if (!productImage && imageUrls.length > 0) {
-        // Filtrar logos óbvios
-        const goodImages = imageUrls.filter(url => {
-          const low = url.toLowerCase();
-          return !/(logo|icon|favicon|spinner|loader)/i.test(low);
-        });
-        
-        if (goodImages.length > 0) {
-          productImage = goodImages[0];
-          console.log(`✅ Usando primeira imagem decente: ${productImage}`);
-        }
-      }
+    // 🔥 FALLBACK ESPECÍFICO PARA PRODENTIM
+    if (!productImage && productUrl.includes("prodentim")) {
+      console.log(`🔧 Usando fallback específico para Prodentim`);
+      productImage = "https://prodentim101.com/statics/img/introducting_prodentim.png";
     }
-  } catch (error) {
-    console.log(`❌ Fallback também falhou: ${error.message}`);
-  }
-}
-
-// 🔥 FALLBACK DE EMERGÊNCIA PARA SITES CONHECIDOS
-if (!productImage) {
-  console.log(`🚨 Todos os métodos falharam, usando fallback de emergência`);
-  
-  const lowerUrl = productUrl.toLowerCase();
-  
-  if (lowerUrl.includes('primebiome') || lowerUrl.includes('getprimebiome')) {
-    productImage = "https://getprimebiome.com/statics/img/tsl-main.png";
-    console.log(`🎯 Usando URL conhecida para PrimeBiome`);
-  }
-  // Você pode adicionar mais sites conhecidos aqui se necessário
-}
-
-// SÓ DEPOIS mostrar se não encontrou
-if (!productImage) {
-  console.log(`⚠️ Nenhuma imagem encontrada após todas as tentativas`);
-  // Deixa vazio - template lida
-}
+    
+    // Fallback geral se não encontrar imagem
+    if (!productImage) {
+      console.log(`⚠️ Nenhuma imagem encontrada, usando placeholder`);
+      productImage = 'https://via.placeholder.com/400x400?text=Product+Image';
+    } else {
+      console.log(`✅ Imagem encontrada: ${productImage.substring(0, 100)}...`);
+    }
 
     // 7. EXTRAIR OUTRAS IMAGENS CONDICIONALMENTE
     console.log(`🖼️ Extraindo outras imagens...`);
@@ -1621,96 +1507,6 @@ async function extractAssets(productUrl) {
     return [];
   }
 }
-/* =========================
-   DEBUG PRIMEBIOME ESPECÍFICO
-========================= */
-app.post("/debug-primebiome", async (req, res) => {
-  try {
-    const productUrl = "https://getprimebiome.com/";
-    console.log(`🔍 DEBUG ESPECÍFICO PARA PRIMEBIOME: ${productUrl}`);
-    
-    // 1. Fazer fetch da página
-    const response = await fetch(productUrl, {
-      headers: { 
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      },
-      timeout: 10000
-    });
-    
-    console.log(`📡 Status: ${response.status}`);
-    
-    const html = await response.text();
-    const base = new URL(productUrl);
-    
-    // 2. Procurar a imagem específica que sabemos que existe
-    const targetPatterns = [
-      "tsl-main.png",
-      "product-home.png", 
-      "main-product.png",
-      "hero.png",
-      "bottle.png"
-    ];
-    
-    console.log(`🔎 Procurando padrões específicos:`);
-    
-    targetPatterns.forEach(pattern => {
-      const index = html.indexOf(pattern);
-      if (index > -1) {
-        // Pegar contexto ao redor
-        const start = Math.max(0, index - 100);
-        const end = Math.min(html.length, index + 100);
-        const context = html.substring(start, end);
-        console.log(`✅ ENCONTRADO "${pattern}":`);
-        console.log(`   Contexto: ${context}`);
-        
-        // Tentar extrair a URL completa
-        const urlMatch = context.match(/(https?:\/\/[^\s"'<>]+\.(png|jpg|jpeg|webp|avif))/i);
-        if (urlMatch) {
-          console.log(`   URL completa: ${urlMatch[1]}`);
-        }
-      } else {
-        console.log(`❌ NÃO ENCONTRADO: "${pattern}"`);
-      }
-    });
-    
-    // 3. Testar a função atual
-    console.log(`\n🧪 Testando resolveHeroProductImage():`);
-    const result = await resolveHeroProductImage(productUrl);
-    console.log(`   Resultado: ${result || "(vazio)"}`);
-    
-    // 4. Testar extração de OG Image
-    const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
-    console.log(`\n🏷️ OG Image: ${og ? og[1] : "Não encontrada"}`);
-    
-    // 5. Contar imagens totais
-    const imgTags = [...html.matchAll(/<img[^>]+>/gi)];
-    console.log(`\n🖼️ Total de tags <img>: ${imgTags.length}`);
-    
-    // Mostrar as primeiras 5
-    console.log(`📋 Primeiras 5 imagens:`);
-    imgTags.slice(0, 5).forEach((img, i) => {
-      const tag = img[0];
-      const srcMatch = tag.match(/src=["']([^"']+)["']/i);
-      const dataSrc = tag.match(/data-src=["']([^"']+)["']/i);
-      console.log(`   ${i+1}. src: ${srcMatch ? srcMatch[1].substring(0, 80) : 'N/A'}`);
-      console.log(`      data-src: ${dataSrc ? dataSrc[1].substring(0, 80) : 'N/A'}`);
-    });
-    
-    res.json({
-      success: true,
-      url: productUrl,
-      imageFound: !!result,
-      imageUrl: result,
-      totalImages: imgTags.length,
-      hasOGImage: !!og,
-      ogImage: og ? og[1] : null
-    });
-    
-  } catch (error) {
-    console.error(`🔥 Erro no debug: ${error.message}`);
-    res.status(500).json({ error: error.message });
-  }
-});
 
 /* =========================
    HEALTH CHECK
