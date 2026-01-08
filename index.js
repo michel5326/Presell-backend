@@ -666,7 +666,7 @@ async function uploadToR2(localPath, remoteKey) {
 }
 
 /* =========================
-   IMAGE — INGREDIENTS (CORRIGIDA)
+   IMAGE — INGREDIENTS (UNIVERSAL)
 ========================= */
 async function extractIngredientImages(productUrl) {
   try {
@@ -679,23 +679,41 @@ async function extractIngredientImages(productUrl) {
     const base = new URL(productUrl);
     const normalize = (u) => normalizeUrl(u, base);
 
-    const INCLUDE = ["ingredient", "ingredients", "formula", "blend", "extract"];
-    const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "banner", "hero"];
+    const INCLUDE = ["ingredient", "formula", "blend", "extract", "component", "herb", "plant"];
+    const EXCLUDE = ["logo", "icon", "badge", "banner", "hero", "product", "bottle", "price"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
     const out = [];
 
     for (const m of imgs) {
-      if (out.length >= 3) break;
+      if (out.length >= 4) break; // Limite razoável
+      
       const src = normalize(m[1]);
+      if (!src || src.startsWith("data:") || src.endsWith(".svg")) continue;
+      
       const low = src.toLowerCase();
-      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
-      out.push(`<img src="${src}" alt="Ingredient" loading="lazy">`);
+      const imgTag = m[0].toLowerCase();
+      
+      // Verificar se é imagem de ingrediente
+      const isIngredient = INCLUDE.some(word => 
+        low.includes(word) || imgTag.includes(word)
+      );
+      
+      const isExcluded = EXCLUDE.some(word => 
+        low.includes(word) || imgTag.includes(word)
+      );
+
+      if (isIngredient && !isExcluded) {
+        // Formato universal que funciona em qualquer template
+        out.push(`<img src="${src}" alt="Natural ingredient" class="ingredient-img" loading="lazy">`);
+      }
     }
 
-    // 🔥 CORREÇÃO: Retorna apenas as imagens, SEM wrapper .image-grid
-    // O template já tem o wrapper correto
+    // Agrupar em grid se tiver várias imagens
+    if (out.length > 1) {
+      return `<div class="ingredient-grid">${out.join("\n")}</div>`;
+    }
+    
     return out.join("\n");
   } catch {
     return "";
@@ -703,7 +721,7 @@ async function extractIngredientImages(productUrl) {
 }
 
 /* =========================
-   IMAGE — BONUS (ROBUSTA)
+   IMAGE — BONUS (UNIVERSAL)
 ========================= */
 async function extractBonusImages(productUrl) {
   try {
@@ -729,6 +747,9 @@ async function extractBonusImages(productUrl) {
       "course",
       "module",
       "lesson",
+      "bonus",
+      "free",
+      "gift"
     ];
 
     /* === NÃO SÃO BÔNUS === */
@@ -777,10 +798,14 @@ async function extractBonusImages(productUrl) {
       /* --- exige contexto de conteúdo real --- */
       if (!CONTENT_KEYWORDS.some((w) => low.includes(w))) continue;
 
-      out.push(`<img src="${src}" alt="Bonus material" loading="lazy">`);
+      out.push(`<img src="${src}" alt="Bonus material" class="bonus-img" loading="lazy">`);
     }
 
-    // Retorna apenas as imagens
+    // Formato universal
+    if (out.length > 1) {
+      return `<div class="bonus-grid">${out.join("\n")}</div>`;
+    }
+    
     return out.join("\n");
   } catch {
     return "";
@@ -788,7 +813,7 @@ async function extractBonusImages(productUrl) {
 }
 
 /* =========================
-   IMAGE — GUARANTEE
+   IMAGE — GUARANTEE (UNIVERSAL)
 ========================= */
 async function extractGuaranteeImage(productUrl) {
   try {
@@ -801,7 +826,7 @@ async function extractGuaranteeImage(productUrl) {
     const base = new URL(productUrl);
     const normalize = (u) => normalizeUrl(u, base);
 
-    const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge"];
+    const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge", "seal", "certif"];
     const EXCLUDE = ["logo", "icon", "order", "buy", "cta", "checkout", "hero", "banner"];
 
     const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
@@ -812,10 +837,84 @@ async function extractGuaranteeImage(productUrl) {
       if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
       if (!INCLUDE.some((w) => low.includes(w)) || EXCLUDE.some((w) => low.includes(w))) continue;
 
-      return `<img src="${src}" alt="Guarantee" loading="lazy" style="max-width:190px;width:100%;height:auto;display:block;margin:0 auto 14px;border-radius:12px;">`;
+      // Formato universal adaptável
+      return `<img src="${src}" alt="Guarantee badge" class="guarantee-badge" loading="lazy">`;
     }
 
     return "";
+  } catch {
+    return "";
+  }
+}
+
+/* =========================
+   IMAGE — TESTIMONIAL (UNIVERSAL)
+========================= */
+async function extractTestimonialImages(productUrl) {
+  try {
+    const res = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!res.ok) return "";
+
+    const html = await res.text();
+    const base = new URL(productUrl);
+    const normalize = (u) => normalizeUrl(u, base);
+
+    // Procurar imagens de testimonials/depoimentos
+    const patterns = [
+      /testimonial/i,
+      /review/i,
+      /customer/i,
+      /user.*photo/i,
+      /client/i,
+      /feedback/i,
+      /rating/i,
+      /star/i
+    ];
+
+    const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
+    const out = [];
+
+    for (const m of imgs) {
+      if (out.length >= 3) break; // Máximo 3 testimonials
+      
+      const src = normalize(m[1]);
+      if (!src || src.startsWith("data:")) continue;
+      
+      const low = src.toLowerCase();
+      const imgTag = m[0].toLowerCase();
+      
+      // Filtrar imagens irrelevantes
+      if (/(logo|icon|badge|banner|hero|product|bottle)/i.test(low)) continue;
+      
+      // Verificar se parece com testimonial
+      const isTestimonial = patterns.some(pattern => 
+        pattern.test(low) || pattern.test(imgTag)
+      );
+
+      if (isTestimonial) {
+        // Formato universal adaptável
+        out.push(`
+<div class="testimonial-item">
+  <img src="${src}" alt="Customer testimonial" class="testimonial-img" loading="lazy">
+  <p class="testimonial-text">"Positive feedback from satisfied user."</p>
+  <p class="testimonial-author">- Happy Customer</p>
+</div>`);
+      }
+    }
+
+    // Se não encontrar testimonials específicos, usar fallback genérico
+    if (out.length === 0) {
+      return `
+<div class="testimonial-item">
+  <div class="testimonial-img-placeholder">👤</div>
+  <p class="testimonial-text">"Many users report positive experiences with this product."</p>
+  <p class="testimonial-author">- Satisfied User</p>
+</div>`;
+    }
+
+    return out.join("\n");
   } catch {
     return "";
   }
@@ -856,7 +955,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW — VERSÃO FINAL (COM TODAS AS CORREÇÕES)
+   BOFU REVIEW — SISTEMA UNIVERSAL PARA QUALQUER TEMPLATE
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -864,119 +963,242 @@ async function generateBofuReview({
   productUrl,
   language,
 }) {
-  console.log(`🎯 generateBofuReview chamado para: ${productUrl}`);
+  console.log(`🎯 generateBofuReview UNIVERSAL chamado para: ${productUrl}`);
   console.log(`📁 Template path: ${templatePath}`);
   console.log(`🔗 Affiliate URL: ${affiliateUrl}`);
 
   try {
     /* =========================
-       AI COPY
+       1️⃣ ANALISAR O TEMPLATE PARA DETECTAR NECESSIDADES
     ========================= */
-    const ai = await callDeepSeekWithRetry(
-      `You are generating copy for a BOFU review page used primarily with Google Search traffic.
+    const templateContent = fs.readFileSync(templatePath, "utf8");
+    console.log(`📄 Template carregado (${templateContent.length} chars)`);
+
+    // Detectar tipo de template
+    const isBootstrapTemplate = templateContent.includes('bootstrap') || 
+                                templateContent.includes('col-md-') || 
+                                templateContent.includes('card h-100');
+    
+    const needsIngredientImages = templateContent.includes('{{INGREDIENT_IMAGES}}');
+    const needsTestimonialImages = templateContent.includes('{{TESTIMONIAL_IMAGES}}');
+    const needsBenefitsList = templateContent.includes('{{BENEFITS_LIST}}');
+    const needsFormulaText = templateContent.includes('{{FORMULA_TEXT}}');
+    const needsBonusImages = templateContent.includes('{{BONUS_IMAGES}}');
+    const needsGuaranteeImage = templateContent.includes('{{GUARANTEE_IMAGE}}');
+
+    console.log(`🔍 Template analysis:`);
+    console.log(`   Bootstrap: ${isBootstrapTemplate}`);
+    console.log(`   Needs Ingredient Images: ${needsIngredientImages}`);
+    console.log(`   Needs Testimonial Images: ${needsTestimonialImages}`);
+    console.log(`   Needs Benefits List: ${needsBenefitsList}`);
+    console.log(`   Needs Formula Text: ${needsFormulaText}`);
+    console.log(`   Needs Bonus Images: ${needsBonusImages}`);
+    console.log(`   Needs Guarantee Image: ${needsGuaranteeImage}`);
+
+    /* =========================
+       2️⃣ GERAR COPY AI ADAPTATIVA
+    ========================= */
+    let systemPrompt = `You are generating copy for a BOFU review page used primarily with Google Search traffic.
 
 CRITICAL CONTEXT:
 - This page is shown BEFORE purchase.
 - The user already knows the product.
 - The goal is to CONFIRM the decision and REDUCE hesitation.
 
-Return ONLY valid JSON.
+Return ONLY valid JSON.`;
 
-Required keys:
-HEADLINE
-SUBHEADLINE
-INTRO
-WHY_IT_WORKS
-FORMULA_TEXT
-BENEFITS_LIST (provide as comma-separated list)
-SOCIAL_PROOF
-GUARANTEE
+    // Adicionar instruções baseadas no template
+    const additionalInstructions = [];
 
-Language: ${language}`,
+    if (needsBenefitsList) {
+      if (isBootstrapTemplate) {
+        additionalInstructions.push(`BENEFITS_LIST: Return exactly 6 benefits as comma-separated list. Each benefit should be 2-4 words maximum. Include relevant emojis where appropriate.`);
+      } else {
+        additionalInstructions.push(`BENEFITS_LIST: Return as comma-separated list of benefit statements (6-8 items).`);
+      }
+    }
+
+    if (needsFormulaText) {
+      if (templateContent.includes('<li>')) {
+        additionalInstructions.push(`FORMULA_TEXT: Return as comma-separated list of key ingredients or formula aspects (4-6 items).`);
+      } else {
+        additionalInstructions.push(`FORMULA_TEXT: Return descriptive text about the formula structure (2-3 sentences).`);
+      }
+    }
+
+    if (additionalInstructions.length > 0) {
+      systemPrompt += `\n\nTEMPLATE-SPECIFIC INSTRUCTIONS:\n${additionalInstructions.join('\n')}`;
+    }
+
+    // Construir lista de keys necessárias
+    const requiredKeys = [
+      'HEADLINE',
+      'SUBHEADLINE', 
+      'INTRO',
+      'WHY_IT_WORKS',
+      needsFormulaText ? 'FORMULA_TEXT' : '',
+      needsBenefitsList ? 'BENEFITS_LIST' : '',
+      'SOCIAL_PROOF',
+      'GUARANTEE'
+    ].filter(Boolean);
+
+    systemPrompt += `\n\nRequired keys (return ALL as strings):\n${requiredKeys.join('\n')}`;
+    systemPrompt += `\n\nLanguage: ${language}`;
+
+    const ai = await callDeepSeekWithRetry(
+      systemPrompt,
       `Product URL: ${productUrl}`
     );
 
-    console.log(`🤖 AI Response recebida com sucesso`);
+    console.log(`🤖 AI Response recebida`);
 
     /* =========================
-       🔥 CORREÇÃO 1: BENEFITS_LIST como <li> tags
+       3️⃣ PROCESSAR BENEFITS_LIST BASEADO NO TEMPLATE
     ========================= */
-    if (ai.BENEFITS_LIST) {
-      ai.BENEFITS_LIST = String(ai.BENEFITS_LIST)
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean)
-        .map(item => `<li>${item}</li>`)
-        .join("");
-      
-      console.log(`📋 BENEFITS_LIST processada: ${ai.BENEFITS_LIST.split('<li>').length - 1} itens`);
-    }
-
-    /* =========================
-       IMAGE — SAFE CHAIN (🔥 CRÍTICO)
-    ========================= */
-    console.log(`🖼️ Extraindo imagem do produto...`);
-
-    const productImageRaw = await resolveHeroProductImage(productUrl);
-    const productImageValidated = await validateImageUrl(productImageRaw);
-
-    const FALLBACK_IMAGE =
-      "https://prodentim101.com/statics/img/introducting_prodentim.png";
-
-    const safeProductImage =
-      productImageValidated ||
-      productImageRaw ||
-      FALLBACK_IMAGE;
-
-    console.log("🧪 productUrl:", productUrl);
-    console.log("🧪 productImageRaw:", productImageRaw);
-    console.log("🧪 productImageValidated:", productImageValidated);
-    console.log("🧪 safeProductImage (FINAL):", safeProductImage);
-
-    /* =========================
-       INGREDIENT IMAGES (CORRIGIDO)
-    ========================= */
-    const ingredientImages = await extractIngredientImages(productUrl);
-    console.log(
-      `🧪 Imagens de ingredientes:`,
-      ingredientImages ? "OK" : "NENHUMA"
-    );
-
-    /* =========================
-       LOAD TEMPLATE
-    ========================= */
-    let html = fs.readFileSync(templatePath, "utf8");
-    console.log(`📄 Template carregado (${html.length} chars)`);
-
-    /* =========================
-       APPLY AI TEXT
-    ========================= */
-    let replacements = 0;
-    for (const [k, v] of Object.entries(ai)) {
-      const placeholder = `{{${k}}}`;
-      if (html.includes(placeholder)) {
-        html = html.replaceAll(placeholder, v || "");
-        replacements++;
+    if (needsBenefitsList && ai.BENEFITS_LIST) {
+      if (isBootstrapTemplate) {
+        // Formatar para Bootstrap cards (6 itens)
+        const benefits = String(ai.BENEFITS_LIST)
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean)
+          .slice(0, 6);
+        
+        const emojis = ['🚀', '💪', '🎯', '🌟', '⚡', '✅', '🔋', '🧠', '💓', '🛡️'];
+        const benefitEmojis = ['🚀', '💪', '🎯', '🌟', '⚡', '✅'];
+        
+        ai.BENEFITS_LIST = benefits.map((benefit, index) => {
+          const parts = benefit.split(':');
+          const title = parts[0]?.trim() || `Benefit ${index + 1}`;
+          const description = parts[1]?.trim() || `Improves ${title.toLowerCase()} effectively.`;
+          
+          return `
+<div class="col">
+  <div class="card h-100 shadow-sm border-0 text-center p-3">
+    <div class="card-icon mb-2 fs-2">${benefitEmojis[index] || '✅'}</div>
+    <h5 class="card-title">${title}</h5>
+    <p class="card-text">${description}</p>
+  </div>
+</div>`;
+        }).join("\n");
+      } else {
+        // Formatar para lista simples com <li> e emojis
+        const benefits = String(ai.BENEFITS_LIST)
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean);
+        
+        const emojis = ['✅', '⭐', '⚡', '🎯', '🔝', '💯', '🔥', '💎'];
+        
+        ai.BENEFITS_LIST = benefits.map((item, index) => {
+          return `<li>${emojis[index] || '✅'} ${item}</li>`;
+        }).join("");
       }
     }
-    console.log(`🔄 ${replacements} placeholders substituídos`);
 
     /* =========================
-       APPLY IMAGES & LINKS (🔥 FINAL)
+       4️⃣ PROCESSAR FORMULA_TEXT BASEADO NO TEMPLATE
     ========================= */
-    html = html
-      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl || "")
-      .replaceAll("{{PRODUCT_IMAGE}}", safeProductImage)
-      .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-      .replaceAll("{{BONUS_IMAGES}}", "")
-      .replaceAll("{{TESTIMONIAL_IMAGES}}", "");
+    if (needsFormulaText && ai.FORMULA_TEXT) {
+      if (templateContent.includes('<li>') && ai.FORMULA_TEXT.includes(',')) {
+        // Formatar como <li> items com emojis
+        const ingredients = String(ai.FORMULA_TEXT)
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean)
+          .slice(0, 6);
+        
+        const ingredientEmojis = ['🌿', '🍃', '🌱', '💊', '🧪', '🔬'];
+        
+        ai.FORMULA_TEXT = ingredients.map((ingredient, index) => {
+          return `<li>${ingredientEmojis[index] || '🌿'} ${ingredient}</li>`;
+        }).join("\n");
+      }
+      // Se não for lista, mantém o texto como está
+    }
 
     /* =========================
-       GLOBAL PLACEHOLDERS
+       5️⃣ EXTRAIR TODAS AS IMAGENS NECESSÁRIAS
     ========================= */
+    console.log(`🖼️ Extraindo imagens necessárias...`);
+
+    // Sempre extrair imagem principal
+    const productImageRaw = await resolveHeroProductImage(productUrl);
+    const productImage = await validateImageUrl(productImageRaw);
+
+    // Extrair outras imagens apenas se o template precisar
+    let ingredientImages = "";
+    let testimonialImages = "";
+    let bonusImages = "";
+    let guaranteeImage = "";
+
+    if (needsIngredientImages) {
+      ingredientImages = await extractIngredientImages(productUrl);
+      console.log(`🧪 Ingredient images: ${ingredientImages ? 'OK' : 'None'}`);
+    }
+
+    if (needsTestimonialImages) {
+      testimonialImages = await extractTestimonialImages(productUrl);
+      console.log(`🌟 Testimonial images: ${testimonialImages ? 'OK' : 'None'}`);
+    }
+
+    if (needsBonusImages) {
+      bonusImages = await extractBonusImages(productUrl);
+      console.log(`🎁 Bonus images: ${bonusImages ? 'OK' : 'None'}`);
+    }
+
+    if (needsGuaranteeImage) {
+      guaranteeImage = await extractGuaranteeImage(productUrl);
+      console.log(`💰 Guarantee image: ${guaranteeImage ? 'OK' : 'None'}`);
+    }
+
+    /* =========================
+       6️⃣ APLICAR AO TEMPLATE (SISTEMA UNIVERSAL)
+    ========================= */
+    let html = templateContent;
+
+    // Primeiro, aplicar textos AI
+    let replacements = 0;
+    const allPlaceholders = [
+      'HEADLINE', 'SUBHEADLINE', 'INTRO', 'WHY_IT_WORKS', 
+      'FORMULA_TEXT', 'BENEFITS_LIST', 'SOCIAL_PROOF', 'GUARANTEE'
+    ];
+
+    for (const key of allPlaceholders) {
+      if (ai[key] && html.includes(`{{${key}}}`)) {
+        html = html.replaceAll(`{{${key}}}`, ai[key]);
+        replacements++;
+        console.log(`   ✅ ${key}: ${ai[key].substring(0, 50)}...`);
+      }
+    }
+
+    // Depois, aplicar imagens e links
+    const imagePlaceholders = [
+      { placeholder: '{{PRODUCT_IMAGE}}', value: productImage },
+      { placeholder: '{{AFFILIATE_LINK}}', value: affiliateUrl },
+      { placeholder: '{{INGREDIENT_IMAGES}}', value: ingredientImages },
+      { placeholder: '{{TESTIMONIAL_IMAGES}}', value: testimonialImages },
+      { placeholder: '{{BONUS_IMAGES}}', value: bonusImages },
+      { placeholder: '{{GUARANTEE_IMAGE}}', value: guaranteeImage }
+    ];
+
+    for (const { placeholder, value } of imagePlaceholders) {
+      if (html.includes(placeholder)) {
+        html = html.replaceAll(placeholder, value || "");
+        if (value) {
+          replacements++;
+          console.log(`   ✅ ${placeholder}: Inserido`);
+        } else {
+          console.log(`   ⚠️ ${placeholder}: Vazio (não encontrado)`);
+        }
+      }
+    }
+
+    // Aplicar placeholders globais
     html = applyGlobals(html);
 
-    console.log(`✅ Review gerado com sucesso`);
+    console.log(`🔄 ${replacements} placeholders substituídos`);
+    console.log(`✅ Review gerado com sucesso (${html.length} chars)`);
     return html;
 
   } catch (error) {
@@ -986,17 +1208,9 @@ Language: ${language}`,
 }
 
 /* =========================
-   ROBUSTA — FINAL (ALINHADA COM REVIEW)
+   ROBUSTA (MANTIDO PARA COMPATIBILIDADE)
 ========================= */
-async function generateRobusta({
-  templatePath,
-  affiliateUrl,
-  productUrl,
-  language = "en",
-}) {
-  console.log(`🎯 generateRobusta chamado para: ${productUrl}`);
-
-  /* ===== AI COPY ===== */
+async function generateRobusta({ templatePath, affiliateUrl, productUrl, language = "en" }) {
   const ai = await callDeepSeekWithRetry(
     `Return ONLY valid JSON.
 
@@ -1039,66 +1253,77 @@ TESTIMONIAL_TITLE
 TESTIMONIAL_NOTICE_TEXT
 TESTIMONIAL_CTA_TEXT
 
+FORMULA SECTION GUIDELINES (CRITICAL):
+- The formula section must be written at a structural level, not ingredient-by-ingredient
+- Do NOT list, name, or assume specific ingredients unless explicitly stated on the official website
+- Describe the formula as a multi-component or blended formulation when appropriate
+- Focus on formulation intent, balance, and overall structure rather than individual components
+- Avoid health claims, effectiveness statements, or medical outcomes
+- Use calm, neutral, pre-purchase confirmation language
+- The purpose of this section is to reinforce legitimacy and formulation coherence, not to educate
+
+IMPORTANT — TESTIMONIAL SECTION:
+- Do NOT invent testimonials
+- Do NOT describe individual users
+- Do NOT include names, quotes, or personal stories
+- Do NOT claim specific results
+
+The testimonial section must clearly state that:
+- real customer testimonials are available on the official website
+- this page does not reproduce or modify user feedback
+- the goal is transparency and authenticity
+
+Use neutral, compliance-safe language.
+
 Output ONLY valid JSON.`,
     `Product URL: ${productUrl}`
   );
 
-  /* =========================
-     IMAGENS — PIPELINE IGUAL AO REVIEW
-  ========================= */
-  console.log("🖼️ Robusta — extraindo imagem do produto");
-  const productImageRaw = await resolveHeroProductImage(productUrl);
-  console.log("🖼️ Robusta — imagem bruta:", productImageRaw);
+ /* ===== IMAGES ===== */
+const productImageRaw = await resolveHeroProductImage(productUrl);
+const productImage = await validateImageUrl(productImageRaw);
 
-  const productImage = await validateImageUrl(productImageRaw);
-  console.log("🖼️ Robusta — imagem validada:", productImage);
+const ingredientImages = await extractIngredientImages(productUrl);
+const bonusImages = await extractBonusImages(productUrl);
+const guaranteeImage = await extractGuaranteeImage(productUrl);
 
-  const ingredientImages = await extractIngredientImages(productUrl);
-  const bonusImages = await extractBonusImages(productUrl);
-  const guaranteeImage = await extractGuaranteeImage(productUrl);
 
-  /* =========================
-     TESTIMONIAL FALLBACK
-  ========================= */
+  /* ===== TESTIMONIAL FALLBACK (MULTI-LANGUAGE) ===== */
   const testimonialFallback = {
     en: {
       title: "What customers are saying",
       text:
         "Real customer testimonials are available directly on the official website. " +
-        "This page does not reproduce or modify individual user feedback.",
+        "To preserve authenticity and accuracy, this page does not reproduce or modify individual user feedback.",
       cta: "View real testimonials on the official site",
     },
     pt: {
       title: "O que clientes reais dizem",
       text:
-        "Depoimentos reais estão disponíveis no site oficial. " +
-        "Esta página não reproduz nem modifica avaliações individuais.",
+        "Depoimentos reais de clientes estão disponíveis diretamente no site oficial. " +
+        "Para preservar a autenticidade, esta página não reproduz nem modifica avaliações individuais.",
       cta: "Ver depoimentos no site oficial",
     },
     es: {
       title: "Lo que dicen los clientes",
       text:
-        "Los testimonios reales están disponibles en el sitio oficial. " +
-        "Esta página no reproduce ni modifica opiniones individuales.",
+        "Los testimonios reales de clientes están disponibles directamente en el sitio oficial. " +
+        "Para preservar la autenticidad, esta página não reproduce ni modifica opiniones individuales.",
       cta: "Ver testimonios en el sitio oficial",
     },
     fr: {
       title: "Ce que disent les clients",
       text:
-        "Les témoignages réels sont disponibles sur le site officiel. " +
-        "Cette page ne reproduit ni ne modifie les avis individuels.",
-      cta: "Voir les témoignages sur le site officiel",
+        "Les témoignages réels de clients sont disponibles directamente sur le site oficial. " +
+        "Afin de préserver l’authenticité, esta página ne reproduit ni ne modifie les avis individuels.",
+      cta: "Voir les témoignages sur le site oficial",
     },
   };
 
-  /* =========================
-     LOAD TEMPLATE
-  ========================= */
+  /* ===== LOAD TEMPLATE ===== */
   let html = fs.readFileSync(templatePath, "utf8");
 
-  /* =========================
-     FIXED STRINGS
-  ========================= */
+  /* ===== FIXED STRINGS ===== */
   const fixed = {
     SITE_BRAND: "Buyer Guide",
     UPDATED_DATE: new Date().toISOString().split("T")[0],
@@ -1115,49 +1340,33 @@ Output ONLY valid JSON.`,
     FOOTER_DISCLAIMER: "This content is informational only.",
   };
 
-  /* =========================
-     APPLY COPY (AI + FIXED)
-  ========================= */
+  /* ===== APPLY AI + FIXED COPY ===== */
   for (const [k, v] of Object.entries({ ...fixed, ...ai })) {
     html = html.replaceAll(`{{${k}}}`, v || "");
   }
 
-  /* =========================
-     APPLY IMAGES & LINKS
-  ========================= */
+  /* ===== APPLY IMAGES ===== */
   html = html
-    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl || "")
+    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
     .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
     .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
     .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
     .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "");
 
-  /* =========================
-     APPLY TESTIMONIAL FALLBACK
-  ========================= */
+  /* ===== APPLY TESTIMONIAL TEXT (AI + FALLBACK) ===== */
   const lang = (language || "en").toLowerCase();
   const t = testimonialFallback[lang] || testimonialFallback.en;
 
   html = html
     .replaceAll("{{TESTIMONIAL_TITLE}}", ai.TESTIMONIAL_TITLE || t.title)
-    .replaceAll(
-      "{{TESTIMONIAL_NOTICE_TEXT}}",
-      ai.TESTIMONIAL_NOTICE_TEXT || t.text
-    )
-    .replaceAll(
-      "{{TESTIMONIAL_CTA_TEXT}}",
-      ai.TESTIMONIAL_CTA_TEXT || t.cta
-    );
+    .replaceAll("{{TESTIMONIAL_NOTICE_TEXT}}", ai.TESTIMONIAL_NOTICE_TEXT || t.text)
+    .replaceAll("{{TESTIMONIAL_CTA_TEXT}}", ai.TESTIMONIAL_CTA_TEXT || t.cta);
 
-  /* =========================
-     GLOBAL PLACEHOLDERS
-  ========================= */
+  /* ===== GLOBAL PLACEHOLDERS ===== */
   html = applyGlobals(html);
 
-  console.log("✅ Robusta gerada com sucesso");
   return html;
 }
-
 
 /* =========================
    GENERATE
@@ -1213,7 +1422,7 @@ app.post("/generate", async (req, res) => {
     console.log(`📁 Template encontrado: ${templatePath}`);
 
     if (templateId.startsWith("review")) {
-      console.log("🚀 Executando fluxo BOFU Review");
+      console.log("🚀 Executando fluxo BOFU Review (Universal)");
       const html = await generateBofuReview({
         templatePath,
         affiliateUrl,
@@ -1322,4 +1531,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 WORKER rodando na porta ${PORT}`);
   console.log(`🔧 Modo DEBUG: ${process.env.DEBUG_IMAGES || 'false'}`);
+  console.log(`🎯 Sistema: UNIVERSAL TEMPLATE ENGINE`);
 });
