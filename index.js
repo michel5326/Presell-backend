@@ -695,6 +695,33 @@ async function resolveHeroProductImage(productUrl) {
     ];
 
     /* =========================
+       REGRA ESPECIAL PARA URL COM // DUPLO (TSL-MAIN)
+    ========================= */
+    // Primeiro, procurar por padrões de imagem com // duplo
+    const doubleSlashPattern = /(https?:\/\/[^"'\s]*?\/\/[^"'\s]*?tsl-main[^"'\s]*?\.(png|jpg|jpeg|webp|avif))/i;
+    const doubleSlashMatch = html.match(doubleSlashPattern);
+    
+    if (doubleSlashMatch) {
+      let specialUrl = doubleSlashMatch[1];
+      console.log(`🔍 Encontrada imagem tsl-main com // duplo: ${specialUrl}`);
+      
+      // Corrigir o // duplo
+      const correctedUrl = specialUrl.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+      console.log(`✅ URL corrigida: ${correctedUrl}`);
+      
+      // Validar se a URL é acessível
+      try {
+        const testRes = await fetch(correctedUrl, { method: 'HEAD', timeout: 5000 });
+        if (testRes.ok) {
+          console.log(`🚨 REGRA ESPECIAL ATIVADA: Imagem tsl-main com // duplo detectada e corrigida`);
+          return correctedUrl;
+        }
+      } catch (e) {
+        console.log(`⚠️ Teste de acesso falhou, continuando com métodos normais...`);
+      }
+    }
+
+    /* =========================
        SAFE NET — OG IMAGE
     ========================= */
     let ogImage = "";
@@ -749,6 +776,9 @@ async function resolveHeroProductImage(productUrl) {
       /* ❌ BAD_IMAGE_RE RELAXADO */
       if (BAD_IMAGE_RE.test(low)) continue;
 
+      // 🔥 REGRA ESPECIAL: URL com // no meio é alta prioridade
+      let hasDoubleSlash = src.includes('//') && src.indexOf('//') !== src.lastIndexOf('//');
+      
       let score = 0;
 
       /* ✅ PADRÕES DE PRODUTO - BÔNUS ALTO */
@@ -761,6 +791,15 @@ async function resolveHeroProductImage(productUrl) {
       /* ✅ SEMÂNTICA FORTE (PRODUTO) */
       if (/(product|bottle|supplement|capsule|jar|pack|bundle|introducting)/i.test(low)) {
         score += 40;
+      }
+
+      /* ✅ URL COM // DUPLO - PRIORIDADE MÁXIMA */
+      if (hasDoubleSlash && low.includes('tsl-main')) {
+        score += 200; // Score extremamente alto
+        console.log(`🎯 Imagem tsl-main com // duplo encontrada: ${src}`);
+      } else if (hasDoubleSlash) {
+        score += 100; // Score alto para qualquer imagem com // duplo
+        console.log(`⚠️ Imagem com // duplo encontrada: ${src}`);
       }
 
       /* ✅ TAMANHO */
@@ -800,7 +839,7 @@ async function resolveHeroProductImage(productUrl) {
         }
       });
 
-      debug.push({ src, score });
+      debug.push({ src, score, hasDoubleSlash });
 
       if (score > best.score) {
         best = { src, score };
@@ -838,6 +877,13 @@ async function resolveHeroProductImage(productUrl) {
     /* =========================
        ORDEM FINAL DE DECISÃO - CORRIGIDA
     ========================= */
+    
+    // 0️⃣ REGRA ESPECIAL: Se encontrou imagem com // duplo e tsl-main, retorna corrigida
+    if (doubleSlashMatch) {
+      const correctedUrl = doubleSlashMatch[1].replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+      console.log(`🚨 RETORNO POR REGRA ESPECIAL (// duplo): ${correctedUrl.substring(0, 80)}...`);
+      return correctedUrl;
+    }
     
     // 1️⃣ RANKING COM THRESHOLD BAIXO
     if (best.src && best.score > 5) {
