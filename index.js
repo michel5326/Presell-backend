@@ -1037,8 +1037,53 @@ async function resolveHeroProductImage(productUrl) {
       const correctedSrc = best.src.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
       return correctedSrc;
     }
+    /* =========================
+   REGRA EXTRA — ASSETS DIRETOS DO DOMÍNIO (90%+ CASE)
+========================= */
 
-    // 5️⃣ PLAYWRIGHT (último recurso)
+const assetFolders = [
+  '/img/',
+  '/images/',
+  '/assets/',
+  '/cb/img/',
+  '/media/',
+];
+
+const commonNames = [
+  'bottle',
+  'product',
+  'supplement',
+  'main',
+  'hero',
+  'pack',
+  'jar',
+  'container'
+];
+
+for (const folder of assetFolders) {
+  for (const name of commonNames) {
+    const candidates = [
+      `https://${baseDomain}${folder}${name}.png`,
+      `https://${baseDomain}${folder}${name}.jpg`,
+      `https://${baseDomain}${folder}${name}.jpeg`,
+      `https://${baseDomain}${folder}${name}.webp`,
+      `https://${baseDomain}${folder}${name}-one.png`,
+      `https://${baseDomain}${folder}${name}-main.png`,
+      `https://${baseDomain}${folder}${name}-ing.png`
+    ];
+
+    for (const url of candidates) {
+      const fixed = fixImageUrl(url);
+      const ok = await testImageAccessibility(fixed);
+      if (ok) {
+        console.log(`🔥 ASSET DIRETO ENCONTRADO: ${fixed}`);
+        return fixed;
+      }
+    }
+  }
+}
+
+// 5️⃣ PLAYWRIGHT (último recurso)
     console.log(`🔄 Tentando extração via Playwright...`);
     const pw = await extractHeroImageWithPlaywright(productUrl);
     if (pw) {
