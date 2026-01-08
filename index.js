@@ -228,6 +228,98 @@ function cleanHandlebarsSyntax(html) {
 }
 
 /* =========================
+   CLEAN TEMPLATE HELPER
+========================= */
+function cleanTemplateAfterReplacements(html) {
+  console.log('🧹 Iniciando limpeza pós-substituições...');
+  
+  // 1. REMOVER IMAGENS COM src="" ou src vazio
+  html = html.replace(/<img[^>]*src=["']{2}[^>]*>/g, '');
+  html = html.replace(/<img[^>]*src=["']\s+["'][^>]*>/g, '');
+  
+  // 2. REMOVER DIVS COM class="bonus-grid" vazias
+  html = html.replace(/<div class="bonus-grid">\s*<\/div>/g, '');
+  
+  // 3. CORRIGIR DIVS DUPLICADAS EM BÔNUS
+  html = html.replace(/<div class="bonus-grid">\s*<div class="bonus-grid">/g, '<div class="bonus-grid">');
+  html = html.replace(/<\/div>\s*<\/div>\s*<\/section>/g, '</div></section>');
+  
+  // 4. REMOVER SEÇÕES COM APENAS TÍTULO (sem conteúdo real)
+  const sectionRegex = /<section[^>]*class="[^"]*auto-hide-section[^"]*"[^>]*>([\s\S]*?)<\/section>/g;
+  html = html.replace(sectionRegex, (match, content) => {
+    // Verifica se tem conteúdo além do título
+    const hasRealContent = content.match(/<(img|div|p|a)[^>]*>/);
+    const hasTitleOnly = content.match(/<h2[^>]*>.*?<\/h2>/);
+    
+    if (hasTitleOnly && !hasRealContent) {
+      console.log('🗑️ Removendo seção vazia');
+      return ''; // Remove a seção inteira
+    }
+    return match;
+  });
+  
+  // 5. REMOVER ELEMENTOS hide-if-empty vazios
+  const hideIfEmptyRegex = /<(div|section)[^>]*class="[^"]*hide-if-empty[^"]*"[^>]*>([\s\S]*?)<\/\1>/g;
+  html = html.replace(hideIfEmptyRegex, (match, tag, content) => {
+    const hasContent = content.trim().length > 0 && 
+                      !content.match(/^\s*$/);
+    return hasContent ? match : '';
+  });
+  
+  // 6. REMOVER CLASSES auto-hide-section VAZIAS
+  html = html.replace(/<section[^>]*>\s*<h2[^>]*>.*?<\/h2>\s*<\/section>/g, '');
+  
+  // 7. REMOVER IMAGENS PROBLEMÁTICAS
+  const badPatterns = [
+    'facebook.com/tr?id=',
+    'google-analytics',
+    '/pixel.',
+    'tracking',
+    'analytics'
+  ];
+  
+  badPatterns.forEach(pattern => {
+    const regex = new RegExp(`<img[^>]*src=["'][^"']*${pattern}[^"']*["'][^>]*>`, 'gi');
+    html = html.replace(regex, '');
+  });
+  
+  console.log('✅ Limpeza concluída');
+  return html;
+}
+
+/* =========================
+   SAFE REPLACE FUNCTION
+========================= */
+function safeReplace(html, placeholder, value) {
+  if (!value || value.trim() === '') {
+    console.log(`⚠️ Placeholder vazio: ${placeholder}`);
+    
+    // Se for uma imagem, remover a tag img inteira
+    if (placeholder.includes('IMAGE') || placeholder.includes('IMG')) {
+      // Busca a tag img que contém o placeholder
+      const imgRegex = new RegExp(`<img[^>]*\\{\\{${placeholder.replace('{{', '').replace('}}', '')}\\}\\}[^>]*>`, 'gi');
+      html = html.replace(imgRegex, '');
+      console.log(`   🗑️ Removida tag img vazia para: ${placeholder}`);
+    }
+    
+    // Remover placeholder vazio
+    return html.replaceAll(placeholder, '');
+  }
+  
+  // Se for uma imagem de garantia e já tem HTML completo, extrair apenas src
+  if (placeholder === '{{GUARANTEE_IMAGE}}' && value.includes('<img')) {
+    const srcMatch = value.match(/src=["']([^"']+)["']/i);
+    if (srcMatch) {
+      value = srcMatch[1];
+      console.log(`   🔧 Extraído src da imagem de garantia`);
+    }
+  }
+  
+  // Aplicar substituição normal
+  return html.replaceAll(placeholder, value);
+}
+
+/* =========================
    URL NORMALIZER
 ========================= */
 function normalizeUrl(u, base) {
@@ -527,32 +619,29 @@ async function resolveHeroProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    // 🔥 CORREÇÃO CRÍTICA: BAD_IMAGE_RE RELAXADO
-    // Apenas bloqueia logos/ícones óbvios, não palavras comuns de e-commerce
     const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
-// Removemos "logo" e "icon" porque muitas imagens de produto podem conter essas palavras
 
     // 🔥 PADRÕES DE NOME DE ARQUIVO DE PRODUTO (EXPANDIDO)
-   const PRODUCT_PATTERNS = [
-  /tsl-main/i,
-  /product.*\.(png|jpg|jpeg|webp|avif)/i,
-  /main.*\.(png|jpg|jpeg|webp|avif)/i,
-  /hero.*\.(png|jpg|jpeg|webp|avif)/i,
-  /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
-  /supplement.*\.(png|jpg|jpeg|webp|avif)/i,
-  /home.*product/i,
-  /introducting/i,
-  /featured.*image/i,
-  /pack.*shot/i,
-  /jar.*image/i,
-  /capsule.*bottle/i,
-  /container.*image/i,
-  /label.*photo/i,
-  /box.*product/i,
-  /item.*main/i,
-  /primary.*image/i,
-  /default.*product/i
-  ];
+    const PRODUCT_PATTERNS = [
+      /tsl-main/i,
+      /product.*\.(png|jpg|jpeg|webp|avif)/i,
+      /main.*\.(png|jpg|jpeg|webp|avif)/i,
+      /hero.*\.(png|jpg|jpeg|webp|avif)/i,
+      /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
+      /supplement.*\.(png|jpg|jpeg|webp|avif)/i,
+      /home.*product/i,
+      /introducting/i,
+      /featured.*image/i,
+      /pack.*shot/i,
+      /jar.*image/i,
+      /capsule.*bottle/i,
+      /container.*image/i,
+      /label.*photo/i,
+      /box.*product/i,
+      /item.*main/i,
+      /primary.*image/i,
+      /default.*product/i
+    ];
 
     /* =========================
        SAFE NET — OG IMAGE
@@ -564,7 +653,7 @@ async function resolveHeroProductImage(productUrl) {
       const fixedOgSrc = fixImageUrl(ogSrc);
       if (fixedOgSrc && !BAD_IMAGE_RE.test(fixedOgSrc)) {
         ogImage = fixedOgSrc;
-        console.log(`🏷️ OG Image encontrada: ${ogSrc}`);
+        console.log(`🏷️ OG Image encontrada: ${ogSrc.substring(0, 80)}...`);
       }
     }
 
@@ -614,8 +703,7 @@ async function resolveHeroProductImage(productUrl) {
       /* ✅ PADRÕES DE PRODUTO - BÔNUS ALTO */
       PRODUCT_PATTERNS.forEach(pattern => {
         if (pattern.test(low)) {
-          score += 60; // Bônus alto para padrões de produto
-          console.log(`🎯 Padrão de produto encontrado: ${pattern} (+60)`);
+          score += 60;
         }
       });
 
@@ -643,32 +731,29 @@ async function resolveHeroProductImage(productUrl) {
       }
 
       /* ✅ ALT TEXT (se tiver descrição) */
-const alt = tag.match(/alt=["']([^"']+)["']/i);
-if (alt && alt[1].length > 3) {
-  score += 15;
-}
+      const alt = tag.match(/alt=["']([^"']+)["']/i);
+      if (alt && alt[1].length > 3) {
+        score += 15;
+      }
 
-/* ✅ PALAVRAS-CHAVE DE PRODUTO - BÔNUS ADICIONAL */
-const PRODUCT_KEYWORDS = [
-  'product', 'bottle', 'supplement', 'capsule', 'jar', 
-  'bundle', 'pack', 'container', 'label', 'box',
-  'item', 'goods', 'merchandise', 'commodity', 'article'
-];
+      /* ✅ PALAVRAS-CHAVE DE PRODUTO - BÔNUS ADICIONAL */
+      const PRODUCT_KEYWORDS = [
+        'product', 'bottle', 'supplement', 'capsule', 'jar', 
+        'bundle', 'pack', 'container', 'label', 'box',
+        'item', 'goods', 'merchandise', 'commodity', 'article'
+      ];
 
-PRODUCT_KEYWORDS.forEach(keyword => {
-  if (low.includes(keyword)) {
-    score += 30; // Bônus adicional para palavras-chave
-    if (process.env.DEBUG_SCORING === "true") {
-      console.log(`🔑 Palavra-chave de produto "${keyword}" encontrada (+30)`);
-    }
-  }
-});
+      PRODUCT_KEYWORDS.forEach(keyword => {
+        if (low.includes(keyword)) {
+          score += 30;
+        }
+      });
 
-debug.push({ src, score });
+      debug.push({ src, score });
 
-if (score > best.score) {
-  best = { src, score };
-}
+      if (score > best.score) {
+        best = { src, score };
+      }
     }
 
     /* =========================
@@ -697,7 +782,6 @@ if (score > best.score) {
     if (process.env.DEBUG_IMAGES === "true") {
       console.log("🏆 IMAGE RANKING (top 5):", debug.sort((a, b) => b.score - a.score).slice(0, 5));
       console.log("🔍 ASSET CANDIDATES (top 3):", assetCandidates.slice(0, 3));
-      console.log(`📊 Melhor score: ${best.score}, Asset preferred: ${assetPreferred}`);
     }
 
     /* =========================
@@ -706,25 +790,25 @@ if (score > best.score) {
     
     // 1️⃣ RANKING COM THRESHOLD BAIXO
     if (best.src && best.score > 5) {
-      console.log(`✅ Imagem selecionada (ranking): ${best.src} (score: ${best.score})`);
+      console.log(`✅ Imagem selecionada (ranking): ${best.src.substring(0, 80)}...`);
       return best.src;
     }
 
     // 2️⃣ ASSETS SOLTOS COM PADRÃO DE PRODUTO
     if (assetPreferred) {
-      console.log(`✅ Imagem selecionada (assets): ${assetPreferred}`);
+      console.log(`✅ Imagem selecionada (assets): ${assetPreferred.substring(0, 80)}...`);
       return assetPreferred;
     }
 
     // 3️⃣ OG IMAGE
     if (ogImage) {
-      console.log(`✅ Imagem selecionada (OG): ${ogImage}`);
+      console.log(`✅ Imagem selecionada (OG): ${ogImage.substring(0, 80)}...`);
       return ogImage;
     }
 
     // 4️⃣ MELHOR DO RANKING (mesmo com score baixo)
     if (best.src) {
-      console.log(`✅ Imagem selecionada (fallback): ${best.src}`);
+      console.log(`✅ Imagem selecionada (fallback): ${best.src.substring(0, 80)}...`);
       return best.src;
     }
 
@@ -732,7 +816,7 @@ if (score > best.score) {
     console.log(`🔄 Tentando extração via Playwright...`);
     const pw = await extractHeroImageWithPlaywright(productUrl);
     if (pw) {
-      console.log(`✅ Imagem selecionada (playwright): ${pw}`);
+      console.log(`✅ Imagem selecionada (playwright): ${pw.substring(0, 80)}...`);
       return fixImageUrl(pw);
     }
 
@@ -769,14 +853,18 @@ async function extractIngredientImages(productUrl) {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    if (!res.ok) return "";
+    if (!res.ok) return null;
 
     const html = await res.text();
     const base = new URL(productUrl);
     
     const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
+      try {
+        const normalized = normalizeUrl(u, base);
+        return fixImageUrl(normalized);
+      } catch {
+        return null;
+      }
     };
 
     // 🔥 FILTRO RELAXADO
@@ -811,145 +899,130 @@ async function extractIngredientImages(productUrl) {
 
     if (out.length > 1) {
       return `<div class="ingredient-grid">${out.join("\n")}</div>`;
+    } else if (out.length === 1) {
+      return out[0];
     }
     
-    return out.join("\n");
+    return null;
   } catch {
-    return "";
+    return null;
   }
 }
 
 /* =========================
-   IMAGE — BONUS (UNIVERSAL)
+   IMAGE — BONUS (UNIVERSAL) - CORRIGIDA
 ========================= */
 async function extractBonusImages(productUrl) {
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    if (!res.ok) return "";
+    if (!res.ok) return null;
 
     const html = await res.text();
     const base = new URL(productUrl);
     
     const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
+      try {
+        const normalized = normalizeUrl(u, base);
+        return fixImageUrl(normalized);
+      } catch {
+        return null;
+      }
     };
 
-    // FILTRO FORTE: NÃO ACEITA IMAGENS DE TRACKING
-    const HARD_EXCLUDE = [
-      'facebook.com/tr?id=',
-      'google-analytics',
-      '/pixel.',
-      'tracking',
-      'analytics',
-      'beacon',
-      'doubleclick',
-      'adsystem',
-      'adservice',
-      'gtag'
-    ];
-
-    const CONTENT_KEYWORDS = [
-      "ebook",
-      "pdf",
-      "guide",
-      "manual",
-      "book",
-      "report",
-      "video",
-      "training",
-      "course",
-      "module",
-      "lesson",
-      "bonus",
-      "free",
-      "gift"
-    ];
-
-    const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
-    const out = [];
-
-    for (const m of imgs) {
-      if (out.length >= 3) break;
-
-      let src = normalize(m[1]);
+    const BONUS_KEYWORDS = ["ebook", "pdf", "guide", "manual", "book", "bonus", "free", "gift"];
+    const EXCLUDE_KEYWORDS = ["facebook.com/tr?id=", "pixel", "tracking", "analytics"];
+    
+    const images = [];
+    const srcMatches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
+    
+    for (const m of srcMatches) {
+      if (images.length >= 3) break;
+      
+      const src = normalize(m[1]);
       if (!src) continue;
-
+      
       const low = src.toLowerCase();
-
-      // 🔥 REJEITA QUALQUER COISA QUE PARECE TRACKING
-      const isTracking = HARD_EXCLUDE.some(pattern => low.includes(pattern));
-      if (isTracking) {
-        console.log(`❌ Rejeitado (tracking): ${src.substring(0, 80)}...`);
-        continue;
-      }
-
+      
+      // Excluir tracking
+      const isExcluded = EXCLUDE_KEYWORDS.some(k => low.includes(k));
+      if (isExcluded) continue;
+      
       if (low.startsWith("data:")) continue;
       if (low.endsWith(".svg")) continue;
       
-      // Verificar conteúdo real
-      const hasContent = CONTENT_KEYWORDS.some((w) => low.includes(w));
-      if (!hasContent) continue;
-
-      out.push(`<img src="${src}" alt="Bonus material" class="bonus-img" loading="lazy">`);
-    }
-
-    if (out.length > 1) {
-      return `<div class="bonus-grid">${out.join("\n")}</div>`;
+      // Verificar se parece bônus
+      const tag = m[0].toLowerCase();
+      const isBonus = BONUS_KEYWORDS.some(k => 
+        low.includes(k) || tag.includes(k)
+      );
+      
+      if (isBonus) {
+        images.push(src);
+      }
     }
     
-    return out.join("\n");
+    if (images.length > 0) {
+      const htmlImages = images.map(src => 
+        `<img src="${src}" alt="Bonus material" class="bonus-img" loading="lazy">`
+      ).join("\n");
+      
+      return htmlImages;
+    }
+    
+    return null;
   } catch {
-    return "";
+    return null;
   }
 }
 
 /* =========================
-   IMAGE — GUARANTEE (UNIVERSAL)
+   IMAGE — GUARANTEE (UNIVERSAL) - CORRIGIDA
 ========================= */
 async function extractGuaranteeImage(productUrl) {
   try {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    if (!res.ok) return "";
+    if (!res.ok) return null;
 
     const html = await res.text();
     const base = new URL(productUrl);
     
     const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
+      try {
+        const normalized = normalizeUrl(u, base);
+        return fixImageUrl(normalized);
+      } catch {
+        return null;
+      }
     };
 
-    // 🔥 FILTRO RELAXADO
-    const BAD_IMAGE_RE = /(logo|icon|favicon|spinner)(?![a-z])/i;
+    const KEYWORDS = ["guarantee", "moneyback", "refund", "badge", "seal", "warranty"];
     
-    const INCLUDE = ["guarantee", "moneyback", "money-back", "refund", "risk", "badge", "seal", "certif", "warranty"];
-
-    const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
-
-    for (const m of imgs) {
-      let src = normalize(m[1]);
+    // Primeiro: procurar em src
+    const srcMatches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)];
+    
+    for (const m of srcMatches) {
+      const src = normalize(m[1]);
+      if (!src) continue;
+      
       const low = src.toLowerCase();
+      if (low.startsWith("data:") || low.endsWith(".svg")) continue;
       
-      if (!src || low.startsWith("data:") || low.endsWith(".svg")) continue;
-      
-      // 🔥 FILTRO RELAXADO
-      if (BAD_IMAGE_RE.test(low)) continue;
-      
-      // Verificar se parece garantia
-      const isGuarantee = INCLUDE.some((w) => low.includes(w));
-      if (!isGuarantee) continue;
-
-      return `<img src="${src}" alt="Guarantee badge" class="guarantee-badge" loading="lazy">`;
+      // Verificar se tem palavra-chave de garantia
+      const hasKeyword = KEYWORDS.some(k => low.includes(k));
+      if (hasKeyword) {
+        console.log(`   ✅ Imagem de garantia encontrada: ${src.substring(0, 80)}...`);
+        return src; // APENAS A URL!
+      }
     }
-
-    return "";
-  } catch {
-    return "";
+    
+    return null;
+  } catch (error) {
+    console.log(`   ❌ Erro ao extrair imagem de garantia: ${error.message}`);
+    return null;
   }
 }
 
@@ -961,14 +1034,18 @@ async function extractTestimonialImages(productUrl) {
     const res = await fetch(productUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    if (!res.ok) return "";
+    if (!res.ok) return null;
 
     const html = await res.text();
     const base = new URL(productUrl);
     
     const normalize = (u) => {
-      const normalized = normalizeUrl(u, base);
-      return fixImageUrl(normalized);
+      try {
+        const normalized = normalizeUrl(u, base);
+        return fixImageUrl(normalized);
+      } catch {
+        return null;
+      }
     };
 
     // 🔥 FILTRO RELAXADO
@@ -1017,17 +1094,12 @@ async function extractTestimonialImages(productUrl) {
 
     // Fallback genérico se não encontrar
     if (out.length === 0) {
-      return `
-<div class="testimonial-item">
-  <div class="testimonial-img-placeholder">👤</div>
-  <p class="testimonial-text">"Many users report positive experiences with this product."</p>
-  <p class="testimonial-author">- Satisfied User</p>
-</div>`;
+      return null;
     }
 
     return out.join("\n");
   } catch {
-    return "";
+    return null;
   }
 }
 
@@ -1072,7 +1144,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW
+   BOFU REVIEW - COMPLETAMENTE REFAZIDA
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -1082,29 +1154,23 @@ async function generateBofuReview({
 }) {
   console.log(`🎯 generateBofuReview chamado para: ${productUrl}`);
   console.log(`📁 Template: ${templatePath}`);
-
+  
   try {
     // 1. CARREGAR TEMPLATE
     let html = fs.readFileSync(templatePath, "utf8");
     console.log(`📄 Template carregado (${html.length} chars)`);
 
-    // 2. DETECTAR TIPO DE TEMPLATE
-    const isUniversalTemplate = html.includes('{{LANG}}') || html.includes('{{META_DESCRIPTION}}');
-    const isBootstrapTemplate = html.includes('card h-100') || html.includes('col-md-');
-    const isSimpleTemplate = !isUniversalTemplate && !isBootstrapTemplate;
-    
-    console.log(`🔍 Template detectado:`);
-    console.log(`   Universal: ${isUniversalTemplate}`);
-    console.log(`   Bootstrap: ${isBootstrapTemplate}`);
-    console.log(`   Simple: ${isSimpleTemplate}`);
+    // 2. DETECTAR PLACEHOLDERS NECESSÁRIOS
+    const needs = {
+      productImage: html.includes('{{PRODUCT_IMAGE}}'),
+      ingredientImages: html.includes('{{INGREDIENT_IMAGES}}'),
+      testimonialImages: html.includes('{{TESTIMONIAL_IMAGES}}'),
+      bonusImages: html.includes('{{BONUS_IMAGES}}'),
+      guaranteeImage: html.includes('{{GUARANTEE_IMAGE}}'),
+      guaranteeText: html.includes('{{GUARANTEE}}')
+    };
 
-    // 3. DETECTAR PLACEHOLDERS NECESSÁRIOS
-    const needsIngredientImages = html.includes('{{INGREDIENT_IMAGES}}');
-    const needsTestimonialImages = html.includes('{{TESTIMONIAL_IMAGES}}');
-    const needsBonusImages = html.includes('{{BONUS_IMAGES}}');
-    const needsGuaranteeImage = html.includes('{{GUARANTEE_IMAGE}}');
-
-    // 4. GERAR CONTEÚDO AI
+    // 3. GERAR CONTEÚDO AI
     let systemPrompt = `You are generating copy for a BOFU review page used primarily with Google Search traffic.
 
 CRITICAL CONTEXT:
@@ -1114,14 +1180,10 @@ CRITICAL CONTEXT:
 
 Return ONLY valid JSON.`;
 
-    // Adicionar instruções baseadas no template
     const additionalInstructions = [];
 
-    if (isBootstrapTemplate) {
-      additionalInstructions.push(`BENEFITS_LIST: Return exactly 6 benefits as comma-separated list. Each benefit should be 2-4 words maximum. Include relevant emojis where appropriate.`);
-    } else {
-      additionalInstructions.push(`BENEFITS_LIST: Return as comma-separated list of benefit statements (6-8 items).`);
-    }
+    // Adicionar instruções baseadas no template
+    additionalInstructions.push(`BENEFITS_LIST: Return exactly 6 benefits as comma-separated list. Each benefit should be 2-4 words maximum. Include relevant emojis where appropriate.`);
 
     if (additionalInstructions.length > 0) {
       systemPrompt += `\n\nTEMPLATE-SPECIFIC INSTRUCTIONS:\n${additionalInstructions.join('\n')}`;
@@ -1144,196 +1206,111 @@ Return ONLY valid JSON.`;
     const ai = await callDeepSeekWithRetry(systemPrompt, `Product URL: ${productUrl}`);
     console.log(`🤖 AI Response recebida`);
 
-    // 5. FORMATAR BENEFITS_LIST BASEADO NO TEMPLATE
+    // 4. FORMATAR BENEFITS_LIST
     if (ai.BENEFITS_LIST) {
       const benefits = String(ai.BENEFITS_LIST)
         .split(",")
         .map(s => s.trim())
-        .filter(Boolean);
-
-      if (isBootstrapTemplate) {
-        // Formato Bootstrap Cards (6 itens)
-        const emojis = ['🚀', '💪', '🎯', '🌟', '⚡', '✅', '🔋', '🧠', '💓', '🛡️'];
+        .filter(Boolean)
+        .slice(0, 6);
+      
+      const emojis = ['🚀', '💪', '🎯', '🌟', '⚡', '✅'];
+      
+      ai.BENEFITS_LIST = benefits.map((benefit, index) => {
+        const parts = benefit.split(':');
+        const title = parts[0]?.trim() || `Benefit ${index + 1}`;
+        const description = parts[1]?.trim() || `Improves ${title.toLowerCase()} effectively.`;
         
-        ai.BENEFITS_LIST = benefits.slice(0, 6).map((benefit, index) => {
-          const parts = benefit.split(':');
-          const title = parts[0]?.trim() || `Benefit ${index + 1}`;
-          const description = parts[1]?.trim() || `Improves ${title.toLowerCase()} effectively.`;
-          
-          return `
+        return `
 <div class="col">
-  <div class="card h-100 shadow-sm border-0 text-center p-3">
+  <div class="card card-universal h-100 text-center p-3">
     <div class="card-icon mb-2 fs-2">${emojis[index] || '✅'}</div>
     <h5 class="card-title">${title}</h5>
     <p class="card-text">${description}</p>
   </div>
 </div>`;
-        }).join("\n");
-      } else if (isSimpleTemplate) {
-        // Formato simples (lista <li>)
-        ai.BENEFITS_LIST = benefits.map(item => `<li>${item}</li>`).join("");
-      } else {
-        // Formato universal (default)
-        ai.BENEFITS_LIST = benefits.map(item => `<li>✅ ${item}</li>`).join("");
-      }
+      }).join("\n");
     }
 
-    // 6. EXTRAIR IMAGEM DO PRODUTO
-    console.log(`🖼️ Extraindo imagem do produto...`);
-    let productImage = await resolveHeroProductImage(productUrl);
-
-    // 🔥 PATCH CRÍTICO: Se o algoritmo principal falhar, usar fallback
-    if (!productImage) {
-      console.log(`🔄 Nenhuma imagem pelo algoritmo principal, tentando fallbacks...`);
-      
-      try {
-        const response = await fetch(productUrl, {
-          headers: { "User-Agent": "Mozilla/5.0" },
-          timeout: 5000
-        });
-        
-        if (response.ok) {
-          const htmlText = await response.text();
-          const base = new URL(productUrl);
-          
-          const patterns = [
-            /tsl-main\.png/i,
-            /product.*\.(png|jpg|jpeg|webp)/i,
-            /main.*\.(png|jpg|jpeg|webp)/i,
-            /hero.*\.(png|jpg|jpeg|webp)/i,
-            /bottle.*\.(png|jpg|jpeg|webp)/i
-          ];
-          
-          const imageUrls = [...htmlText.matchAll(/(https?:\/\/[^\s"'<>]+\.(png|jpg|jpeg|webp|avif))/gi)]
-            .map(m => {
-              let url = m[0];
-              url = url.replace(/(https?:\/\/[^\/]+)\/\//g, '$1/');
-              return url;
-            })
-            .filter(url => {
-              const low = url.toLowerCase();
-              return !low.startsWith('data:') && !low.endsWith('.svg');
-            });
-          
-          console.log(`📊 Encontradas ${imageUrls.length} URLs de imagem no HTML`);
-          
-          for (const pattern of patterns) {
-            const match = imageUrls.find(url => pattern.test(url));
-            if (match) {
-              productImage = match;
-              console.log(`✅ Imagem encontrada por padrão: ${productImage}`);
-              break;
-            }
-          }
-          
-          if (!productImage && imageUrls.length > 0) {
-            const goodImages = imageUrls.filter(url => {
-              const low = url.toLowerCase();
-              return !/(logo|icon|favicon|spinner|loader)/i.test(low);
-            });
-            
-            if (goodImages.length > 0) {
-              productImage = goodImages[0];
-              console.log(`✅ Usando primeira imagem decente: ${productImage}`);
-            }
-          }
-        }
-      } catch (error) {
-        console.log(`❌ Fallback também falhou: ${error.message}`);
-      }
-    }
-
-    // FALLBACK DE EMERGÊNCIA PARA SITES CONHECIDOS
-    if (!productImage) {
-      console.log(`🚨 Todos os métodos falharam, usando fallback de emergência`);
-      const lowerUrl = productUrl.toLowerCase();
-      
-      if (lowerUrl.includes('primebiome') || lowerUrl.includes('getprimebiome')) {
-        productImage = "https://getprimebiome.com/statics/img/tsl-main.png";
-        console.log(`🎯 Usando URL conhecida para PrimeBiome`);
-      }
-    }
-
-    // 7. EXTRAIR OUTRAS IMAGENS CONDICIONALMENTE
-    console.log(`🖼️ Extraindo outras imagens...`);
+    // 5. EXTRAIR IMAGENS (APENAS SE NECESSÁRIO)
+    const images = {};
     
-    let ingredientImages = "";
-    let testimonialImages = "";
-    let bonusImages = "";
-    let guaranteeImage = "";
-
-    if (needsIngredientImages) {
-      ingredientImages = await extractIngredientImages(productUrl);
-      console.log(`🧪 Ingredient images: ${ingredientImages ? 'OK' : 'None'}`);
+    if (needs.productImage) {
+      console.log(`🖼️ Extraindo imagem do produto...`);
+      images.productImage = await resolveHeroProductImage(productUrl);
+      console.log(`   ${images.productImage ? '✅ Encontrada' : '❌ Não encontrada'}`);
+    }
+    
+    if (needs.ingredientImages) {
+      console.log(`🧪 Extraindo imagens de ingredientes...`);
+      images.ingredientImages = await extractIngredientImages(productUrl);
+      console.log(`   ${images.ingredientImages ? '✅ Encontradas' : '❌ Não encontradas'}`);
+    }
+    
+    if (needs.testimonialImages) {
+      console.log(`🌟 Extraindo imagens de depoimentos...`);
+      images.testimonialImages = await extractTestimonialImages(productUrl);
+      console.log(`   ${images.testimonialImages ? '✅ Encontradas' : '❌ Não encontradas'}`);
+    }
+    
+    if (needs.bonusImages) {
+      console.log(`🎁 Extraindo imagens de bônus...`);
+      images.bonusImages = await extractBonusImages(productUrl);
+      console.log(`   ${images.bonusImages ? '✅ Encontradas' : '❌ Não encontradas'}`);
+    }
+    
+    if (needs.guaranteeImage) {
+      console.log(`💰 Extraindo imagem de garantia...`);
+      images.guaranteeImage = await extractGuaranteeImage(productUrl);
+      console.log(`   ${images.guaranteeImage ? '✅ Encontrada' : '❌ Não encontrada'}`);
     }
 
-    if (needsTestimonialImages) {
-      testimonialImages = await extractTestimonialImages(productUrl);
-      console.log(`🌟 Testimonial images: ${testimonialImages ? 'OK' : 'None'}`);
-    }
-
-    if (needsBonusImages) {
-      bonusImages = await extractBonusImages(productUrl);
-      console.log(`🎁 Bonus images: ${bonusImages ? 'OK' : 'None'}`);
-    }
-
-    if (needsGuaranteeImage) {
-      guaranteeImage = await extractGuaranteeImage(productUrl);
-      console.log(`💰 Guarantee image: ${guaranteeImage ? 'OK' : 'None'}`);
-    }
-
-    // 8. APLICAR SUBSTITUIÇÕES
-    let replacements = 0;
+    // 6. APLICAR SUBSTITUIÇÕES COM SEGURANÇA
+    console.log(`🔄 Aplicando substituições...`);
     
     // Primeiro: textos da AI
     for (const [key, value] of Object.entries(ai)) {
-      const placeholder = `{{${key}}}`;
-      if (html.includes(placeholder)) {
-        html = html.replaceAll(placeholder, value || "");
-        replacements++;
-        console.log(`   ✅ ${key}: ${value ? value.substring(0, 50) + '...' : '(vazio)'}`);
-      }
+      html = safeReplace(html, `{{${key}}}`, value);
     }
     
     // Segundo: links e imagens
-    const placeholdersToReplace = [
+    const replacements = [
       { placeholder: '{{AFFILIATE_LINK}}', value: affiliateUrl },
-      { placeholder: '{{PRODUCT_IMAGE}}', value: productImage },
-      { placeholder: '{{INGREDIENT_IMAGES}}', value: ingredientImages },
-      { placeholder: '{{TESTIMONIAL_IMAGES}}', value: testimonialImages },
-      { placeholder: '{{BONUS_IMAGES}}', value: bonusImages },
-      { placeholder: '{{GUARANTEE_IMAGE}}', value: guaranteeImage }
+      { placeholder: '{{PRODUCT_IMAGE}}', value: images.productImage },
+      { placeholder: '{{INGREDIENT_IMAGES}}', value: images.ingredientImages },
+      { placeholder: '{{TESTIMONIAL_IMAGES}}', value: images.testimonialImages },
+      { placeholder: '{{BONUS_IMAGES}}', value: images.bonusImages },
+      { placeholder: '{{GUARANTEE_IMAGE}}', value: images.guaranteeImage }
     ];
     
-    for (const { placeholder, value } of placeholdersToReplace) {
-      if (html.includes(placeholder)) {
-        html = html.replaceAll(placeholder, value || "");
-        replacements++;
-        if (value) {
-          console.log(`   ✅ ${placeholder}: Inserido`);
-        } else {
-          console.log(`   ⚠️ ${placeholder}: Vazio (não encontrado)`);
-        }
+    replacements.forEach(({ placeholder, value }) => {
+      html = safeReplace(html, placeholder, value);
+    });
+    
+    // 7. REMOVER SINTAXE HANDLEBARS
+    html = cleanHandlebarsSyntax(html);
+    
+    // 8. APLICAR PLACEHOLDERS GLOBAIS
+    html = applyGlobals(html);
+    
+    // 9. LIMPEZA FINAL INTELIGENTE
+    html = cleanTemplateAfterReplacements(html);
+    
+    // 10. GARANTIR QUE IMAGENS DE GARANTIA TENHAM HTML CORRETO
+    if (images.guaranteeImage) {
+      // Substituir qualquer img com class guarantee-badge pela correta
+      const guaranteeImgRegex = /<img[^>]*class="guarantee-badge"[^>]*>/g;
+      const correctGuaranteeImg = `<img src="${images.guaranteeImage}" alt="Guarantee Badge" class="guarantee-badge mb-4">`;
+      
+      if (html.match(guaranteeImgRegex)) {
+        html = html.replace(guaranteeImgRegex, correctGuaranteeImg);
+      } else {
+        // Se não encontrou a tag, inserir no lugar do placeholder
+        html = html.replace('{{GUARANTEE_IMAGE}}', correctGuaranteeImg);
       }
     }
     
-    // 9. REMOVER SINTAXE HANDLEBARS
-    html = cleanHandlebarsSyntax(html);
-    
-    // 10. APLICAR PLACEHOLDERS GLOBAIS
-    html = applyGlobals(html);
-    
-    // 11. LIMPAR SEÇÕES VAZIAS
-    html = html.replace(/<img[^>]*src=["']{2}[^>]*>/g, '');
-    html = html.replace(/<div[^>]*>\s*<\/div>/g, '');
-    html = html.replace(/<section[^>]*>\s*<h2[^>]*>.*?<\/h2>\s*<\/section>/g, '');
-    
-    // 12. LIMPAR BÔNUS PROBLEMÁTICOS - DENTRO DA FUNÇÃO!
-    html = cleanBonusImages(html);
-    
-    console.log(`🔄 ${replacements} placeholders substituídos`);
     console.log(`✅ Review gerado (${html.length} chars)`);
-    
     return html;
 
   } catch (error) {
@@ -1342,34 +1319,6 @@ Return ONLY valid JSON.`;
   }
 }
 
-/* =========================
-   FUNÇÃO PARA LIMPAR BÔNUS PROBLEMÁTICOS
-========================= */
-function cleanBonusImages(html) {
-  // Remove imagens de tracking/pixel dos bônus
-  const trackingPatterns = [
-    'facebook.com/tr?id=',
-    'google-analytics',
-    '/pixel.',
-    'tracking',
-    'analytics',
-    'breatheagain.io/media/vsl/'
-  ];
-  
-  let cleaned = html;
-  
-  // Remove imagens específicas mas mantém o container se tiver outras
-  trackingPatterns.forEach(pattern => {
-    const regex = new RegExp(`<img[^>]*src=["'][^"']*${pattern}[^"']*["'][^>]*>`, 'gi');
-    cleaned = cleaned.replace(regex, '');
-  });
-  
-  // Remove divs de bônus vazias
-  cleaned = cleaned.replace(/<div class="bonus-grid">\s*<\/div>/g, '');
-  cleaned = cleaned.replace(/<section[^>]*>\s*<h2[^>]*>Exclusive Bonuses<\/h2>\s*<\/section>/g, '');
-  
-  return cleaned;
-}
 /* =========================
    ROBUSTA (MANTIDO PARA COMPATIBILIDADE)
 ========================= */
@@ -1435,28 +1384,35 @@ Output ONLY valid JSON.`,
   // Carregar template
   let html = fs.readFileSync(templatePath, "utf8");
 
-  // Aplicar AI
+  // Aplicar AI com safeReplace
   for (const [k, v] of Object.entries(ai)) {
-    html = html.replaceAll(`{{${k}}}`, v || "");
+    html = safeReplace(html, `{{${k}}}`, v || "");
   }
 
-  // Aplicar imagens e links
-  html = html
-    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl)
-    .replaceAll("{{PRODUCT_IMAGE}}", productImage || "")
-    .replaceAll("{{INGREDIENT_IMAGES}}", ingredientImages || "")
-    .replaceAll("{{BONUS_IMAGES}}", bonusImages || "")
-    .replaceAll("{{GUARANTEE_IMAGE}}", guaranteeImage || "");
+  // Aplicar imagens e links com safeReplace
+  const replacements = [
+    { placeholder: '{{AFFILIATE_LINK}}', value: affiliateUrl },
+    { placeholder: '{{PRODUCT_IMAGE}}', value: productImage },
+    { placeholder: '{{INGREDIENT_IMAGES}}', value: ingredientImages },
+    { placeholder: '{{BONUS_IMAGES}}', value: bonusImages },
+    { placeholder: '{{GUARANTEE_IMAGE}}', value: guaranteeImage }
+  ];
+  
+  replacements.forEach(({ placeholder, value }) => {
+    html = safeReplace(html, placeholder, value);
+  });
 
   // Testimonial fallback
   const t = testimonialFallback[language] || testimonialFallback.en;
-  html = html
-    .replaceAll("{{TESTIMONIAL_TITLE}}", ai.TESTIMONIAL_TITLE || t.title)
-    .replaceAll("{{TESTIMONIAL_NOTICE_TEXT}}", ai.TESTIMONIAL_NOTICE_TEXT || t.text)
-    .replaceAll("{{TESTIMONIAL_CTA_TEXT}}", ai.TESTIMONIAL_CTA_TEXT || t.cta);
+  html = safeReplace(html, "{{TESTIMONIAL_TITLE}}", ai.TESTIMONIAL_TITLE || t.title);
+  html = safeReplace(html, "{{TESTIMONIAL_NOTICE_TEXT}}", ai.TESTIMONIAL_NOTICE_TEXT || t.text);
+  html = safeReplace(html, "{{TESTIMONIAL_CTA_TEXT}}", ai.TESTIMONIAL_CTA_TEXT || t.cta);
 
   // Globais
   html = applyGlobals(html);
+  
+  // Limpeza final
+  html = cleanTemplateAfterReplacements(html);
 
   return html;
 }
@@ -1583,6 +1539,9 @@ app.post("/generate", async (req, res) => {
     }
 
     html = applyGlobals(html);
+    
+    // Aplicar limpeza mesmo no legacy
+    html = cleanTemplateAfterReplacements(html);
 
     return res.status(200).set("Content-Type", "text/html").send(html);
   } catch (e) {
@@ -1673,6 +1632,7 @@ async function extractAssets(productUrl) {
     return [];
   }
 }
+
 /* =========================
    DEBUG PRIMEBIOME ESPECÍFICO
 ========================= */
@@ -1783,4 +1743,5 @@ app.listen(PORT, () => {
   console.log(`🚀 WORKER rodando na porta ${PORT}`);
   console.log(`🔧 Sistema: BOFU Review Generator`);
   console.log(`🎯 Templates suportados: review-*, robusta-*, legacy`);
+  console.log(`✨ Clean template system: ON`);
 });
