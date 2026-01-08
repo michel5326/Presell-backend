@@ -1541,6 +1541,96 @@ async function extractAssets(productUrl) {
     return [];
   }
 }
+/* =========================
+   DEBUG PRIMEBIOME ESPECÍFICO
+========================= */
+app.post("/debug-primebiome", async (req, res) => {
+  try {
+    const productUrl = "https://getprimebiome.com/";
+    console.log(`🔍 DEBUG ESPECÍFICO PARA PRIMEBIOME: ${productUrl}`);
+    
+    // 1. Fazer fetch da página
+    const response = await fetch(productUrl, {
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      },
+      timeout: 10000
+    });
+    
+    console.log(`📡 Status: ${response.status}`);
+    
+    const html = await response.text();
+    const base = new URL(productUrl);
+    
+    // 2. Procurar a imagem específica que sabemos que existe
+    const targetPatterns = [
+      "tsl-main.png",
+      "product-home.png", 
+      "main-product.png",
+      "hero.png",
+      "bottle.png"
+    ];
+    
+    console.log(`🔎 Procurando padrões específicos:`);
+    
+    targetPatterns.forEach(pattern => {
+      const index = html.indexOf(pattern);
+      if (index > -1) {
+        // Pegar contexto ao redor
+        const start = Math.max(0, index - 100);
+        const end = Math.min(html.length, index + 100);
+        const context = html.substring(start, end);
+        console.log(`✅ ENCONTRADO "${pattern}":`);
+        console.log(`   Contexto: ${context}`);
+        
+        // Tentar extrair a URL completa
+        const urlMatch = context.match(/(https?:\/\/[^\s"'<>]+\.(png|jpg|jpeg|webp|avif))/i);
+        if (urlMatch) {
+          console.log(`   URL completa: ${urlMatch[1]}`);
+        }
+      } else {
+        console.log(`❌ NÃO ENCONTRADO: "${pattern}"`);
+      }
+    });
+    
+    // 3. Testar a função atual
+    console.log(`\n🧪 Testando resolveHeroProductImage():`);
+    const result = await resolveHeroProductImage(productUrl);
+    console.log(`   Resultado: ${result || "(vazio)"}`);
+    
+    // 4. Testar extração de OG Image
+    const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    console.log(`\n🏷️ OG Image: ${og ? og[1] : "Não encontrada"}`);
+    
+    // 5. Contar imagens totais
+    const imgTags = [...html.matchAll(/<img[^>]+>/gi)];
+    console.log(`\n🖼️ Total de tags <img>: ${imgTags.length}`);
+    
+    // Mostrar as primeiras 5
+    console.log(`📋 Primeiras 5 imagens:`);
+    imgTags.slice(0, 5).forEach((img, i) => {
+      const tag = img[0];
+      const srcMatch = tag.match(/src=["']([^"']+)["']/i);
+      const dataSrc = tag.match(/data-src=["']([^"']+)["']/i);
+      console.log(`   ${i+1}. src: ${srcMatch ? srcMatch[1].substring(0, 80) : 'N/A'}`);
+      console.log(`      data-src: ${dataSrc ? dataSrc[1].substring(0, 80) : 'N/A'}`);
+    });
+    
+    res.json({
+      success: true,
+      url: productUrl,
+      imageFound: !!result,
+      imageUrl: result,
+      totalImages: imgTags.length,
+      hasOGImage: !!og,
+      ogImage: og ? og[1] : null
+    });
+    
+  } catch (error) {
+    console.error(`🔥 Erro no debug: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 /* =========================
    HEALTH CHECK
