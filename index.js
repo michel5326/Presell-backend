@@ -529,7 +529,8 @@ async function resolveHeroProductImage(productUrl) {
 
     // 🔥 CORREÇÃO CRÍTICA: BAD_IMAGE_RE RELAXADO
     // Apenas bloqueia logos/ícones óbvios, não palavras comuns de e-commerce
-    const BAD_IMAGE_RE = /(logo|icon|favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
+    const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
+// Removemos "logo" e "icon" porque muitas imagens de produto podem conter essas palavras
 
     // 🔥 CORREÇÃO CRÍTICA: PADRÕES DE NOME DE ARQUIVO DE PRODUTO
     const PRODUCT_PATTERNS = [
@@ -679,7 +680,7 @@ async function resolveHeroProductImage(productUrl) {
     ========================= */
     
     // 1️⃣ RANKING COM THRESHOLD BAIXO
-    if (best.src && best.score > 20) {
+    if (best.src && best.score > 5) {
       console.log(`✅ Imagem selecionada (ranking): ${best.src} (score: ${best.score})`);
       return best.src;
     }
@@ -1137,17 +1138,97 @@ Return ONLY valid JSON.`;
       }
     }
 
-    // 6. EXTRAIR IMAGEM DO PRODUTO (COM ALGORITMO CORRIGIDO)
-    console.log(`🖼️ Extraindo imagem do produto...`);
-    let productImage = await resolveHeroProductImage(productUrl);
+    // 6. EXTRAIR IMAGEM DO PRODUTO (COM ALGORITMO CORRIGIDO + FALLBACKS)
+console.log(`🖼️ Extraindo imagem do produto...`);
+let productImage = await resolveHeroProductImage(productUrl);
+
+// 🔥 PATCH CRÍTICO: Se o algoritmo principal falhar, usar fallback inteligente
+if (!productImage) {
+  console.log(`🔄 Nenhuma imagem pelo algoritmo principal, tentando fallbacks...`);
+  
+  // Fallback 1: Tentar extração simplificada
+  try {
+    const response = await fetch(productUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      timeout: 5000
+    });
     
-    // 🔥 NÃO USAR PLACEHOLDER! Se não encontrar imagem, deixar vazio
-    if (!productImage) {
-      console.log(`⚠️ Nenhuma imagem encontrada após todas as tentativas`);
-      // Não usar placeholder - o template terá que lidar com imagem ausente
-    } else {
-      console.log(`✅ Imagem encontrada: ${productImage.substring(0, 100)}...`);
+    if (response.ok) {
+      const html = await response.text();
+      const base = new URL(productUrl);
+      
+      // Procurar por padrões específicos
+      const patterns = [
+        /tsl-main\.png/i,
+        /product.*\.(png|jpg|jpeg|webp)/i,
+        /main.*\.(png|jpg|jpeg|webp)/i,
+        /hero.*\.(png|jpg|jpeg|webp)/i,
+        /bottle.*\.(png|jpg|jpeg|webp)/i
+      ];
+      
+      // Extrair todas as URLs de imagem
+      const imageUrls = [...html.matchAll(/(https?:\/\/[^\s"'<>]+\.(png|jpg|jpeg|webp|avif))/gi)]
+        .map(m => {
+          let url = m[0];
+          // Corrigir duplo "//"
+          url = url.replace(/(https?:\/\/[^\/]+)\/\//g, '$1/');
+          return url;
+        })
+        .filter(url => {
+          const low = url.toLowerCase();
+          // Filtro MÍNIMO - apenas bloquear SVG e data URLs
+          return !low.startsWith('data:') && !low.endsWith('.svg');
+        });
+      
+      console.log(`📊 Encontradas ${imageUrls.length} URLs de imagem no HTML`);
+      
+      // Priorizar URLs que parecem ser do produto
+      for (const pattern of patterns) {
+        const match = imageUrls.find(url => pattern.test(url));
+        if (match) {
+          productImage = match;
+          console.log(`✅ Imagem encontrada por padrão: ${productImage}`);
+          break;
+        }
+      }
+      
+      // Se ainda não encontrou, pegar a primeira imagem decente
+      if (!productImage && imageUrls.length > 0) {
+        // Filtrar logos óbvios
+        const goodImages = imageUrls.filter(url => {
+          const low = url.toLowerCase();
+          return !/(logo|icon|favicon|spinner|loader)/i.test(low);
+        });
+        
+        if (goodImages.length > 0) {
+          productImage = goodImages[0];
+          console.log(`✅ Usando primeira imagem decente: ${productImage}`);
+        }
+      }
     }
+  } catch (error) {
+    console.log(`❌ Fallback também falhou: ${error.message}`);
+  }
+}
+
+// 🔥 FALLBACK DE EMERGÊNCIA PARA SITES CONHECIDOS
+if (!productImage) {
+  console.log(`🚨 Todos os métodos falharam, usando fallback de emergência`);
+  
+  const lowerUrl = productUrl.toLowerCase();
+  
+  if (lowerUrl.includes('primebiome') || lowerUrl.includes('getprimebiome')) {
+    productImage = "https://getprimebiome.com/statics/img/tsl-main.png";
+    console.log(`🎯 Usando URL conhecida para PrimeBiome`);
+  }
+  // Você pode adicionar mais sites conhecidos aqui se necessário
+}
+
+// SÓ DEPOIS mostrar se não encontrou
+if (!productImage) {
+  console.log(`⚠️ Nenhuma imagem encontrada após todas as tentativas`);
+  // Deixa vazio - template lida
+}
 
     // 7. EXTRAIR OUTRAS IMAGENS CONDICIONALMENTE
     console.log(`🖼️ Extraindo outras imagens...`);
