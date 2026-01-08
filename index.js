@@ -249,9 +249,9 @@ function normalizeUrl(u, base) {
 }
 
 /* =========================
-   IMAGE VALIDATOR
+   IMAGE VALIDATOR (GLOBAL) - CORRIGIDO PARA ACEITAR CDNs MODERNAS
 ========================= */
-async function validateImageUrl(url) {
+function validateImageUrl(url) { // Remover async
   if (!url) return "";
 
   let u = String(url).trim();
@@ -483,7 +483,7 @@ async function extractBottleImage(productUrl) {
 }
 
 /* =========================
-   IMAGE RESOLVER — MELHORADO PARA PRODENTIM
+   IMAGE RESOLVER — COM TODAS AS CORREÇÕES DO SISTEMA ANTIGO
 ========================= */
 async function resolveHeroProductImage(productUrl) {
   console.log(`🔍 Resolvendo imagem para: ${productUrl}`);
@@ -493,8 +493,8 @@ async function resolveHeroProductImage(productUrl) {
       headers: { 
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
       },
-      timeout: 10000
     });
+    
     if (!res.ok) {
       console.log(`❌ Fetch falhou: ${res.status}`);
       return "";
@@ -503,114 +503,179 @@ async function resolveHeroProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    // 1. PRIMEIRO: OG Image (mais confiável)
+    /* =========================
+       CENTRALIZED FILTERS (MANTIDO DO ANTIGO)
+    ========================= */
+    const BAD_IMAGE_RE = /(logo|icon|badge|star|check|seal|bg|cta|button|order|buy|checkout|cart|shop|banner)/i;
+
+    /* =========================
+       SAFE NET — OG IMAGE (NÃO BYPASSA RANKING)
+    ========================= */
+    let ogImage = "";
     const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
     if (og) {
       const ogSrc = normalizeUrl(og[1], base);
-      console.log(`🏷️ OG Image encontrada: ${ogSrc}`);
-      if (ogSrc && !/(logo|icon|badge)/i.test(ogSrc)) {
-        return ogSrc;
+      if (ogSrc && !BAD_IMAGE_RE.test(ogSrc)) {
+        ogImage = ogSrc;
+        console.log(`🏷️ OG Image encontrada: ${ogSrc}`);
       }
     }
 
-    // 2. SEGUNDO: Procurar imagens específicas do produto
     const imgs = [...html.matchAll(/<img[^>]+>/gi)];
     let best = { src: "", score: 0 };
+    let debug = [];
 
     for (const m of imgs) {
       const tag = m[0];
-      
-      // Pega src de várias formas possíveis
-      const srcMatch = tag.match(/src=["']([^"']+)["']/i) ||
-                      tag.match(/data-src=["']([^"']+)["']/i) ||
-                      tag.match(/data-original=["']([^"']+)["']/i);
-      
+
+      // 🔥 CORREÇÃO CRÍTICA 1: srcset agora pega a MAIOR imagem (COPIADO DO ANTIGO)
+      const srcsetMatch = tag.match(/srcset=["']([^"']+)["']/i);
+      let srcCandidate = "";
+
+      if (srcsetMatch) {
+        srcCandidate = srcsetMatch[1]
+          .split(",")
+          .map(s => s.trim().split(" ")[0])
+          .pop(); // pega a MAIOR (última do array)
+      }
+
+      // 🔥 CORREÇÃO CRÍTICA 2: Múltiplas formas de pegar src (COPIADO DO ANTIGO)
+      const srcMatch =
+        srcCandidate ||
+        tag.match(/src=["']([^"']+)["']/i)?.[1] ||
+        tag.match(/data-src=["']([^"']+)["']/i)?.[1] ||
+        tag.match(/data-original=["']([^"']+)["']/i)?.[1] ||
+        tag.match(/data-lazy=["']([^"']+)["']/i)?.[1];
+
       if (!srcMatch) continue;
 
-      const src = normalizeUrl(srcMatch[1], base);
+      const src = normalizeUrl(srcMatch, base);
       if (!src) continue;
 
       const low = src.toLowerCase();
 
-      // Filtros básicos
-      if (/^data:/i.test(low) || low.endsWith(".svg")) continue;
-      
-      // Filtros de contexto
-      const isBad = /(logo|icon|badge|banner|button|checkout|cart|shop|arrow|menu|nav)/i.test(low);
-      const isGood = /(product|bottle|supplement|jar|pack|bundle|introducting|prodentim|package)/i.test(low);
-      
-      if (isBad) continue;
-      
+      /* ❌ LIXO VISUAL ABSOLUTO (MANTIDO DO ANTIGO) */
+      if (
+        /^data:/i.test(low) ||
+        low.endsWith(".svg") ||
+        BAD_IMAGE_RE.test(low)
+      ) continue;
+
       let score = 0;
-      if (isGood) score += 30;
-      
-      // Tamanho da imagem (proxy de importância)
+
+      /* ✅ SEMÂNTICA FORTE (PRODUTO) - MELHORADO */
+      if (/(product|bottle|supplement|capsule|jar|pack|bundle|introducting)/i.test(low)) {
+        score += 35; // Aumentado de 25 para 35
+      }
+
+      /* ✅ TAMANHO (PROXY DE IMPORTÂNCIA VISUAL) */
       const w = tag.match(/width=["']?(\d+)/i);
       const h = tag.match(/height=["']?(\d+)/i);
-      
+
       if (w && h) {
         const area = Number(w[1]) * Number(h[1]);
-        if (area > 50000) score += 50;
-        else if (area > 25000) score += 30;
+        if (area > 40000) score += 40; // Aumentado
+        else if (area > 20000) score += 25; // Aumentado
+      } else {
+        // imagem válida sem dimensões explícitas
+        score += 15; // Aumentado
       }
-      
-      // URL específica do Prodentim (fallback conhecido)
+
+      /* ✅ POSIÇÃO NO HTML (PRIMEIRA DOBRA LÓGICA) - OTIMIZADO */
+      const position = html.indexOf(m[0]);
+      if (position > -1 && position < html.length * 0.15) { // Mais restrito (15% do HTML)
+        score += 50; // Aumentado significativamente
+      }
+
+      /* ✅ PRODENTIM ESPECÍFICO - BÔNUS MAIOR */
       if (low.includes("prodentim") && low.includes("introducting")) {
-        score += 100;
+        score += 150; // Bônus MASSIVO para Prodentim
       }
-      
+
+      debug.push({ src, score });
+
       if (score > best.score) {
         best = { src, score };
       }
     }
 
-    // 3. Fallback para Prodentim específico
-    if (productUrl.includes("prodentim")) {
-      const knownImages = [
-        "https://prodentim101.com/statics/img/introducting_prodentim.png",
-        "https://prodentim.com/images/prodentim-bottle.png",
-        "https://prodentim101.com/assets/images/product.png",
-        "https://prodentim.com/images/product.png",
-        "https://prodentim.com/assets/images/product.png"
-      ];
-      
-      for (const img of knownImages) {
-        try {
-          console.log(`🔍 Testando imagem conhecida: ${img}`);
-          const test = await fetch(img, { method: 'HEAD', timeout: 5000 });
-          if (test.ok) {
-            console.log(`✅ Usando imagem conhecida do Prodentim: ${img}`);
-            return img;
-          }
-        } catch {}
-      }
+    /* =========================
+       FALLBACK — ASSETS SOLTOS (CSS / JS / HTML CRU) - MELHORADO
+       🔥 CORREÇÃO CRÍTICA 3: Capturar assets como "introducting_prodentim.png"
+    ========================= */
+    const assetCandidates = [...html.matchAll(
+      /(?:https?:\/\/|\/)[^"'()\s]+?\.(png|jpe?g|webp|avif)(\?[^"'()\s]*)?/gi
+    )]
+      .map(m => normalizeUrl(m[0], base))
+      .filter(u =>
+        u &&
+        !BAD_IMAGE_RE.test(u) &&
+        !/\.svg(\?|#|$)/i.test(u)
+      );
+
+    // 🔥 PRIORIDADE PARA PRODENTIM
+    const assetPreferred = 
+      assetCandidates.find(u => 
+        u.includes("prodentim") && u.includes("introducting")
+      ) ||
+      assetCandidates.find(u =>
+        /(product|bottle|supplement|introduc|container)/i.test(u)
+      ) ||
+      assetCandidates[0];
+
+    /* 🔍 DEBUG OPCIONAL */
+    if (process.env.DEBUG_IMAGES === "true") {
+      console.log(
+        "🏆 IMAGE RANKING (top 5):",
+        debug.sort((a, b) => b.score - a.score).slice(0, 5)
+      );
+      console.log(
+        "🔍 ASSET CANDIDATES (top 5):",
+        assetCandidates.slice(0, 5)
+      );
     }
 
-    // 4. Retornar a melhor imagem encontrada
-    if (best.src) {
-      console.log(`✅ Imagem selecionada (score: ${best.score}): ${best.src}`);
+    /* =========================
+       ORDEM FINAL DE DECISÃO - CORRIGIDA (COPIADO DO ANTIGO)
+       🔥 CRÍTICO: Ranking primeiro, assets depois
+    ========================= */
+    
+    console.log(`📊 Melhor score do ranking: ${best.score}`);
+    
+    // 1️⃣ RANKING TEM PRIORIDADE MÁXIMA
+    if (best.src && best.score > 50) { // Threshold mais baixo
+      console.log(`✅ Imagem selecionada (ranking): ${best.src} (score: ${best.score})`);
       return best.src;
     }
 
-    // 5. Últimos recursos
-    console.log("🔍 Tentando fallbacks...");
-    const fallbacks = [
-      extractBottleImage(productUrl),
-      extractLargestImage(productUrl),
-      extractHeroImageWithPlaywright(productUrl)
-    ];
-
-    for (const fallback of fallbacks) {
-      const img = await fallback;
-      if (img) {
-        console.log(`✅ Imagem encontrada via fallback: ${img}`);
-        return img;
-      }
+    // 2️⃣ ASSETS SOLTOS (fallback para sites sem <img> tags como Prodentim)
+    if (assetPreferred) {
+      console.log(`✅ Imagem encontrada em assets: ${assetPreferred}`);
+      return assetPreferred;
     }
 
-    console.log(`❌ Nenhuma imagem encontrada para ${productUrl}`);
-    return "";
+    // 3️⃣ OG IMAGE
+    if (ogImage) {
+      console.log(`✅ Imagem selecionada (OG): ${ogImage}`);
+      return ogImage;
+    }
 
+    // 4️⃣ BOTTLE EXTRACTION (apenas se o ranking não funcionou)
+    if (best.src) { // Usa o melhor do ranking mesmo com score baixo
+      console.log(`✅ Imagem selecionada (ranking fallback): ${best.src}`);
+      return best.src;
+    }
+
+    // 5️⃣ PLAYWRIGHT (último recurso)
+    const pw = await extractHeroImageWithPlaywright(productUrl);
+    if (pw) {
+      console.log(`✅ Imagem selecionada (playwright): ${pw}`);
+      return pw;
+    }
+
+    console.log(`❌ Nenhuma imagem encontrada`);
+    return "";
+    
   } catch (error) {
     console.error(`🔥 Erro no resolveHeroProductImage: ${error.message}`);
     return "";
@@ -926,13 +991,13 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW — SISTEMA COMPLETO E COMPATÍVEL
+   BOFU REVIEW — COM FALLBACK ESPECÍFICO PARA PRODENTIM
 ========================= */
 async function generateBofuReview({
   templatePath,
   affiliateUrl,
   productUrl,
-  language = "en",
+  language,
 }) {
   console.log(`🎯 generateBofuReview chamado para: ${productUrl}`);
   console.log(`📁 Template: ${templatePath}`);
@@ -1032,21 +1097,27 @@ Return ONLY valid JSON.`;
       }
     }
 
-    // 6. EXTRAIR IMAGENS NECESSÁRIAS
-    console.log(`🖼️ Extraindo imagens...`);
-    
-    // Imagem principal do produto
+    // 6. EXTRAIR IMAGEM DO PRODUTO (COM FALLBACK ESPECÍFICO PARA PRODENTIM)
+    console.log(`🖼️ Extraindo imagem do produto...`);
     let productImage = await resolveHeroProductImage(productUrl);
     
-    // Fallback se não encontrar imagem
+    // 🔥 FALLBACK ESPECÍFICO PARA PRODENTIM
+    if (!productImage && productUrl.includes("prodentim")) {
+      console.log(`🔧 Usando fallback específico para Prodentim`);
+      productImage = "https://prodentim101.com/statics/img/introducting_prodentim.png";
+    }
+    
+    // Fallback geral se não encontrar imagem
     if (!productImage) {
       console.log(`⚠️ Nenhuma imagem encontrada, usando placeholder`);
       productImage = 'https://via.placeholder.com/400x400?text=Product+Image';
     } else {
-      console.log(`✅ Imagem principal encontrada`);
+      console.log(`✅ Imagem encontrada: ${productImage.substring(0, 100)}...`);
     }
 
-    // Extrair outras imagens condicionalmente
+    // 7. EXTRAIR OUTRAS IMAGENS CONDICIONALMENTE
+    console.log(`🖼️ Extraindo outras imagens...`);
+    
     let ingredientImages = "";
     let testimonialImages = "";
     let bonusImages = "";
@@ -1072,7 +1143,7 @@ Return ONLY valid JSON.`;
       console.log(`💰 Guarantee image: ${guaranteeImage ? 'OK' : 'None'}`);
     }
 
-    // 7. APLICAR SUBSTITUIÇÕES
+    // 8. APLICAR SUBSTITUIÇÕES
     let replacements = 0;
     
     // Primeiro: textos da AI
@@ -1081,6 +1152,7 @@ Return ONLY valid JSON.`;
       if (html.includes(placeholder)) {
         html = html.replaceAll(placeholder, value || "");
         replacements++;
+        console.log(`   ✅ ${key}: ${value ? value.substring(0, 50) + '...' : '(vazio)'}`);
       }
     }
     
@@ -1098,21 +1170,26 @@ Return ONLY valid JSON.`;
       if (html.includes(placeholder)) {
         html = html.replaceAll(placeholder, value || "");
         replacements++;
+        if (value) {
+          console.log(`   ✅ ${placeholder}: Inserido`);
+        } else {
+          console.log(`   ⚠️ ${placeholder}: Vazio (não encontrado)`);
+        }
       }
     }
     
-    // 8. REMOVER SINTAXE HANDLEBARS ({{#VAR}} e {{/VAR}})
+    // 9. REMOVER SINTAXE HANDLEBARS ({{#VAR}} e {{/VAR}})
     html = cleanHandlebarsSyntax(html);
     
-    // 9. APLICAR PLACEHOLDERS GLOBAIS
+    // 10. APLICAR PLACEHOLDERS GLOBAIS
     html = applyGlobals(html);
     
-    // 10. LIMPAR SEÇÕES VAZIAS
+    // 11. LIMPAR SEÇÕES VAZIAS
     // Remove imagens com src vazio
     html = html.replace(/<img[^>]*src=["']{2}[^>]*>/g, '');
     // Remove divs vazias
     html = html.replace(/<div[^>]*>\s*<\/div>/g, '');
-    // Remove seções vazias
+    // Remove seções completas se não tiverem conteúdo além do título
     html = html.replace(/<section[^>]*>\s*<h2[^>]*>.*?<\/h2>\s*<\/section>/g, '');
     
     console.log(`🔄 ${replacements} placeholders substituídos`);
@@ -1353,21 +1430,43 @@ app.post("/generate", async (req, res) => {
 });
 
 /* =========================
-   TESTE PRODENTIM
+   TESTE DE IMAGEM DO PRODENTIM
 ========================= */
-app.post("/test-prodentim", async (req, res) => {
+app.post("/test-prodentim-image", async (req, res) => {
   try {
-    console.log("🧪 Teste ProDentim iniciado");
-    
     const productUrl = "https://prodentim.com";
-    const image = await resolveHeroProductImage(productUrl);
+    
+    console.log(`🧪 Testando extração de imagem do Prodentim`);
+    
+    // Testar todas as estratégias
+    const results = {
+      mainMethod: await resolveHeroProductImage(productUrl),
+      ogImage: await extractOGImage(productUrl),
+      assets: await extractAssets(productUrl),
+      bottle: await extractBottleImage(productUrl),
+      playwright: await extractHeroImageWithPlaywright(productUrl)
+    };
+    
+    // Verificar URL conhecida
+    const knownUrl = "https://prodentim101.com/statics/img/introducting_prodentim.png";
+    let knownUrlStatus = "unknown";
+    
+    try {
+      const test = await fetch(knownUrl, { method: 'HEAD' });
+      knownUrlStatus = test.ok ? "accessible" : "not accessible";
+    } catch {
+      knownUrlStatus = "error";
+    }
     
     res.json({
       success: true,
       productUrl,
-      imageFound: !!image,
-      imageUrl: image,
-      message: image ? "✅ Imagem encontrada" : "❌ Nenhuma imagem encontrada"
+      results,
+      knownUrl,
+      knownUrlStatus,
+      recommendations: results.mainMethod ? 
+        "✅ Sistema funcionando corretamente" : 
+        "❌ Problema na extração de imagens"
     });
     
   } catch (error) {
@@ -1375,6 +1474,39 @@ app.post("/test-prodentim", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Funções auxiliares para o teste
+async function extractOGImage(productUrl) {
+  try {
+    const res = await fetch(productUrl);
+    const html = await res.text();
+    const base = new URL(productUrl);
+    
+    const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
+    if (og) {
+      return normalizeUrl(og[1], base);
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+
+async function extractAssets(productUrl) {
+  try {
+    const res = await fetch(productUrl);
+    const html = await res.text();
+    const base = new URL(productUrl);
+    
+    const matches = [...html.matchAll(
+      /(?:https?:\/\/|\/)[^"'()\s]+?\.(png|jpe?g|webp|avif)(\?[^"'()\s]*)?/gi
+    )];
+    
+    return matches.map(m => normalizeUrl(m[0], base)).slice(0, 5);
+  } catch {
+    return [];
+  }
+}
 
 /* =========================
    HEALTH CHECK
