@@ -678,6 +678,45 @@ async function resolveHeroProductImage(productUrl) {
     // ETAPA 0: REGRA DE EMERGÊNCIA
     const baseDomain = new URL(productUrl).hostname;
     const domain = baseDomain.replace('www.', '');
+    /* =========================
+   REGRA ESPECIAL — ASSETS FORA DO HTML (SLEEPLEAN / CB)
+========================= */
+
+const directProductFolders = [
+  '/images/lame-photos/',
+  '/images/product/',
+  '/images/products/',
+  '/assets/images/',
+  '/img/',
+];
+
+const directProductNames = [
+  'lame-one',
+  'bottle',
+  'product',
+  'pack',
+  'jar'
+];
+
+for (const folder of directProductFolders) {
+  for (const name of directProductNames) {
+    const candidates = [
+      `https://${baseDomain}${folder}${name}.png`,
+      `https://${baseDomain}${folder}${name}.jpg`,
+      `https://${baseDomain}${folder}${name}.webp`
+    ];
+
+    for (const url of candidates) {
+      const fixed = fixImageUrl(url);
+      const ok = await testImageAccessibility(fixed);
+      if (ok) {
+        console.log(`🔥 IMAGEM FORA DO HTML ENCONTRADA: ${fixed}`);
+        return fixed;
+      }
+    }
+  }
+}
+
     
     // 🔥 LISTA ATUALIZADA
     const problematicDomains = [
