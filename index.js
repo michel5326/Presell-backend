@@ -666,7 +666,7 @@ async function uploadToR2(localPath, remoteKey) {
 }
 
 /* =========================
-   IMAGE — INGREDIENTS
+   IMAGE — INGREDIENTS (CORRIGIDA)
 ========================= */
 async function extractIngredientImages(productUrl) {
   try {
@@ -694,7 +694,9 @@ async function extractIngredientImages(productUrl) {
       out.push(`<img src="${src}" alt="Ingredient" loading="lazy">`);
     }
 
-    return out.length ? `<div class="image-grid">\n${out.join("\n")}\n</div>` : "";
+    // 🔥 CORREÇÃO: Retorna apenas as imagens, SEM wrapper .image-grid
+    // O template já tem o wrapper correto
+    return out.join("\n");
   } catch {
     return "";
   }
@@ -778,9 +780,8 @@ async function extractBonusImages(productUrl) {
       out.push(`<img src="${src}" alt="Bonus material" loading="lazy">`);
     }
 
-    return out.length
-      ? `<div class="image-grid">\n${out.join("\n")}\n</div>`
-      : "";
+    // Retorna apenas as imagens
+    return out.join("\n");
   } catch {
     return "";
   }
@@ -855,7 +856,7 @@ async function callDeepSeekWithRetry(systemPrompt, userPrompt, attempts = 3) {
 }
 
 /* =========================
-   BOFU REVIEW — FINAL (IMAGE SAFE)
+   BOFU REVIEW — VERSÃO FINAL (COM TODAS AS CORREÇÕES)
 ========================= */
 async function generateBofuReview({
   templatePath,
@@ -887,7 +888,7 @@ SUBHEADLINE
 INTRO
 WHY_IT_WORKS
 FORMULA_TEXT
-BENEFITS_LIST
+BENEFITS_LIST (provide as comma-separated list)
 SOCIAL_PROOF
 GUARANTEE
 
@@ -896,6 +897,20 @@ Language: ${language}`,
     );
 
     console.log(`🤖 AI Response recebida com sucesso`);
+
+    /* =========================
+       🔥 CORREÇÃO 1: BENEFITS_LIST como <li> tags
+    ========================= */
+    if (ai.BENEFITS_LIST) {
+      ai.BENEFITS_LIST = String(ai.BENEFITS_LIST)
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(item => `<li>${item}</li>`)
+        .join("");
+      
+      console.log(`📋 BENEFITS_LIST processada: ${ai.BENEFITS_LIST.split('<li>').length - 1} itens`);
+    }
 
     /* =========================
        IMAGE — SAFE CHAIN (🔥 CRÍTICO)
@@ -919,7 +934,7 @@ Language: ${language}`,
     console.log("🧪 safeProductImage (FINAL):", safeProductImage);
 
     /* =========================
-       INGREDIENT IMAGES
+       INGREDIENT IMAGES (CORRIGIDO)
     ========================= */
     const ingredientImages = await extractIngredientImages(productUrl);
     console.log(
@@ -970,9 +985,8 @@ Language: ${language}`,
   }
 }
 
-
 /* =========================
-   ROBUSTA
+   ROBUSTA - COM CORREÇÕES
 ========================= */
 async function generateRobusta({ templatePath, affiliateUrl, productUrl, language = "en" }) {
   const ai = await callDeepSeekWithRetry(
@@ -1071,7 +1085,7 @@ const guaranteeImage = await extractGuaranteeImage(productUrl);
     es: {
       title: "Lo que dicen los clientes",
       text:
-        "Los testimonios reales de clientes están disponibles directamente en el sitio oficial. " +
+        "Los testimonios reales de clientes estão disponibles directamente en el sitio oficial. " +
         "Para preservar la autenticidad, esta página não reproduce ni modifica opiniones individuales.",
       cta: "Ver testimonios en el sitio oficial",
     },
