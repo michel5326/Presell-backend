@@ -137,14 +137,7 @@
             color: var(--text-sec) !important;
         }
 
-        /* --- IMAGENS COM FALLBACK --- */
-        .product-img-container {
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
+        /* --- IMAGENS --- */
         .product-img {
             max-height: 450px;
             width: auto;
@@ -152,18 +145,6 @@
             border-radius: var(--border-radius);
             box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             border: 2px solid var(--border);
-        }
-
-        .no-image-placeholder {
-            width: 100%;
-            height: 300px;
-            background: linear-gradient(135deg, rgba(0, 230, 118, 0.1), rgba(0, 176, 255, 0.1));
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-sec);
-            border: 2px dashed var(--border);
         }
 
         .ingredient-img {
@@ -301,7 +282,7 @@
 
     <main class="container my-5">
         
-        <!-- HERO SECTION CORRIGIDA -->
+        <!-- HERO SECTION -->
         <section class="row align-items-center gy-5 mb-5">
             <div class="col-lg-6">
                 <h1 class="display-4 fw-bold mb-3">{{HEADLINE}}</h1>
@@ -319,10 +300,9 @@
             </div>
             
             <div class="col-lg-6 text-center">
-                <!-- IMAGEM DO PRODUTO COM FALLBACK CORRIGIDA -->
-                <div class="product-img-container">
-                    {{PRODUCT_IMAGE}}
-                </div>
+                {{#PRODUCT_IMAGE}}
+                <img src="{{PRODUCT_IMAGE}}" alt="Product Image" class="product-img img-fluid">
+                {{/PRODUCT_IMAGE}}
             </div>
         </section>
 
@@ -344,25 +324,32 @@
             <h2 class="section-header">Key Components</h2>
             <div class="row gy-4">
                 <div class="col-md-6">
-                    <!-- TEXTO DA FÓRMULA -->
+                    {{#FORMULA_TEXT}}
                     <div class="card card-universal h-100">
                         <div class="card-body">
                             <h3 class="h5 mb-3"><i class="fas fa-flask me-2"></i>Formula Details</h3>
                             {{FORMULA_TEXT}}
                         </div>
                     </div>
+                    {{/FORMULA_TEXT}}
                 </div>
                 
                 <div class="col-md-6">
-                    <!-- IMAGENS DOS INGREDIENTES COM FALLBACK -->
-                    <div class="ingredient-grid">
-                        {{INGREDIENT_IMAGES}}
+                    {{#INGREDIENT_IMAGES}}
+                    <div class="card card-universal h-100">
+                        <div class="card-body">
+                            <h3 class="h5 mb-3"><i class="fas fa-leaf me-2"></i>Natural Ingredients</h3>
+                            <div class="ingredient-grid">
+                                {{INGREDIENT_IMAGES}}
+                            </div>
+                        </div>
                     </div>
+                    {{/INGREDIENT_IMAGES}}
                 </div>
             </div>
         </section>
 
-        <!-- BENEFITS CORRIGIDA -->
+        <!-- BENEFITS -->
         <section class="mb-5">
             <h2 class="section-header">Key Benefits</h2>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
@@ -370,28 +357,32 @@
             </div>
         </section>
 
-        <!-- SOCIAL PROOF CORRIGIDA -->
+        <!-- SOCIAL PROOF -->
         <section class="mb-5">
             <h2 class="section-header">What Users Say</h2>
             <div class="row g-4">
-                {{TESTIMONIALS}}
+                {{TESTIMONIAL_IMAGES}}
             </div>
             <p class="text-center mt-4 fs-5 text-muted">{{SOCIAL_PROOF}}</p>
         </section>
 
-        <!-- BONUSES CORRIGIDA -->
+        <!-- BONUSES -->
+        {{#BONUS_IMAGES}}
         <section class="mb-5">
             <h2 class="section-header">Exclusive Bonuses</h2>
             <div class="bonus-grid">
                 {{BONUS_IMAGES}}
             </div>
         </section>
+        {{/BONUS_IMAGES}}
 
-        <!-- GUARANTEE CORRIGIDA -->
+        <!-- GUARANTEE -->
         <section class="mb-5">
             <h2 class="section-header">Our Guarantee</h2>
             <div class="text-center">
-                {{GUARANTEE_IMAGE}}
+                {{#GUARANTEE_IMAGE}}
+                <img src="{{GUARANTEE_IMAGE}}" alt="Guarantee Badge" class="guarantee-badge mb-4">
+                {{/GUARANTEE_IMAGE}}
                 <p class="fs-5">{{GUARANTEE}}</p>
                 <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg mt-3">
                     <i class="fas fa-shield-alt me-2"></i>TRY RISK-FREE
@@ -475,47 +466,6 @@
                     }
                 });
             });
-            
-            // Função de fallback para imagens
-            function setupImageFallbacks() {
-                // Para a imagem do produto
-                const productContainer = document.querySelector('.product-img-container');
-                if (productContainer && !productContainer.querySelector('img')) {
-                    productContainer.innerHTML = '<div class="no-image-placeholder"><i class="fas fa-cube fa-3x"></i><p class="mt-2">Product Image</p></div>';
-                }
-                
-                // Para ingredientes
-                const ingredientGrid = document.querySelector('.ingredient-grid');
-                if (ingredientGrid && ingredientGrid.children.length === 0) {
-                    ingredientGrid.innerHTML = '<p class="text-center w-100">Ingredients information coming soon...</p>';
-                }
-                
-                // Para bônus
-                const bonusGrid = document.querySelector('.bonus-grid');
-                if (bonusGrid && bonusGrid.children.length === 0) {
-                    bonusGrid.innerHTML = '<p class="text-center w-100">Bonus details will be available soon</p>';
-                }
-                
-                // Para garantia
-                const guaranteeSection = document.querySelector('.guarantee-badge');
-                if (guaranteeSection && guaranteeSection.tagName === 'IMG' && !guaranteeSection.src) {
-                    guaranteeSection.style.display = 'none';
-                    guaranteeSection.insertAdjacentHTML('afterend', '<div class="no-image-placeholder d-inline-block"><i class="fas fa-shield-alt fa-3x"></i></div>');
-                }
-            }
-            
-            // Remove imagens com src vazio
-            document.querySelectorAll('img').forEach(img => {
-                if (!img.src || img.src === window.location.href) {
-                    img.remove();
-                }
-                img.onerror = function() {
-                    this.style.display = 'none';
-                };
-            });
-            
-            // Configura fallbacks
-            setupImageFallbacks();
         });
     </script>
 </body>
