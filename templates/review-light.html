@@ -169,6 +169,41 @@ margin-top: 4rem;
 padding: 2rem 0;
 }
 
+/* --- REGRAS PARA OCULTAR ELEMENTOS VAZIOS --- */
+.hide-if-empty:empty,
+.hide-if-empty > :empty:not(.section-header):not(h2):not(hr) {
+display: none !important;
+}
+
+.auto-hide-section:not(:has(*:not(.section-header):not(h2):not(hr):not(:empty))) {
+display: none !important;
+}
+
+/* Ocultar imagens específicas problemáticas */
+img[src*="facebook.com/tr?id="],
+img[src*="pixel"],
+img[src*="tracking"],
+img[src*="analytics"],
+img[src*="google-analytics"],
+img[width="1"],
+img[height="1"] {
+display: none !important;
+width: 0 !important;
+height: 0 !important;
+opacity: 0 !important;
+}
+
+/* Seções que devem desaparecer se vazias */
+.auto-hide-section:not(:has(*:not(.section-header):not(h2):not(hr):not(:empty))) {
+display: none !important;
+}
+
+/* Cards vazios */
+.card-universal:empty,
+.card-universal > :empty:not(.card-icon) {
+display: none !important;
+}
+
 /* RESPONSIVIDADE */
 @media (max-width: 768px) {
 .section-header {
@@ -181,6 +216,15 @@ max-height: 300px;
 
 .btn-universal {
 width: 100%;
+}
+
+.bonus-grid {
+flex-direction: column;
+align-items: center;
+}
+
+.bonus-img {
+max-width: 100%;
 }
 }
 </style>
@@ -202,7 +246,7 @@ width: 100%;
 <main class="container my-5">
 
 <!-- HERO SECTION -->
-<section class="row align-items-center gy-5 mb-5">
+<section class="row align-items-center gy-5 mb-5 auto-hide-section">
 <div class="col-lg-6">
 <h1 class="display-5 fw-bold mb-3">{{HEADLINE}}</h1>
 <p class="lead text-muted mb-4">{{SUBHEADLINE}}</p>
@@ -218,7 +262,7 @@ width: 100%;
 </div>
 </div>
 
-<div class="col-lg-6 text-center">
+<div class="col-lg-6 text-center hide-if-empty">
 <!-- IMAGEM DO PRODUTO -->
 {{#PRODUCT_IMAGE}}
 <img src="{{PRODUCT_IMAGE}}" alt="Product Image" class="product-img img-fluid">
@@ -227,11 +271,11 @@ width: 100%;
 </section>
 
 <!-- HOW IT WORKS -->
-<section class="mb-5">
+<section class="mb-5 auto-hide-section">
 <h2 class="section-header">How It Works</h2>
 <div class="card card-universal">
 <div class="card-body p-4">
-<p class="fs-5">{{WHY_IT_WORKS}}</p>
+<p class="fs-5 mb-0">{{WHY_IT_WORKS}}</p>
 <div class="text-center mt-4">
 <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">LEARN MORE</a>
 </div>
@@ -240,9 +284,9 @@ width: 100%;
 </section>
 
 <!-- FORMULA / INGREDIENTS -->
-<section class="mb-5">
+<section class="mb-5 auto-hide-section">
 <h2 class="section-header">Key Components</h2>
-<div class="row gy-4">
+<div class="row gy-4 hide-if-empty">
 <div class="col-md-6">
 <!-- TEXTO DA FÓRMULA -->
 {{#FORMULA_TEXT}}
@@ -261,7 +305,9 @@ width: 100%;
 <div class="card card-universal h-100">
 <div class="card-body">
 <h3 class="h5 mb-3"><i class="fas fa-leaf me-2"></i>Natural Ingredients</h3>
+<div class="ingredient-grid">
 {{INGREDIENT_IMAGES}}
+</div>
 </div>
 </div>
 {{/INGREDIENT_IMAGES}}
@@ -270,38 +316,38 @@ width: 100%;
 </section>
 
 <!-- BENEFITS -->
-<section class="mb-5">
+<section class="mb-5 auto-hide-section">
 <h2 class="section-header">Key Benefits</h2>
-<div class="row g-4">
+<div class="row g-4 hide-if-empty">
 <!-- LISTA DE BENEFÍCIOS -->
 {{BENEFITS_LIST}}
 </div>
 </section>
 
 <!-- SOCIAL PROOF -->
-<section class="mb-5">
+<section class="mb-5 auto-hide-section">
 <h2 class="section-header">What Users Say</h2>
-<div class="row g-4">
+<div class="row g-4 hide-if-empty">
 <!-- TESTIMONIALS -->
 {{TESTIMONIAL_IMAGES}}
 </div>
-<p class="text-center mt-4 fs-5">{{SOCIAL_PROOF}}</p>
+<p class="text-center mt-4 fs-5 hide-if-empty">{{SOCIAL_PROOF}}</p>
 </section>
 
 <!-- BONUSES -->
 {{#BONUS_IMAGES}}
-<section class="mb-5">
+<section class="mb-5 auto-hide-section">
 <h2 class="section-header">Special Bonuses</h2>
-<div class="bonus-grid">
+<div class="bonus-grid hide-if-empty">
 {{BONUS_IMAGES}}
 </div>
 </section>
 {{/BONUS_IMAGES}}
 
 <!-- GUARANTEE -->
-<section class="mb-5">
+<section class="mb-5 auto-hide-section">
 <h2 class="section-header">Our Guarantee</h2>
-<div class="text-center">
+<div class="text-center hide-if-empty">
 {{#GUARANTEE_IMAGE}}
 <img src="{{GUARANTEE_IMAGE}}" alt="Guarantee Badge" class="guarantee-badge mb-4">
 {{/GUARANTEE_IMAGE}}
@@ -397,6 +443,112 @@ btn.addEventListener('click', function() {
 console.log('CTA clicked - Product: {{HEADLINE}}');
 });
 });
+
+// 🔥 FUNÇÃO PARA OCULTAR ELEMENTOS VAZIOS
+function hideEmptyOrProblematicElements() {
+console.log('🔍 Iniciando limpeza de elementos...');
+            
+// 1. Coletar todas as imagens problemáticas primeiro
+const problematicImages = [];
+document.querySelectorAll('img').forEach(img => {
+const src = img.src.toLowerCase();
+if (
+src.includes('facebook.com/tr?id=') ||
+src.includes('pixel') ||
+src.includes('tracking') ||
+src.includes('analytics') ||
+img.width <= 1 ||
+img.height <= 1 ||
+img.style.display === 'none'
+) {
+problematicImages.push(img);
+}
+});
+            
+// 2. Remover imagens problemáticas
+problematicImages.forEach(img => {
+img.style.display = 'none';
+img.style.opacity = '0';
+img.style.visibility = 'hidden';
+img.style.position = 'absolute';
+img.parentNode?.removeChild(img);
+});
+            
+// 3. Verificar seções vazias
+document.querySelectorAll('section.auto-hide-section').forEach(section => {
+const hasContent = Array.from(section.children).some(child => {
+// Ignora cabeçalhos e HR
+if (child.tagName === 'H2' || 
+child.classList.contains('section-header') ||
+child.tagName === 'HR') {
+return false;
+}
+                        
+// Verifica conteúdo real
+if (child.textContent && child.textContent.trim().length > 20) return true;
+if (child.querySelector('img:not([style*="none"]):not([style*="hidden"])')) return true;
+if (child.querySelector('.card-universal:not(:empty)')) return true;
+if (child.querySelector('.btn-universal')) return true;
+                        
+return false;
+});
+                    
+if (!hasContent) {
+console.log('📦 Ocultando seção vazia:', section.querySelector('h2')?.textContent || 'Sem título');
+section.style.display = 'none';
+section.style.opacity = '0';
+section.style.height = '0';
+section.style.margin = '0';
+section.style.padding = '0';
+section.style.overflow = 'hidden';
+}
+});
+            
+// 4. Verificar divs com hide-if-empty
+document.querySelectorAll('.hide-if-empty').forEach(element => {
+if (!element.hasChildNodes() || 
+(element.children.length === 0 && element.textContent.trim() === '')) {
+element.style.display = 'none';
+} else {
+// Verifica se todos os filhos estão vazios
+const allChildrenEmpty = Array.from(element.children).every(child => 
+child.textContent.trim() === '' && 
+!child.querySelector('img, .card, .btn')
+);
+                        
+if (allChildrenEmpty) {
+element.style.display = 'none';
+}
+}
+});
+            
+// 5. Limpar bônus inválidos
+document.querySelectorAll('.bonus-img').forEach(img => {
+if (img.src.includes('facebook.com/tr?id=') || 
+img.src.includes('breatheagain.io') && !img.src.includes('bottle')) {
+const parent = img.parentElement;
+img.style.display = 'none';
+img.remove();
+                        
+// Se o container de bônus ficou vazio, remove a seção
+if (parent && parent.classList.contains('bonus-grid') && 
+parent.children.length === 0) {
+const section = parent.closest('section');
+if (section) {
+section.style.display = 'none';
+}
+}
+}
+});
+            
+console.log('✅ Limpeza concluída:', problematicImages.length, 'elementos removidos');
+}
+            
+// Executar após carregamento e depois de um pequeno delay
+setTimeout(hideEmptyOrProblematicElements, 300);
+            
+// Também executar quando todas as imagens carregarem
+window.addEventListener('load', hideEmptyOrProblematicElements);
 });
 </script>
 </body>

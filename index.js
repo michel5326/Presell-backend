@@ -837,8 +837,19 @@ async function extractBonusImages(productUrl) {
       return fixImageUrl(normalized);
     };
 
-    // 🔥 FILTRO RELAXADO
-    const BAD_IMAGE_RE = /(logo|icon|favicon|spinner)(?![a-z])/i;
+    // FILTRO FORTE: NÃO ACEITA IMAGENS DE TRACKING
+    const HARD_EXCLUDE = [
+      'facebook.com/tr?id=',
+      'google-analytics',
+      '/pixel.',
+      'tracking',
+      'analytics',
+      'beacon',
+      'doubleclick',
+      'adsystem',
+      'adservice',
+      'gtag'
+    ];
 
     const CONTENT_KEYWORDS = [
       "ebook",
@@ -868,13 +879,17 @@ async function extractBonusImages(productUrl) {
 
       const low = src.toLowerCase();
 
+      // 🔥 REJEITA QUALQUER COISA QUE PARECE TRACKING
+      const isTracking = HARD_EXCLUDE.some(pattern => low.includes(pattern));
+      if (isTracking) {
+        console.log(`❌ Rejeitado (tracking): ${src.substring(0, 80)}...`);
+        continue;
+      }
+
       if (low.startsWith("data:")) continue;
       if (low.endsWith(".svg")) continue;
       
-      // 🔥 FILTRO RELAXADO
-      if (BAD_IMAGE_RE.test(low)) continue;
-
-      // Verificar conteúdo
+      // Verificar conteúdo real
       const hasContent = CONTENT_KEYWORDS.some((w) => low.includes(w));
       if (!hasContent) continue;
 
@@ -1343,6 +1358,35 @@ if (!productImage) {
     return `<html><body><h1>Error generating page</h1><p>${error.message}</p><a href="${affiliateUrl}">Visit Official Site</a></body></html>`;
   }
 }
+// 12. FUNÇÃO ESPECÍFICA PARA LIMPAR BÔNUS PROBLEMÁTICOS
+function cleanBonusImages(html) {
+  // Remove imagens de tracking/pixel dos bônus
+  const trackingPatterns = [
+    'facebook.com/tr?id=',
+    'google-analytics',
+    '/pixel.',
+    'tracking',
+    'analytics',
+    'breatheagain.io/media/vsl/' // Exemplo específico do seu caso
+  ];
+  
+  let cleaned = html;
+  
+  // Remove imagens específicas mas mantém o container se tiver outras
+  trackingPatterns.forEach(pattern => {
+    const regex = new RegExp(`<img[^>]*src=["'][^"']*${pattern}[^"']*["'][^>]*>`, 'gi');
+    cleaned = cleaned.replace(regex, '');
+  });
+  
+  // Remove divs de bônus vazias
+  cleaned = cleaned.replace(/<div class="bonus-grid">\s*<\/div>/g, '');
+  cleaned = cleaned.replace(/<section[^>]*>\s*<h2[^>]*>Exclusive Bonuses<\/h2>\s*<\/section>/g, '');
+  
+  return cleaned;
+}
+
+// No final do generateBofuReview(), antes de retornar:
+html = cleanBonusImages(html);
 
 /* =========================
    ROBUSTA (MANTIDO PARA COMPATIBILIDADE)
