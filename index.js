@@ -1732,24 +1732,3 @@ app.listen(PORT, () => {
   console.log(`🔧 Sistema: BOFU Review Generator`);
   console.log(`🎯 Templates suportados: review-*, robusta-*, legacy`);
 });
-
-/* =========================
-   HEALTH CHECK
-========================= */
-app.get("/health", (req, res) => {
-  res.json({ 
-    status: "ok", 
-    timestamp: new Date().toISOString(),
-    service: "Page Generator Worker"
-  });
-});
-
-/* =========================
-   SERVER
-========================= */
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 WORKER rodando na porta ${PORT}`);
-  console.log(`🔧 Sistema: BOFU Review Generator`);
-  console.log(`🎯 Templates suportados: review-*, robusta-*, legacy`);
-});
