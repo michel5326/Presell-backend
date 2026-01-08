@@ -527,35 +527,23 @@ async function resolveHeroProductImage(productUrl) {
     const html = await res.text();
     const base = new URL(productUrl);
 
-    // 🔥 CORREÇÃO CRÍTICA: BAD_IMAGE_RE RELAXADO
-    // Apenas bloqueia logos/ícones óbvios, não palavras comuns de e-commerce
-    const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
-// Removemos "logo" e "icon" porque muitas imagens de produto podem conter essas palavras
+    // 🔥 FILTRO MAIS INTELIGENTE: Bloqueia apenas o essencial
+    const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon|ads|adservice|doubleclick)(?![a-z])/i;
 
-    // 🔥 PADRÕES DE NOME DE ARQUIVO DE PRODUTO (EXPANDIDO)
-   const PRODUCT_PATTERNS = [
-  /tsl-main/i,
-  /product.*\.(png|jpg|jpeg|webp|avif)/i,
-  /main.*\.(png|jpg|jpeg|webp|avif)/i,
-  /hero.*\.(png|jpg|jpeg|webp|avif)/i,
-  /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
-  /supplement.*\.(png|jpg|jpeg|webp|avif)/i,
-  /home.*product/i,
-  /introducting/i,
-  /featured.*image/i,
-  /pack.*shot/i,
-  /jar.*image/i,
-  /capsule.*bottle/i,
-  /container.*image/i,
-  /label.*photo/i,
-  /box.*product/i,
-  /item.*main/i,
-  /primary.*image/i,
-  /default.*product/i
-  ];
+    // 🔥 PADRÕES DE PRODUTO (FOCADO EM BOTTLE/JAR/CONTAINER)
+    const PRODUCT_PATTERNS = [
+      /tsl-main/i,
+      /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
+      /jar.*\.(png|jpg|jpeg|webp|avif)/i,
+      /container.*\.(png|jpg|jpeg|webp|avif)/i,
+      /product.*\.(png|jpg|jpeg|webp|avif)/i,
+      /main.*\.(png|jpg|jpeg|webp|avif)/i,
+      /hero.*\.(png|jpg|jpeg|webp|avif)/i,
+      /supplement.*\.(png|jpg|jpeg|webp|avif)/i
+    ];
 
     /* =========================
-       SAFE NET — OG IMAGE
+       OG IMAGE
     ========================= */
     let ogImage = "";
     const og = html.match(/property=["']og:image["'][^>]+content=["']([^"']+)/i);
@@ -572,32 +560,57 @@ async function resolveHeroProductImage(productUrl) {
     let best = { src: "", score: 0 };
     let debug = [];
 
+    /* =========================
+       ETAPA 1: BUSCA PRIORITÁRIA POR BOTTLE
+    ========================= */
     for (const m of imgs) {
       const tag = m[0];
-
-      // 🔥 CORREÇÃO: srcset agora pega a MAIOR imagem
-      const srcsetMatch = tag.match(/srcset=["']([^"']+)["']/i);
-      let srcCandidate = "";
-
-      if (srcsetMatch) {
-        srcCandidate = srcsetMatch[1]
-          .split(",")
-          .map(s => s.trim().split(" ")[0])
-          .pop(); // pega a MAIOR (última do array)
+      const lowTag = tag.toLowerCase();
+      
+      // 🔥 DETECÇÃO PRIORITÁRIA DE BOTTLE
+      const bottleKeywords = ['bottle', 'jar', 'container', 'capsule', 'supplement'];
+      const isBottleImage = bottleKeywords.some(keyword => lowTag.includes(keyword));
+      
+      if (isBottleImage) {
+        const srcMatch = tag.match(/src=["']([^"']+)["']/i)?.[1] ||
+                        tag.match(/data-src=["']([^"']+)["']/i)?.[1] ||
+                        tag.match(/data-original=["']([^"']+)["']/i)?.[1] ||
+                        tag.match(/data-lazy=["']([^"']+)["']/i)?.[1];
+        
+        if (srcMatch) {
+          let src = normalizeUrl(srcMatch, base);
+          src = fixImageUrl(src);
+          
+          if (src && !/^data:/i.test(src.toLowerCase()) && !src.endsWith('.svg')) {
+            console.log(`🎯 IMAGEM DE PRODUTO DETECTADA E PRIORIZADA: ${src}`);
+            
+            // Verifica se não é um logo/ícone
+            const lowSrc = src.toLowerCase();
+            const isLogo = /(logo|icon|badge|button|shop|carts?|checkout|order)/i.test(lowSrc);
+            
+            if (!isLogo && !BAD_IMAGE_RE.test(lowSrc)) {
+              return src; // RETORNA IMEDIATAMENTE
+            }
+          }
+        }
       }
+    }
 
-      // 🔥 CORREÇÃO: Múltiplas formas de pegar src
-      const srcMatch =
-        srcCandidate ||
-        tag.match(/src=["']([^"']+)["']/i)?.[1] ||
-        tag.match(/data-src=["']([^"']+)["']/i)?.[1] ||
-        tag.match(/data-original=["']([^"']+)["']/i)?.[1] ||
-        tag.match(/data-lazy=["']([^"']+)["']/i)?.[1];
+    /* =========================
+       ETAPA 2: SCORING TRADICIONAL (SE NÃO ENCONTROU BOTTLE)
+    ========================= */
+    for (const m of imgs) {
+      const tag = m[0];
+      
+      const srcMatch = tag.match(/src=["']([^"']+)["']/i)?.[1] ||
+                      tag.match(/data-src=["']([^"']+)["']/i)?.[1] ||
+                      tag.match(/data-original=["']([^"']+)["']/i)?.[1] ||
+                      tag.match(/data-lazy=["']([^"']+)["']/i)?.[1];
 
       if (!srcMatch) continue;
 
       let src = normalizeUrl(srcMatch, base);
-      src = fixImageUrl(src); // 🔥 CORREÇÃO CRÍTICA: Corrige URL
+      src = fixImageUrl(src);
       
       if (!src) continue;
 
@@ -605,81 +618,79 @@ async function resolveHeroProductImage(productUrl) {
 
       /* ❌ FILTROS BÁSICOS */
       if (/^data:/i.test(low) || low.endsWith(".svg")) continue;
-
-      /* ❌ BAD_IMAGE_RE RELAXADO */
       if (BAD_IMAGE_RE.test(low)) continue;
 
       let score = 0;
 
-      /* ✅ PADRÕES DE PRODUTO - BÔNUS ALTO */
+      /* ✅ BÔNUS MASSIVO PARA BOTTLE E TERMOS DE PRODUTO */
+      const PRODUCT_BONUS = {
+        'bottle': 100,
+        'jar': 90,
+        'container': 90,
+        'product': 80,
+        'supplement': 80,
+        'capsule': 70,
+        'main': 60,
+        'hero': 60,
+        'pack': 50,
+        'bundle': 50
+      };
+
+      for (const [term, bonus] of Object.entries(PRODUCT_BONUS)) {
+        if (low.includes(term)) {
+          score += bonus;
+          console.log(`🏆 BÔNUS "${term}": +${bonus}`);
+          break; // Só conta o termo mais forte
+        }
+      }
+
+      /* ✅ PADRÕES DE ARQUIVO */
       PRODUCT_PATTERNS.forEach(pattern => {
         if (pattern.test(low)) {
-          score += 60; // Bônus alto para padrões de produto
-          console.log(`🎯 Padrão de produto encontrado: ${pattern} (+60)`);
+          score += 40;
+          console.log(`🎯 Padrão de arquivo: ${pattern} (+40)`);
         }
       });
 
-      /* ✅ SEMÂNTICA FORTE (PRODUTO) */
-      if (/(product|bottle|supplement|capsule|jar|pack|bundle|introducting)/i.test(low)) {
-        score += 40;
-      }
-
-      /* ✅ TAMANHO */
+      /* ✅ TAMANHO (mais importante que antes) */
       const w = tag.match(/width=["']?(\d+)/i);
       const h = tag.match(/height=["']?(\d+)/i);
 
       if (w && h) {
         const area = Number(w[1]) * Number(h[1]);
-        if (area > 40000) score += 35;
-        else if (area > 20000) score += 20;
-      } else {
+        if (area > 80000) score += 50; // Imagens grandes são boas
+        else if (area > 40000) score += 30;
+        else if (area > 20000) score += 15;
+      }
+
+      /* ✅ POSIÇÃO (menos importante) */
+      const position = html.indexOf(m[0]);
+      if (position > -1 && position < html.length * 0.3) {
+        score += 20;
+      }
+
+      /* ✅ ALT TEXT */
+      const alt = tag.match(/alt=["']([^"']+)["']/i);
+      if (alt && alt[1].length > 3) {
         score += 10;
       }
 
-      /* ✅ POSIÇÃO NO HTML */
-      const position = html.indexOf(m[0]);
-      if (position > -1 && position < html.length * 0.3) {
-        score += 30;
+      debug.push({ src, score });
+
+      if (score > best.score) {
+        best = { src, score };
       }
-
-      /* ✅ ALT TEXT (se tiver descrição) */
-const alt = tag.match(/alt=["']([^"']+)["']/i);
-if (alt && alt[1].length > 3) {
-  score += 15;
-}
-
-/* ✅ PALAVRAS-CHAVE DE PRODUTO - BÔNUS ADICIONAL */
-const PRODUCT_KEYWORDS = [
-  'product', 'bottle', 'supplement', 'capsule', 'jar', 
-  'bundle', 'pack', 'container', 'label', 'box',
-  'item', 'goods', 'merchandise', 'commodity', 'article'
-];
-
-PRODUCT_KEYWORDS.forEach(keyword => {
-  if (low.includes(keyword)) {
-    score += 30; // Bônus adicional para palavras-chave
-    if (process.env.DEBUG_SCORING === "true") {
-      console.log(`🔑 Palavra-chave de produto "${keyword}" encontrada (+30)`);
-    }
-  }
-});
-
-debug.push({ src, score });
-
-if (score > best.score) {
-  best = { src, score };
-}
     }
 
     /* =========================
-       FALLBACK — ASSETS SOLTOS (CSS / JS / HTML CRU)
+       ASSETS SOLTOS
     ========================= */
     const assetCandidates = [...html.matchAll(
       /(?:https?:\/\/|\/)[^"'()\s]*?\.(png|jpe?g|webp|avif)(\?[^"'()\s]*)?/gi
     )]
       .map(m => {
         let url = normalizeUrl(m[0], base);
-        return fixImageUrl(url); // 🔥 CORREÇÃO: Corrige URL
+        return fixImageUrl(url);
       })
       .filter(u =>
         u &&
@@ -687,60 +698,55 @@ if (score > best.score) {
         !/\.svg(\?|#|$)/i.test(u)
       );
 
-    // 🔥 PRIORIDADE PARA PADRÕES DE PRODUTO
-    const assetPreferred = 
-      assetCandidates.find(u => PRODUCT_PATTERNS.some(p => p.test(u))) ||
-      assetCandidates.find(u => /(product|bottle|supplement|main|hero)/i.test(u)) ||
-      assetCandidates[0];
-
     /* 🔍 DEBUG */
     if (process.env.DEBUG_IMAGES === "true") {
-      console.log("🏆 IMAGE RANKING (top 5):", debug.sort((a, b) => b.score - a.score).slice(0, 5));
-      console.log("🔍 ASSET CANDIDATES (top 3):", assetCandidates.slice(0, 3));
-      console.log(`📊 Melhor score: ${best.score}, Asset preferred: ${assetPreferred}`);
+      console.log("🏆 IMAGE RANKING:", debug.sort((a, b) => b.score - a.score).slice(0, 5));
+      console.log("🔍 ASSETS:", assetCandidates.slice(0, 3));
     }
 
     /* =========================
-       ORDEM FINAL DE DECISÃO - CORRIGIDA
+       DECISÃO FINAL SIMPLIFICADA
     ========================= */
     
-    // 1️⃣ RANKING COM THRESHOLD BAIXO
-    if (best.src && best.score > 5) {
-      console.log(`✅ Imagem selecionada (ranking): ${best.src} (score: ${best.score})`);
+    // 1️⃣ Qualquer imagem com score > 10
+    if (best.src && best.score > 10) {
+      console.log(`✅ Imagem selecionada (score ${best.score}): ${best.src}`);
       return best.src;
     }
-
-    // 2️⃣ ASSETS SOLTOS COM PADRÃO DE PRODUTO
-    if (assetPreferred) {
-      console.log(`✅ Imagem selecionada (assets): ${assetPreferred}`);
-      return assetPreferred;
+    
+    // 2️⃣ Assets com termos de produto
+    const productAssets = assetCandidates.filter(u => 
+      /(bottle|jar|product|main|hero)/i.test(u)
+    );
+    
+    if (productAssets.length > 0) {
+      console.log(`✅ Imagem selecionada (assets com produto): ${productAssets[0]}`);
+      return productAssets[0];
     }
-
-    // 3️⃣ OG IMAGE
-    if (ogImage) {
+    
+    // 3️⃣ OG Image decente
+    if (ogImage && !/(logo|banner|header)/i.test(ogImage)) {
       console.log(`✅ Imagem selecionada (OG): ${ogImage}`);
       return ogImage;
     }
-
-    // 4️⃣ MELHOR DO RANKING (mesmo com score baixo)
+    
+    // 4️⃣ Qualquer imagem válida
     if (best.src) {
-      console.log(`✅ Imagem selecionada (fallback): ${best.src}`);
+      console.log(`⚠️ Imagem selecionada (fallback): ${best.src}`);
       return best.src;
     }
-
-    // 5️⃣ PLAYWRIGHT (último recurso)
-    console.log(`🔄 Tentando extração via Playwright...`);
-    const pw = await extractHeroImageWithPlaywright(productUrl);
-    if (pw) {
-      console.log(`✅ Imagem selecionada (playwright): ${pw}`);
-      return fixImageUrl(pw);
+    
+    // 5️⃣ Primeiro asset não-bloqueado
+    if (assetCandidates.length > 0) {
+      console.log(`⚠️ Imagem selecionada (último recurso): ${assetCandidates[0]}`);
+      return assetCandidates[0];
     }
 
     console.log(`❌ Nenhuma imagem encontrada`);
     return "";
     
   } catch (error) {
-    console.error(`🔥 Erro no resolveHeroProductImage: ${error.message}`);
+    console.error(`🔥 Erro: ${error.message}`);
     return "";
   }
 }
