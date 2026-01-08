@@ -532,18 +532,27 @@ async function resolveHeroProductImage(productUrl) {
     const BAD_IMAGE_RE = /(favicon|spinner|loader|pixel|tracking|beacon)(?![a-z])/i;
 // Removemos "logo" e "icon" porque muitas imagens de produto podem conter essas palavras
 
-    // 🔥 CORREÇÃO CRÍTICA: PADRÕES DE NOME DE ARQUIVO DE PRODUTO
-    const PRODUCT_PATTERNS = [
-      /tsl-main/i,
-      /product.*\.(png|jpg|jpeg|webp|avif)/i,
-      /main.*\.(png|jpg|jpeg|webp|avif)/i,
-      /hero.*\.(png|jpg|jpeg|webp|avif)/i,
-      /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
-      /supplement.*\.(png|jpg|jpeg|webp|avif)/i,
-      /home.*product/i,
-      /introducting/i,
-      /featured.*image/i
-    ];
+    // 🔥 PADRÕES DE NOME DE ARQUIVO DE PRODUTO (EXPANDIDO)
+   const PRODUCT_PATTERNS = [
+  /tsl-main/i,
+  /product.*\.(png|jpg|jpeg|webp|avif)/i,
+  /main.*\.(png|jpg|jpeg|webp|avif)/i,
+  /hero.*\.(png|jpg|jpeg|webp|avif)/i,
+  /bottle.*\.(png|jpg|jpeg|webp|avif)/i,
+  /supplement.*\.(png|jpg|jpeg|webp|avif)/i,
+  /home.*product/i,
+  /introducting/i,
+  /featured.*image/i,
+  /pack.*shot/i,
+  /jar.*image/i,
+  /capsule.*bottle/i,
+  /container.*image/i,
+  /label.*photo/i,
+  /box.*product/i,
+  /item.*main/i,
+  /primary.*image/i,
+  /default.*product/i
+  ];
 
     /* =========================
        SAFE NET — OG IMAGE
@@ -634,16 +643,32 @@ async function resolveHeroProductImage(productUrl) {
       }
 
       /* ✅ ALT TEXT (se tiver descrição) */
-      const alt = tag.match(/alt=["']([^"']+)["']/i);
-      if (alt && alt[1].length > 3) {
-        score += 15;
-      }
+const alt = tag.match(/alt=["']([^"']+)["']/i);
+if (alt && alt[1].length > 3) {
+  score += 15;
+}
 
-      debug.push({ src, score });
+/* ✅ PALAVRAS-CHAVE DE PRODUTO - BÔNUS ADICIONAL */
+const PRODUCT_KEYWORDS = [
+  'product', 'bottle', 'supplement', 'capsule', 'jar', 
+  'bundle', 'pack', 'container', 'label', 'box',
+  'item', 'goods', 'merchandise', 'commodity', 'article'
+];
 
-      if (score > best.score) {
-        best = { src, score };
-      }
+PRODUCT_KEYWORDS.forEach(keyword => {
+  if (low.includes(keyword)) {
+    score += 30; // Bônus adicional para palavras-chave
+    if (process.env.DEBUG_SCORING === "true") {
+      console.log(`🔑 Palavra-chave de produto "${keyword}" encontrada (+30)`);
+    }
+  }
+});
+
+debug.push({ src, score });
+
+if (score > best.score) {
+  best = { src, score };
+}
     }
 
     /* =========================
