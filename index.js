@@ -651,10 +651,64 @@ async function extractBottleImage(productUrl) {
 /* =========================
    IMAGE RESOLVER — COM TODAS AS CORREÇÕES
 ========================= */
+
+// Função auxiliar para testar acesso HEAD rápido
+async function testImageAccessibility(url) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    
+    const res = await fetch(url, { 
+      method: 'HEAD',
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function resolveHeroProductImage(productUrl) {
   console.log(`🔍 Resolvendo imagem para: ${productUrl}`);
   
   try {
+    // ETAPA 0: REGRA DE EMERGÊNCIA - VERIFICAR IMAGENS CONHECIDAS COM // DUPLO
+    const baseDomain = new URL(productUrl).hostname;
+    const domain = baseDomain.replace('www.', '');
+    
+    // Lista de domínios conhecidos com problemas de // duplo
+    const problematicDomains = ['primebiome24.com', 'prodentim.com', 'primebiome.com'];
+    
+    if (problematicDomains.some(d => domain.includes(d))) {
+      console.log(`🚨 Domínio problemático detectado: ${domain}`);
+      
+      const possibleUrls = [
+        `https://${baseDomain}//statics/img/tsl-main.png`,
+        `https://${baseDomain}/statics/img/tsl-main.png`,
+        `https://${baseDomain}//statics/img/introducting_prodentim.png`,
+        `https://${baseDomain}/statics/img/introducting_prodentim.png`,
+        `https://${baseDomain}//statics/img/product-home.png`,
+        `https://${baseDomain}/statics/img/product-home.png`
+      ];
+      
+      for (const url of possibleUrls) {
+        const correctedUrl = url.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+        console.log(`🔍 Testando URL conhecida: ${correctedUrl}`);
+        
+        try {
+          const isAccessible = await testImageAccessibility(correctedUrl);
+          if (isAccessible) {
+            console.log(`✅ REGRA DE EMERGÊNCIA ATIVADA: Imagem encontrada via teste direto`);
+            return correctedUrl;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+    }
+
     const res = await fetch(productUrl, {
       headers: { 
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -675,6 +729,8 @@ async function resolveHeroProductImage(productUrl) {
     // 🔥 PADRÕES DE NOME DE ARQUIVO DE PRODUTO (EXPANDIDO)
     const PRODUCT_PATTERNS = [
       /tsl-main/i,
+      /introducting_prodentim/i,
+      /product-home/i,
       /product.*\.(png|jpg|jpeg|webp|avif)/i,
       /main.*\.(png|jpg|jpeg|webp|avif)/i,
       /hero.*\.(png|jpg|jpeg|webp|avif)/i,
@@ -695,29 +751,78 @@ async function resolveHeroProductImage(productUrl) {
     ];
 
     /* =========================
-       REGRA ESPECIAL PARA URL COM // DUPLO (TSL-MAIN)
+       REGRA ESPECIAL 1: BUSCA DIRETA NO HTML POR PADRÕES CONHECIDOS
     ========================= */
-    // Primeiro, procurar por padrões de imagem com // duplo
-    const doubleSlashPattern = /(https?:\/\/[^"'\s]*?\/\/[^"'\s]*?tsl-main[^"'\s]*?\.(png|jpg|jpeg|webp|avif))/i;
-    const doubleSlashMatch = html.match(doubleSlashPattern);
+    const knownPatterns = [
+      /src=["']([^"']*\/\/[^"']*tsl-main[^"']*)["']/i,
+      /src=["']([^"']*\/\/[^"']*introducting_prodentim[^"']*)["']/i,
+      /src=["']([^"']*\/\/[^"']*product-home[^"']*)["']/i,
+      /data-src=["']([^"']*\/\/[^"']*tsl-main[^"']*)["']/i,
+      /data-src=["']([^"']*\/\/[^"']*introducting_prodentim[^"']*)["']/i,
+      /data-src=["']([^"']*\/\/[^"']*product-home[^"']*)["']/i
+    ];
     
-    if (doubleSlashMatch) {
-      let specialUrl = doubleSlashMatch[1];
-      console.log(`🔍 Encontrada imagem tsl-main com // duplo: ${specialUrl}`);
-      
-      // Corrigir o // duplo
-      const correctedUrl = specialUrl.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
-      console.log(`✅ URL corrigida: ${correctedUrl}`);
-      
-      // Validar se a URL é acessível
-      try {
-        const testRes = await fetch(correctedUrl, { method: 'HEAD', timeout: 5000 });
-        if (testRes.ok) {
-          console.log(`🚨 REGRA ESPECIAL ATIVADA: Imagem tsl-main com // duplo detectada e corrigida`);
-          return correctedUrl;
+    for (const pattern of knownPatterns) {
+      const match = html.match(pattern);
+      if (match && match[1]) {
+        let src = match[1];
+        console.log(`🔍 REGRA ESPECIAL 1: Padrão conhecido encontrado: ${src}`);
+        
+        // Corrigir URL
+        if (!src.startsWith('http')) {
+          src = normalizeUrl(src, base);
         }
-      } catch (e) {
-        console.log(`⚠️ Teste de acesso falhou, continuando com métodos normais...`);
+        
+        const correctedSrc = src.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+        console.log(`✅ URL corrigida: ${correctedSrc}`);
+        
+        try {
+          const isAccessible = await testImageAccessibility(correctedSrc);
+          if (isAccessible) {
+            console.log(`🚨 REGRA ESPECIAL 1 ATIVADA: Imagem encontrada via padrão conhecido`);
+            return correctedSrc;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+    }
+
+    /* =========================
+       REGRA ESPECIAL 2: EXTRAÇÃO BRUTA DE TODAS AS IMAGENS COM //
+    ========================= */
+    const allImageUrls = [...html.matchAll(/src=["']([^"']+)["']/gi)]
+      .map(m => m[1])
+      .concat([...html.matchAll(/data-src=["']([^"']+)["']/gi)].map(m => m[1]))
+      .filter(url => url && url.includes('//') && url.indexOf('//') !== url.lastIndexOf('//'));
+    
+    if (allImageUrls.length > 0) {
+      console.log(`🔍 Encontradas ${allImageUrls.length} imagens com // duplo`);
+      
+      for (const url of allImageUrls.slice(0, 5)) { // Verificar apenas as primeiras 5
+        let src = url;
+        if (!src.startsWith('http')) {
+          src = normalizeUrl(src, base);
+        }
+        
+        const correctedSrc = src.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+        
+        // Verificar se parece imagem de produto
+        const isProductImage = PRODUCT_PATTERNS.some(pattern => pattern.test(correctedSrc));
+        
+        if (isProductImage) {
+          console.log(`🔍 Imagem de produto com // duplo encontrada: ${correctedSrc}`);
+          
+          try {
+            const isAccessible = await testImageAccessibility(correctedSrc);
+            if (isAccessible) {
+              console.log(`🚨 REGRA ESPECIAL 2 ATIVADA: Imagem de produto acessível`);
+              return correctedSrc;
+            }
+          } catch (e) {
+            continue;
+          }
+        }
       }
     }
 
@@ -750,7 +855,7 @@ async function resolveHeroProductImage(productUrl) {
         srcCandidate = srcsetMatch[1]
           .split(",")
           .map(s => s.trim().split(" ")[0])
-          .pop(); // pega a MAIOR (última do array)
+          .pop();
       }
 
       // 🔥 CORREÇÃO: Múltiplas formas de pegar src
@@ -764,7 +869,7 @@ async function resolveHeroProductImage(productUrl) {
       if (!srcMatch) continue;
 
       let src = normalizeUrl(srcMatch, base);
-      src = fixImageUrl(src); // 🔥 CORREÇÃO CRÍTICA: Corrige URL
+      src = fixImageUrl(src);
       
       if (!src) continue;
 
@@ -776,8 +881,8 @@ async function resolveHeroProductImage(productUrl) {
       /* ❌ BAD_IMAGE_RE RELAXADO */
       if (BAD_IMAGE_RE.test(low)) continue;
 
-      // 🔥 REGRA ESPECIAL: URL com // no meio é alta prioridade
-      let hasDoubleSlash = src.includes('//') && src.indexOf('//') !== src.lastIndexOf('//');
+      // 🔥 REGRA ESPECIAL: URL com // no meio é PRIORIDADE MÁXIMA
+      const hasDoubleSlash = src.includes('//') && src.indexOf('//') !== src.lastIndexOf('//');
       
       let score = 0;
 
@@ -793,13 +898,16 @@ async function resolveHeroProductImage(productUrl) {
         score += 40;
       }
 
-      /* ✅ URL COM // DUPLO - PRIORIDADE MÁXIMA */
-      if (hasDoubleSlash && low.includes('tsl-main')) {
-        score += 200; // Score extremamente alto
-        console.log(`🎯 Imagem tsl-main com // duplo encontrada: ${src}`);
-      } else if (hasDoubleSlash) {
-        score += 100; // Score alto para qualquer imagem com // duplo
-        console.log(`⚠️ Imagem com // duplo encontrada: ${src}`);
+      /* ✅ URL COM // DUPLO - PRIORIDADE ABSOLUTA */
+      if (hasDoubleSlash) {
+        score += 500; // SCORE ENORME PARA GARANTIR PRIORIDADE
+        console.log(`🎯 IMAGEM COM // DUPLO ENCONTRADA: ${src}`);
+        
+        // Bônus adicional para padrões específicos
+        if (low.includes('tsl-main') || low.includes('introducting_prodentim')) {
+          score += 300;
+          console.log(`🔥 PADRÃO ESPECÍFICO DETECTADO: Bônus máximo aplicado`);
+        }
       }
 
       /* ✅ TAMANHO */
@@ -854,7 +962,7 @@ async function resolveHeroProductImage(productUrl) {
     )]
       .map(m => {
         let url = normalizeUrl(m[0], base);
-        return fixImageUrl(url); // 🔥 CORREÇÃO: Corrige URL
+        return fixImageUrl(url);
       })
       .filter(u =>
         u &&
@@ -875,38 +983,52 @@ async function resolveHeroProductImage(productUrl) {
     }
 
     /* =========================
-       ORDEM FINAL DE DECISÃO - CORRIGIDA
+       ORDEM FINAL DE DECISÃO - SUPER REFORÇADA
     ========================= */
     
-    // 0️⃣ REGRA ESPECIAL: Se encontrou imagem com // duplo e tsl-main, retorna corrigida
-    if (doubleSlashMatch) {
-      const correctedUrl = doubleSlashMatch[1].replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
-      console.log(`🚨 RETORNO POR REGRA ESPECIAL (// duplo): ${correctedUrl.substring(0, 80)}...`);
-      return correctedUrl;
+    // 0️⃣ REGRA DE EMERGÊNCIA: Qualquer imagem com // duplo e score alto
+    if (best.src && best.score > 500) {
+      console.log(`🚨 RETORNO POR REGRA DE EMERGÊNCIA (score ${best.score}): ${best.src.substring(0, 80)}...`);
+      
+      // Corrigir // duplo se necessário
+      const correctedSrc = best.src.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+      return correctedSrc;
     }
     
     // 1️⃣ RANKING COM THRESHOLD BAIXO
     if (best.src && best.score > 5) {
       console.log(`✅ Imagem selecionada (ranking): ${best.src.substring(0, 80)}...`);
-      return best.src;
+      
+      // Corrigir // duplo se necessário
+      const correctedSrc = best.src.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+      return correctedSrc;
     }
 
     // 2️⃣ ASSETS SOLTOS COM PADRÃO DE PRODUTO
     if (assetPreferred) {
       console.log(`✅ Imagem selecionada (assets): ${assetPreferred.substring(0, 80)}...`);
-      return assetPreferred;
+      
+      // Corrigir // duplo se necessário
+      const correctedSrc = assetPreferred.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+      return correctedSrc;
     }
 
     // 3️⃣ OG IMAGE
     if (ogImage) {
       console.log(`✅ Imagem selecionada (OG): ${ogImage.substring(0, 80)}...`);
-      return ogImage;
+      
+      // Corrigir // duplo se necessário
+      const correctedSrc = ogImage.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+      return correctedSrc;
     }
 
     // 4️⃣ MELHOR DO RANKING (mesmo com score baixo)
     if (best.src) {
       console.log(`✅ Imagem selecionada (fallback): ${best.src.substring(0, 80)}...`);
-      return best.src;
+      
+      // Corrigir // duplo se necessário
+      const correctedSrc = best.src.replace(/(https?:\/\/[^\/]+)\/\//, '$1/');
+      return correctedSrc;
     }
 
     // 5️⃣ PLAYWRIGHT (último recurso)
@@ -915,6 +1037,19 @@ async function resolveHeroProductImage(productUrl) {
     if (pw) {
       console.log(`✅ Imagem selecionada (playwright): ${pw.substring(0, 80)}...`);
       return fixImageUrl(pw);
+    }
+
+    // 6️⃣ FALLBACK FINAL: Tentar URL genérica baseada no domínio
+    console.log(`🔄 Tentando fallback genérico...`);
+    const genericUrl = `https://${baseDomain}/statics/img/product-image.png`;
+    try {
+      const isAccessible = await testImageAccessibility(genericUrl);
+      if (isAccessible) {
+        console.log(`✅ Imagem selecionada (fallback genérico): ${genericUrl}`);
+        return genericUrl;
+      }
+    } catch (e) {
+      // Ignorar erro
     }
 
     console.log(`❌ Nenhuma imagem encontrada`);
