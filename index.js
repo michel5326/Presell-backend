@@ -1,5 +1,6 @@
 /* =========================
-   ENV
+   ENV  console.log("TESTE LOCAL GIT");
+
 ========================= */
 require("dotenv").config();
 
