@@ -1,6 +1,10 @@
 /**
  * Filtro binário de URLs de imagem.
  * Retorna true se a URL DEVE ser descartada.
+ *
+ * Regras:
+ * 1) Descarta lixo óbvio (data, svg, pixel, logo, rating, UI)
+ * 2) Exige keyword explícita de produto no nome da imagem
  */
 function shouldDiscardImageUrl(url) {
   if (!url || typeof url !== 'string') return true;
@@ -55,9 +59,19 @@ function shouldDiscardImageUrl(url) {
     return true;
   }
 
-  return false;
-}
+  // 🔒 DIRECIONAMENTO POSITIVO: exigir nome de produto
+  const productKeywords = [
+    'product',
+    'bottle',
+    'supplement',
+    'jar',
+    'capsule',
+    'capsules',
+    'pack',
+  ];
 
-module.exports = {
-  shouldDiscardImageUrl,
-};
+  const hasProductKeyword = productKeywords.some(keyword =>
+    lower.includes(keyword)
+  );
+
+  if (!hasProductKeyword)
