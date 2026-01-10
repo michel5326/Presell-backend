@@ -33,6 +33,15 @@ function shouldDiscardImageUrl(url) {
     return true;
   }
 
+  // logos / identidade visual
+  if (
+    lower.includes('logo') ||
+    lower.includes('brand') ||
+    lower.includes('icon')
+  ) {
+    return true;
+  }
+
   return false;
 }
 
