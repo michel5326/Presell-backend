@@ -1,3 +1,6 @@
+const { parseSrcset } = require('../utils/parse-srcset');
+const { shouldDiscardImageUrl } = require('../utils/filter-image-url');
+const { normalizeImageUrl } = require('../utils/normalize-url');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
@@ -27,12 +30,26 @@ async function extractImagesFromHtml(productUrl) {
   const images = [];
 
   $('img').each((_, el) => {
-    const src = $(el).attr('src');
-    if (src) {
-      images.push(src.trim());
-    }
-  });
+  const rawSrc = $(el).attr('src');
+  const src = normalizeImageUrl(rawSrc, productUrl);
 
+  if (src && !shouldDiscardImageUrl(src)) {
+    images.push(src);
+    return;
+  }
+
+  const rawSrcset = $(el).attr('srcset');
+  const srcsetUrls = parseSrcset(rawSrcset);
+
+  for (const rawUrl of srcsetUrls) {
+    const normalized = normalizeImageUrl(rawUrl, productUrl);
+    if (normalized && !shouldDiscardImageUrl(normalized)) {
+      images.push(normalized);
+    }
+  }
+});
+
+  
   return images;
 }
 

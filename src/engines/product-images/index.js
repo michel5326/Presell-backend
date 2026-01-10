@@ -1,3 +1,4 @@
+const { extractOgImage } = require('./extractors/og-image');
 const { extractImagesFromHtml } = require('./extractors/img-only');
 
 /**
@@ -15,6 +16,13 @@ async function resolveProductImage(productUrl, attempt = 0) {
   try {
     const images = await extractImagesFromHtml(productUrl);
 
+    if (!images.length) {
+      const ogImage = await extractOgImage(productUrl);
+      if (ogImage) {
+        images.push(ogImage);
+      }
+    }
+
     if (!images.length) return '';
 
     const index = Math.abs(attempt) % images.length;
@@ -23,6 +31,15 @@ async function resolveProductImage(productUrl, attempt = 0) {
     return '';
   }
 }
+
+if (!images.length) {
+  const ogImage = await extractOgImage(productUrl);
+  if (ogImage) {
+    images.push(ogImage);
+  }
+}
+
+
 
 module.exports = {
   resolveProductImage,
