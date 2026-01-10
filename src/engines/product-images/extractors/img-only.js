@@ -2,17 +2,12 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const { normalizeImageUrl } = require('../utils/normalize-url');
 const { shouldDiscardImageUrl } = require('../utils/filter-image-url');
+const { extractDomainSlug } = require('../utils/url-slug');
 
-/**
- * Extractor: og-image
- *
- * - Lê apenas <meta property="og:image">
- * - Não deduz
- * - Não escolhe
- * - Retorna 0 ou 1 URL
- */
-async function extractOgImage(productUrl) {
-  if (!productUrl) return null;
+async function extractImagesFromHtml(productUrl) {
+  if (!productUrl) return [];
+
+  const slug = extractDomainSlug(productUrl);
 
   const response = await axios.get(productUrl, {
     timeout: 10000,
@@ -25,15 +20,30 @@ async function extractOgImage(productUrl) {
   const html = response.data;
   const $ = cheerio.load(html);
 
-  const raw = $('meta[property="og:image"]').attr('content');
-  const normalized = normalizeImageUrl(raw, productUrl);
+  const images = [];
 
-  if (!normalized) return null;
-  if (shouldDiscardImageUrl(normalized)) return null;
+  $('img').each((_, el) => {
+    const rawSrc = $(el).attr('src');
+    const src = normalizeImageUrl(rawSrc, productUrl);
+    if (!src) return;
 
-  return normalized;
+    const lower = src.toLowerCase();
+
+    // ✅ EXCEÇÃO FORTE: slug do produto no filename
+    if (slug && lower.includes(slug)) {
+      images.push(src);
+      return;
+    }
+
+    // filtro burro
+    if (!shouldDiscardImageUrl(src)) {
+      images.push(src);
+    }
+  });
+
+  return images;
 }
 
 module.exports = {
-  extractOgImage,
+  extractImagesFromHtml,
 };

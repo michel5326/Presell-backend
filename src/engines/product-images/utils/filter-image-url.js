@@ -1,25 +1,16 @@
-const { extractDomainSlug } = require('./url-slug');
-
 /**
  * Filtro binário de URLs de imagem.
  * Retorna true se a URL DEVE ser descartada.
  *
  * Estratégia:
- * - Exclusões explícitas
- * - EXCEÇÃO: se filename contiver o slug do produto → NÃO descartar
- * - Sem heurística visual
- * - Determinístico
+ * - APENAS exclusões explícitas
+ * - Não depende de productUrl
+ * - Não tem whitelist
  */
-function shouldDiscardImageUrl(url, productUrl) {
+function shouldDiscardImageUrl(url) {
   if (!url || typeof url !== 'string') return true;
 
   const lower = url.toLowerCase();
-
-  // 🔓 EXCEÇÃO FORTE: nome do produto no filename
-  const slug = extractDomainSlug(productUrl);
-  if (slug && lower.includes(slug)) {
-    return false;
-  }
 
   // data URI
   if (lower.startsWith('data:')) return true;
