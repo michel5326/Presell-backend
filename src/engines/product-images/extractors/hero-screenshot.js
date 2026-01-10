@@ -111,13 +111,31 @@ async function extractHeroScreenshotDataUrl(productUrl) {
           return bad.some((k) => lower.includes(k));
         };
 
-        // ✅ NOVO: bloqueia vídeo/iframe e qualquer container que tenha eles
+        // ✅ NOVO: bloqueia vídeo/embeds mesmo quando ainda não existe <iframe>/<video>
         const hasVideoLike = (el) => {
           if (!el) return false;
+
           const tag = (el.tagName || '').toLowerCase();
           if (tag === 'iframe' || tag === 'video') return true;
+
+          // se está dentro de um embed comum
           if (el.closest && el.closest('iframe,video')) return true;
           if (el.querySelector && el.querySelector('iframe,video')) return true;
+
+          // Vidalytics / embeds por id/class (caso Mitolyn)
+          const embedHost = el.closest && el.closest('[id*="vidalytics"],[class*="vidalytics"],[id*="embed"],[class*="embed"]');
+          if (embedHost) return true;
+
+          // elementos com "aspect-ratio hack" típico de player (padding-top ~56.25%)
+          try {
+            const s = window.getComputedStyle(el);
+            const pt = (s.paddingTop || '').trim();
+            const pos = (s.position || '').trim();
+            if (pos === 'relative' && (pt === '56.25%' || pt === '56.250%' || pt === '56.3%')) return true;
+          } catch {
+            // ignore
+          }
+
           return false;
         };
 
@@ -148,7 +166,7 @@ async function extractHeroScreenshotDataUrl(productUrl) {
         let best = null;
 
         for (const c of candidates) {
-          // ✅ NOVO: evita cair em vídeo/iframe (e containers deles)
+          // ✅ NOVO: evita cair no player (inclui canvas/containers de Vidalytics)
           if (hasVideoLike(c.el)) continue;
 
           const r = c.r;
@@ -177,10 +195,7 @@ async function extractHeroScreenshotDataUrl(productUrl) {
 
         if (!best) return false;
 
-        // marca
         best.el.setAttribute('data-presell-hero', '1');
-
-        // garante que o element esteja “na tela”
         best.el.scrollIntoView({ block: 'center', inline: 'center' });
 
         return true;
@@ -191,14 +206,10 @@ async function extractHeroScreenshotDataUrl(productUrl) {
       // 3) screenshot do elemento marcado (recorte automático)
       const locator = page.locator('[data-presell-hero="1"]').first();
 
-      // dá uma micro pausa após scroll
       await page.waitForTimeout(400);
 
-      const buffer = await locator.screenshot({
-        type: 'png',
-      });
+      const buffer = await locator.screenshot({ type: 'png' });
 
-      // 4) retorna data URL (automático, sem storage)
       const base64 = buffer.toString('base64');
       return `data:image/png;base64,${base64}`;
     });
