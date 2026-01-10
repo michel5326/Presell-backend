@@ -8,9 +8,27 @@ const v1Routes = require("./routes/api/v1");
 const app = express();
 
 /* =========================
+   CORS
+   - Libera apenas o front autorizado
+   - Necessário para Vercel → Railway
+========================= */
+app.use(
+  cors({
+    origin: [
+      "https://clickpage.vercel.app",
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "x-worker-token",
+      "x-user-email",
+    ],
+  })
+);
+
+/* =========================
    MIDDLEWARES GLOBAIS
 ========================= */
-app.use(cors());
 app.use(express.json());
 
 /* =========================
