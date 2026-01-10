@@ -111,6 +111,16 @@ async function extractHeroScreenshotDataUrl(productUrl) {
           return bad.some((k) => lower.includes(k));
         };
 
+        // ✅ NOVO: bloqueia vídeo/iframe e qualquer container que tenha eles
+        const hasVideoLike = (el) => {
+          if (!el) return false;
+          const tag = (el.tagName || '').toLowerCase();
+          if (tag === 'iframe' || tag === 'video') return true;
+          if (el.closest && el.closest('iframe,video')) return true;
+          if (el.querySelector && el.querySelector('iframe,video')) return true;
+          return false;
+        };
+
         const candidates = [];
 
         // imgs
@@ -120,7 +130,7 @@ async function extractHeroScreenshotDataUrl(productUrl) {
           candidates.push({ el: img, kind: 'img', r, url: src });
         }
 
-        // canvases
+        // canvases (mantido)
         for (const el of Array.from(document.querySelectorAll('canvas'))) {
           const r = el.getBoundingClientRect();
           candidates.push({ el, kind: 'canvas', r, url: '' });
@@ -138,6 +148,9 @@ async function extractHeroScreenshotDataUrl(productUrl) {
         let best = null;
 
         for (const c of candidates) {
+          // ✅ NOVO: evita cair em vídeo/iframe (e containers deles)
+          if (hasVideoLike(c.el)) continue;
+
           const r = c.r;
 
           // precisa estar na 1ª dobra (ou bem perto)
