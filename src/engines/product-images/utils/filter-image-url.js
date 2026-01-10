@@ -59,6 +59,19 @@ function shouldDiscardImageUrl(url) {
     return true;
   }
 
+  // bônus / materiais extras (⬅️ NOVO)
+  if (
+    lower.includes('bonus') ||
+    lower.includes('ebook') ||
+    lower.includes('pdf') ||
+    lower.includes('guide') ||
+    lower.includes('manual') ||
+    lower.includes('gift') ||
+    lower.includes('free')
+  ) {
+    return true;
+  }
+
   // pagamentos / garantia / comercial
   if (
     lower.includes('guarantee') ||
