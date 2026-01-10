@@ -1,20 +1,18 @@
-const { parseSrcset } = require('../utils/parse-srcset');
-const { shouldDiscardImageUrl } = require('../utils/filter-image-url');
-const { normalizeImageUrl } = require('../utils/normalize-url');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { normalizeImageUrl } = require('../utils/normalize-url');
+const { shouldDiscardImageUrl } = require('../utils/filter-image-url');
 
 /**
- * Extractor: img-only
+ * Extractor: og-image
  *
- * - Faz fetch da página do produtor
- * - Extrai APENAS <img src>
- * - NÃO filtra
- * - NÃO deduz imagem correta
- * - Retorna lista determinística (ordem do HTML)
+ * - Lê apenas <meta property="og:image">
+ * - Não deduz
+ * - Não escolhe
+ * - Retorna 0 ou 1 URL
  */
-async function extractImagesFromHtml(productUrl) {
-  if (!productUrl) return [];
+async function extractOgImage(productUrl) {
+  if (!productUrl) return null;
 
   const response = await axios.get(productUrl, {
     timeout: 10000,
@@ -27,32 +25,15 @@ async function extractImagesFromHtml(productUrl) {
   const html = response.data;
   const $ = cheerio.load(html);
 
-  const images = [];
+  const raw = $('meta[property="og:image"]').attr('content');
+  const normalized = normalizeImageUrl(raw, productUrl);
 
-  $('img').each((_, el) => {
-  const rawSrc = $(el).attr('src');
-  const src = normalizeImageUrl(rawSrc, productUrl);
+  if (!normalized) return null;
+  if (shouldDiscardImageUrl(normalized)) return null;
 
-  if (src && !shouldDiscardImageUrl(src)) {
-    images.push(src);
-    return;
-  }
-
-  const rawSrcset = $(el).attr('srcset');
-  const srcsetUrls = parseSrcset(rawSrcset);
-
-  for (const rawUrl of srcsetUrls) {
-    const normalized = normalizeImageUrl(rawUrl, productUrl);
-    if (normalized && !shouldDiscardImageUrl(normalized)) {
-      images.push(normalized);
-    }
-  }
-});
-
-  
-  return images;
+  return normalized;
 }
 
 module.exports = {
-  extractImagesFromHtml,
+  extractOgImage,
 };

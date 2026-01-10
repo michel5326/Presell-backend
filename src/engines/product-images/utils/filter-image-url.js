@@ -74,4 +74,13 @@ function shouldDiscardImageUrl(url) {
     lower.includes(keyword)
   );
 
-  if (!hasProductKeyword)
+  if (!hasProductKeyword) {
+    return true;
+  }
+
+  return false;
+}
+
+module.exports = {
+  shouldDiscardImageUrl,
+};
