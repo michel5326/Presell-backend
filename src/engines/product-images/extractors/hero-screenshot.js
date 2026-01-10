@@ -21,23 +21,32 @@ function looksBadUrl(u) {
   return false;
 }
 
-// ✅ agora recebe attempt
-async function extractHeroScreenshotDataUrl(productUrl, attempt = 1) {
+/**
+ * @param {string} productUrl
+ * @param {number} attempt 0,1,2...
+ */
+async function extractHeroScreenshotDataUrl(productUrl, attempt = 0) {
   if (!productUrl) return '';
 
-  const safeAttempt = Number.isFinite(Number(attempt)) ? Math.max(1, Number(attempt)) : 1;
+  const safeAttempt = Number.isFinite(Number(attempt)) ? Math.max(0, Number(attempt)) : 0;
 
   try {
     return await withPage(async (page) => {
-      await page.goto(productUrl, {
-        waitUntil: 'domcontentloaded',
-        timeout: 30000,
-      });
-
+      await page.goto(productUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await page.waitForTimeout(1200);
 
       const marked = await page.evaluate(({ attempt }) => {
         const VH = window.innerHeight || 800;
+
+        const toAbs = (u) => {
+          if (!u) return '';
+          try {
+            const cleaned = String(u).trim().replace(/\?$/, ''); // remove "?" no fim
+            return new URL(cleaned, window.location.href).href;
+          } catch {
+            return String(u).trim().replace(/\?$/, '');
+          }
+        };
 
         const getUrlFromBg = (el) => {
           try {
@@ -93,28 +102,30 @@ async function extractHeroScreenshotDataUrl(productUrl, attempt = 1) {
           return false;
         };
 
-        // limpa marcações antigas se existirem
-        for (const el of Array.from(document.querySelectorAll('[data-presell-hero],[data-presell-cand]'))) {
-          el.removeAttribute('data-presell-hero');
-          el.removeAttribute('data-presell-cand');
+        // limpa marcações antigas
+        for (const el of Array.from(document.querySelectorAll('[data-presell-hero="1"]'))) {
+          try { el.removeAttribute('data-presell-hero'); } catch {}
         }
 
         const candidates = [];
 
+        // imgs
         for (const img of Array.from(document.images || [])) {
           const r = img.getBoundingClientRect();
           const src = img.currentSrc || img.src || '';
-          candidates.push({ el: img, kind: 'img', r, url: src });
+          candidates.push({ el: img, kind: 'img', r, url: toAbs(src) });
         }
 
+        // canvases
         for (const el of Array.from(document.querySelectorAll('canvas'))) {
           const r = el.getBoundingClientRect();
           candidates.push({ el, kind: 'canvas', r, url: '' });
         }
 
+        // backgrounds
         const bgEls = Array.from(document.querySelectorAll('section, div, figure, a, span'));
         for (const el of bgEls) {
-          const url = getUrlFromBg(el);
+          const url = toAbs(getUrlFromBg(el));
           if (!url) continue;
           const r = el.getBoundingClientRect();
           candidates.push({ el, kind: 'bg', r, url });
@@ -126,9 +137,12 @@ async function extractHeroScreenshotDataUrl(productUrl, attempt = 1) {
           if (hasVideoLike(c.el)) continue;
 
           const r = c.r;
+
+          // dobra
           const topOk = r.top < VH && r.bottom > 0;
           if (!topOk) continue;
 
+          // minimo
           const area = r.width * r.height;
           if (area < 22000) continue;
 
@@ -139,11 +153,11 @@ async function extractHeroScreenshotDataUrl(productUrl, attempt = 1) {
 
           let score = area - topPenalty * 50;
 
-          // prioridade por tipo (sem excluir nada)
+          // prioridade por tipo
           if (c.kind === 'img') score += 50000;
           else if (c.kind === 'bg') score += 15000;
 
-          // bônus leve por keyword
+          // bonus keyword (bottles/product etc)
           if (c.url) {
             const u = String(c.url).toLowerCase();
             const good = ['bottle', 'bottles', 'product', 'products', 'jar', 'pack', 'bundle'];
@@ -155,17 +169,18 @@ async function extractHeroScreenshotDataUrl(productUrl, attempt = 1) {
 
         if (!scored.length) return false;
 
-        // ordena determinístico por score desc
         scored.sort((a, b) => b.score - a.score);
 
-        // pega TOP N e rota por attempt
-        const TOP_N = 5;
+        const TOP_N = 6;
         const top = scored.slice(0, TOP_N);
 
-        const idx = (Math.max(1, Number(attempt)) - 1) % top.length;
-        const chosen = top[idx];
+        // ✅ rotação 0-based
+        const att = Number.isFinite(Number(attempt)) ? Number(attempt) : 0;
+        const idx = ((att % top.length) + top.length) % top.length;
 
-        // marca candidato escolhido
+        const chosen = top[idx];
+        if (!chosen || !chosen.el) return false;
+
         chosen.el.setAttribute('data-presell-hero', '1');
         chosen.el.scrollIntoView({ block: 'center', inline: 'center' });
 
@@ -188,4 +203,5 @@ async function extractHeroScreenshotDataUrl(productUrl, attempt = 1) {
 
 module.exports = {
   extractHeroScreenshotDataUrl,
+  looksBadUrl,
 };
