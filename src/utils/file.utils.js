@@ -8,9 +8,17 @@ function safeUnlink(file) {
 }
 
 function findTemplate(templateId) {
-  const file = path.join(process.cwd(), "templates", `${templateId}.html`);
+  const file = path.join(
+    process.cwd(),
+    "src",
+    "templates",
+    "legacy",
+    `${templateId}.html`
+  );
+
   return fs.existsSync(file) ? file : null;
 }
+
 
 module.exports = {
   safeUnlink,
