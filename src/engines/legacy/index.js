@@ -1,3 +1,12 @@
+const fs = require("fs");
+const { v4: uuid } = require("uuid");
+const { chromium, devices } = require("playwright");
+
+const { uploadToR2 } = require("../../services/r2");
+const { safeUnlink } = require("../../utils/file.utils");
+const { applyGlobals } = require("../../utils/html.utils");
+const { findTemplate } = require("../../utils/file.utils");
+
 async function generateLegacyPage({
   templateId,
   productUrl,
