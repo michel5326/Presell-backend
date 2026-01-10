@@ -8,23 +8,25 @@ const v1Routes = require("./routes/api/v1");
 const app = express();
 
 /* =========================
-   CORS
-   - Libera apenas o front autorizado
-   - Necessário para Vercel → Railway
+   CORS (OBRIGATÓRIO)
 ========================= */
-app.use(
-  cors({
-    origin: [
-      "https://clickpage.vercel.app",
-    ],
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "x-worker-token",
-      "x-user-email",
-    ],
-  })
-);
+const corsOptions = {
+  origin: "https://clickpage.vercel.app",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "x-worker-token",
+    "x-user-email",
+  ],
+};
+
+app.use(cors(corsOptions));
+
+/**
+ * ⚠️ IMPORTANTE
+ * Responde explicitamente preflight OPTIONS
+ */
+app.options("*", cors(corsOptions));
 
 /* =========================
    MIDDLEWARES GLOBAIS
