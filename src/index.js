@@ -8,10 +8,23 @@ const v1Routes = require("./routes/api/v1");
 const app = express();
 
 /* =========================
-   CORS (OBRIGATÓRIO)
+   CORS (VERSÃO ROBUSTA)
+   - Aceita domínios Vercel
+   - Funciona com preflight
 ========================= */
 const corsOptions = {
-  origin: "https://clickpage.vercel.app",
+  origin: function (origin, callback) {
+    // Permite chamadas sem origin (curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    // Libera qualquer subdomínio da Vercel
+    if (origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    // Bloqueia o resto
+    return callback(new Error("Not allowed by CORS"));
+  },
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
@@ -21,11 +34,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-/**
- * ⚠️ IMPORTANTE
- * Responde explicitamente preflight OPTIONS
- */
 app.options("*", cors(corsOptions));
 
 /* =========================
