@@ -8,33 +8,26 @@ const v1Routes = require("./routes/api/v1");
 const app = express();
 
 /* =========================
-   CORS (VERSÃO ROBUSTA)
-   - Aceita domínios Vercel
-   - Funciona com preflight
+   CORS (MODELO ESTÁVEL)
 ========================= */
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Permite chamadas sem origin (curl, server-to-server)
-    if (!origin) return callback(null, true);
-
-    // Libera qualquer subdomínio da Vercel
-    if (origin.endsWith(".vercel.app")) {
-      return callback(null, true);
-    }
-
-    // Bloqueia o resto
-    return callback(new Error("Not allowed by CORS"));
-  },
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "x-worker-token",
-    "x-user-email",
-  ],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.use(
+  cors({
+    origin: [
+      "https://clickpage.vercel.app",
+      "https://clickpage.lovable.app",
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "http://localhost:8080",
+      "http://localhost:3000",
+    ],
+    methods: ["POST", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "x-worker-token",
+      "x-user-email",
+    ],
+  })
+);
 
 /* =========================
    MIDDLEWARES GLOBAIS
