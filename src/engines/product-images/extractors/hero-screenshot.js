@@ -111,7 +111,7 @@ async function extractHeroScreenshotDataUrl(productUrl) {
           return bad.some((k) => lower.includes(k));
         };
 
-        // ✅ NOVO: bloqueia vídeo/embeds mesmo quando ainda não existe <iframe>/<video>
+        // ✅ bloqueia vídeo/embeds mesmo quando ainda não existe <iframe>/<video>
         const hasVideoLike = (el) => {
           if (!el) return false;
 
@@ -123,7 +123,11 @@ async function extractHeroScreenshotDataUrl(productUrl) {
           if (el.querySelector && el.querySelector('iframe,video')) return true;
 
           // Vidalytics / embeds por id/class (caso Mitolyn)
-          const embedHost = el.closest && el.closest('[id*="vidalytics"],[class*="vidalytics"],[id*="embed"],[class*="embed"]');
+          const embedHost =
+            el.closest &&
+            el.closest(
+              '[id*="vidalytics"],[class*="vidalytics"],[id*="embed"],[class*="embed"]'
+            );
           if (embedHost) return true;
 
           // elementos com "aspect-ratio hack" típico de player (padding-top ~56.25%)
@@ -131,7 +135,11 @@ async function extractHeroScreenshotDataUrl(productUrl) {
             const s = window.getComputedStyle(el);
             const pt = (s.paddingTop || '').trim();
             const pos = (s.position || '').trim();
-            if (pos === 'relative' && (pt === '56.25%' || pt === '56.250%' || pt === '56.3%')) return true;
+            if (
+              pos === 'relative' &&
+              (pt === '56.25%' || pt === '56.250%' || pt === '56.3%')
+            )
+              return true;
           } catch {
             // ignore
           }
@@ -155,7 +163,9 @@ async function extractHeroScreenshotDataUrl(productUrl) {
         }
 
         // backgrounds (apenas elementos relevantes)
-        const bgEls = Array.from(document.querySelectorAll('section, div, figure, a, span'));
+        const bgEls = Array.from(
+          document.querySelectorAll('section, div, figure, a, span')
+        );
         for (const el of bgEls) {
           const url = getUrlFromBg(el);
           if (!url) continue;
@@ -166,7 +176,7 @@ async function extractHeroScreenshotDataUrl(productUrl) {
         let best = null;
 
         for (const c of candidates) {
-          // ✅ NOVO: evita cair no player (inclui canvas/containers de Vidalytics)
+          // evita cair no player (inclui canvas/containers de Vidalytics)
           if (hasVideoLike(c.el)) continue;
 
           const r = c.r;
@@ -184,9 +194,23 @@ async function extractHeroScreenshotDataUrl(productUrl) {
           // se tem url, bloqueia ruins
           if (c.url && badByUrl(c.url)) continue;
 
-          // score: grande + mais perto do topo
+          // ✅ score: grande + perto do topo + prioridade por tipo + bônus por keyword
           const topPenalty = Math.max(0, r.top);
-          const score = area - topPenalty * 50;
+
+          // base
+          let score = area - topPenalty * 50;
+
+          // prioridade por tipo (não exclui nada)
+          if (c.kind === 'img') score += 50000;
+          else if (c.kind === 'bg') score += 15000;
+          // canvas fica sem bônus (continua elegível)
+
+          // bônus leve por keywords (só se tiver url)
+          if (c.url) {
+            const u = String(c.url).toLowerCase();
+            const good = ['bottle', 'bottles', 'product', 'products', 'jar', 'pack', 'bundle'];
+            if (good.some((k) => u.includes(k))) score += 20000;
+          }
 
           if (!best || score > best.score) {
             best = { el: c.el, score };
