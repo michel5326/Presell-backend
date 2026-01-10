@@ -30,10 +30,11 @@ async function extractImagesFromHtml(productUrl) {
     const lower = src.toLowerCase();
 
     // ✅ EXCEÇÃO FORTE: slug do produto no filename
-    if (slug && lower.includes(slug)) {
-      images.push(src);
-      return;
-    }
+    if (slug && lower.includes(slug) && !shouldDiscardImageUrl(src)) {
+  images.push(src);
+  return;
+}
+
 
     // filtro burro
     if (!shouldDiscardImageUrl(src)) {
