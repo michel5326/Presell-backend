@@ -1,13 +1,12 @@
 const aiService = require('../../services/ai');
-const { resolveProductImage } = require('../image-resolver');
+const { resolveProductImage } = require('../product-images');
 
 async function generate({ productUrl, affiliateUrl, attempt }) {
   // 1) IA — intenção ROBUSTA
   const copy = await aiService.generateCopy({
-  type: "robusta",
-  productUrl,
-});
-
+    type: 'robusta',
+    productUrl,
+  });
 
   // 2) Imagem — determinística por attempt
   const image = await resolveProductImage(productUrl, attempt);
