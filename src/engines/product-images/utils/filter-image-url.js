@@ -2,9 +2,11 @@
  * Filtro binário de URLs de imagem.
  * Retorna true se a URL DEVE ser descartada.
  *
- * Regras:
- * 1) Descarta lixo óbvio (data, svg, pixel, logo, rating, UI)
- * 2) Exige keyword explícita de produto no nome da imagem
+ * Estratégia:
+ * - Apenas EXCLUSÕES explícitas
+ * - Sem whitelist
+ * - Sem heurística visual
+ * - Best-effort
  */
 function shouldDiscardImageUrl(url) {
   if (!url || typeof url !== 'string') return true;
@@ -17,7 +19,7 @@ function shouldDiscardImageUrl(url) {
   // svg
   if (lower.endsWith('.svg')) return true;
 
-  // pixels / trackers comuns
+  // pixels / trackers
   if (
     lower.includes('pixel') ||
     lower.includes('spacer') ||
@@ -26,18 +28,17 @@ function shouldDiscardImageUrl(url) {
     return true;
   }
 
-  // banners / elementos não-produto
+  // banners / ações
   if (
     lower.includes('banner') ||
     lower.includes('order') ||
     lower.includes('order-now') ||
-    lower.includes('five icon') ||
-    lower.includes('five-icon')
+    lower.includes('checkout')
   ) {
     return true;
   }
 
-  // logos / identidade visual
+  // logos / identidade
   if (
     lower.includes('logo') ||
     lower.includes('brand') ||
@@ -59,22 +60,29 @@ function shouldDiscardImageUrl(url) {
     return true;
   }
 
-  // 🔒 DIRECIONAMENTO POSITIVO: exigir nome de produto
-  const productKeywords = [
-    'product',
-    'bottle',
-    'supplement',
-    'jar',
-    'capsule',
-    'capsules',
-    'pack',
-  ];
+  // pagamentos / garantia / comercial
+  if (
+    lower.includes('guarantee') ||
+    lower.includes('guaranteed') ||
+    lower.includes('money-back') ||
+    lower.includes('refund') ||
+    lower.includes('shipping') ||
+    lower.includes('delivery') ||
+    lower.includes('payment') ||
+    lower.includes('secure') ||
+    lower.includes('credit') ||
+    lower.includes('visa') ||
+    lower.includes('mastercard') ||
+    lower.includes('paypal')
+  ) {
+    return true;
+  }
 
-  const hasProductKeyword = productKeywords.some(keyword =>
-    lower.includes(keyword)
-  );
-
-  if (!hasProductKeyword) {
+  // genérico / teste
+  if (
+    lower.includes('generic') ||
+    lower.includes('test')
+  ) {
     return true;
   }
 
