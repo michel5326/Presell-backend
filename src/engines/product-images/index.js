@@ -32,15 +32,6 @@ async function resolveProductImage(productUrl, attempt = 0) {
   }
 }
 
-if (!images.length) {
-  const ogImage = await extractOgImage(productUrl);
-  if (ogImage) {
-    images.push(ogImage);
-  }
-}
-
-
-
 module.exports = {
   resolveProductImage,
 };
