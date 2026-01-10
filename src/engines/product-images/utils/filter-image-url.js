@@ -42,6 +42,19 @@ function shouldDiscardImageUrl(url) {
     return true;
   }
 
+  // ratings / badges / selos
+  if (
+    lower.includes('rating') ||
+    lower.includes('star') ||
+    lower.includes('stars') ||
+    lower.includes('review') ||
+    lower.includes('badge') ||
+    lower.includes('trust') ||
+    lower.includes('seal')
+  ) {
+    return true;
+  }
+
   return false;
 }
 
