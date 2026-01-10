@@ -1,7 +1,6 @@
 {
   "name": "sars-backend",
   "version": "1.0.0",
-  "main": "index.js",
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
