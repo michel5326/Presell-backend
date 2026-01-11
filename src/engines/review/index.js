@@ -4,7 +4,7 @@ const { renderTemplate } = require('../../templates/renderTemplate.service');
 
 /**
  * Normaliza chaves da IA para UPPERCASE
- * (segurança contra variação do modelo)
+ * (proteção contra variação do modelo)
  */
 function normalizeCopyKeys(copy = {}) {
   const out = {};
@@ -12,6 +12,16 @@ function normalizeCopyKeys(copy = {}) {
     out[k.toUpperCase()] = copy[k];
   }
   return out;
+}
+
+/**
+ * Helper: retorna null se string vazia
+ * (Mustache/handlebars não renderiza se for null)
+ */
+function safe(val) {
+  if (!val) return null;
+  if (typeof val === 'string' && !val.trim()) return null;
+  return val;
 }
 
 async function generate({ productUrl, affiliateUrl, attempt, theme }) {
@@ -34,77 +44,90 @@ async function generate({ productUrl, affiliateUrl, attempt, theme }) {
   const now = new Date();
 
   /**
-   * 3) VIEW — 100% COMPATÍVEL COM:
-   * - prompt atual da IA
-   * - template review-light / review-dark
+   * 3) VIEW — CONTRATO FIRME COM O TEMPLATE
+   * - nunca envia string vazia
+   * - se não existir, vira null (bloco não renderiza)
    */
   const view = {
-    // ================= HERO =================
-    HEADLINE:
+    /* ================= HERO ================= */
+    HEADLINE: safe(
       copy.HEADLINE_MAIN ||
       copy.HEADLINE ||
-      'Product Review',
+      'Product Review'
+    ),
 
-    SUBHEADLINE:
+    SUBHEADLINE: safe(
       copy.SUBHEADLINE_MAIN ||
-      copy.SUBHEADLINE ||
-      '',
+      copy.SUBHEADLINE
+    ),
 
-    INTRO:
-      copy.POSITIONING_STATEMENT ||
-      copy.DECISION_STAGE_LINE ||
+    INTRO: safe(
       copy.INTRO ||
-      '',
+      copy.POSITIONING_STATEMENT ||
+      copy.DECISION_STAGE_LINE
+    ),
 
-    // ============== HOW IT WORKS ============
-    WHY_IT_WORKS: [
-      copy.MECHANISM_STEP_1,
-      copy.MECHANISM_STEP_2,
-      copy.MECHANISM_STEP_3,
-    ]
-      .filter(Boolean)
-      .join(' '),
+    /* ============== HOW IT WORKS ============= */
+    WHY_IT_WORKS: safe(
+      [
+        copy.MECHANISM_STEP_1,
+        copy.MECHANISM_STEP_2,
+        copy.MECHANISM_STEP_3,
+      ].filter(Boolean).join(' ')
+    ),
 
-    // ================= FORMULA ===============
-    FORMULA_TEXT:
-      copy.FORMULA_TEXT ||
-      '',
+    /* ================= FORMULA =============== */
+    FORMULA_TEXT: safe(copy.FORMULA_TEXT),
 
-    // ================= BENEFITS ==============
-    BENEFITS_LIST: [
-      copy.WHY_DIFFERENT_1,
-      copy.WHY_DIFFERENT_2,
-      copy.WHY_DIFFERENT_3,
-    ]
-      .filter(Boolean)
-      .map(text => `<div class="col">${text}</div>`)
-      .join(''),
+    /* ================= BENEFITS ============== */
+    BENEFITS_LIST: safe(
+      [
+        copy.WHY_DIFFERENT_1,
+        copy.WHY_DIFFERENT_2,
+        copy.WHY_DIFFERENT_3,
+      ]
+        .filter(Boolean)
+        .map(text => `
+          <div class="col-md-6 col-lg-4">
+            <div class="card-universal p-3 h-100">
+              ${text}
+            </div>
+          </div>
+        `)
+        .join('')
+    ),
 
-    // ================= SOCIAL PROOF ==========
-    SOCIAL_PROOF:
-      copy.TESTIMONIAL_NOTICE_TEXT ||
-      copy.SCAM_ALERT_TEXT ||
-      '',
+    /* ================= SOCIAL PROOF ========== */
+    SOCIAL_PROOF: safe(
+      copy.SOCIAL_PROOF ||
+      copy.TESTIMONIAL_NOTICE_TEXT
+    ),
 
-    // ================= GUARANTEE =============
-    GUARANTEE:
-      copy.GUARANTEE_TEXT ||
-      '',
+    /* ================= GUARANTEE ============= */
+    GUARANTEE: safe(
+      copy.GUARANTEE ||
+      copy.GUARANTEE_TEXT
+    ),
 
-    // ============== OPCIONAIS =================
-    TESTIMONIAL_IMAGES: '',
-    GUARANTEE_IMAGE: '',
+    /* ============== OPCIONAIS ================= */
+    TESTIMONIAL_IMAGES: null,
+    GUARANTEE_IMAGE: null,
+    INGREDIENT_IMAGES: null,
+    BONUS_IMAGES: null,
 
-    // ================= GLOBAL =================
+    /* ================= GLOBAL ================= */
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
     CURRENT_YEAR: String(now.getFullYear()),
-    PAGE_TITLE:
+    PAGE_TITLE: safe(
       copy.HEADLINE_MAIN ||
-      'Review',
-    META_DESCRIPTION:
+      copy.HEADLINE ||
+      'Review'
+    ),
+    META_DESCRIPTION: safe(
       copy.SUBHEADLINE_MAIN ||
-      '',
+      copy.SUBHEADLINE
+    ),
     LANG: 'en',
   };
 
