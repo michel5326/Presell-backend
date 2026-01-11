@@ -14,6 +14,8 @@ COMPLIANCE RULES:
 - DO NOT claim medical cures or diagnoses
 - Avoid exaggerated language
 - Use cautious phrasing (e.g. "may help", "designed to support", "according to the manufacturer")
+- DO NOT assume gender, age, or medical condition
+- Keep language generic and applicable to any supplement type
 
 TONE:
 - Informative
@@ -22,19 +24,19 @@ TONE:
 - Calm and educational
 
 STYLE GUIDELINES:
-- You MAY include subtle emojis at the start of short benefit lines (e.g. ✅ 🧪 🔍)
-- Do NOT overuse emojis
-- Do NOT use emojis in long paragraphs
+- Text must be clear and structured
+- No emojis inside paragraphs
+- Emojis are NOT required (icons are handled by the template)
 
 OUTPUT RULES:
 - Return ONLY valid JSON
-- Do NOT include HTML EXCEPT where explicitly requested
+- Do NOT include HTML
 - Do NOT include explanations
 - ALL keys below MUST exist
-- ALL values MUST be strings
-- If unsure, return an empty string ""
+- Use empty arrays [] if unsure
+- Use empty strings "" if unsure
 
-JSON STRUCTURE:
+JSON STRUCTURE (STRICT CONTRACT):
 
 {
   "HEADLINE": "",
@@ -43,10 +45,29 @@ JSON STRUCTURE:
 
   "WHY_IT_WORKS": "",
 
-  "FORMULA_TEXT": "",
+  "FORMULA_COMPONENTS": [
+    {
+      "title": "",
+      "desc": ""
+    }
+  ],
 
-  "BENEFITS_LIST": "",
-  
+  "BENEFITS": [
+    {
+      "icon": "fa-check-circle",
+      "title": "",
+      "desc": ""
+    }
+  ],
+
+  "TESTIMONIALS": [
+    {
+      "name": "",
+      "rating": 5,
+      "text": ""
+    }
+  ],
+
   "SOCIAL_PROOF": "",
 
   "GUARANTEE": "",
