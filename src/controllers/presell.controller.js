@@ -8,7 +8,7 @@ async function generatePresellData(req, res) {
       productUrl,
       affiliateUrl,
       attempt = 0,
-      theme, // ← FALTAVA ISSO
+      theme,
     } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
@@ -24,20 +24,28 @@ async function generatePresellData(req, res) {
         productUrl,
         affiliateUrl,
         attempt,
-        theme, // ← E ISSO
+        theme,
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
         productUrl,
         affiliateUrl,
         attempt,
-        theme, // ← opcional, mas consistente
+        theme,
       });
     } else {
       return res.status(400).json({
         error: 'Invalid type',
       });
     }
+
+    // 🔥 DEBUG CRÍTICO (ESTILO FRANK)
+    console.log('================ PRESSELL DEBUG ================');
+    console.log('[TYPE]', type);
+    console.log('[COPY FROM AI]', result?.copy);
+    console.log('[IMAGE]', result?.image ? 'OK' : 'EMPTY');
+    console.log('[HTML LENGTH]', result?.html?.length || 0);
+    console.log('================================================');
 
     return res.json(result);
   } catch (err) {
