@@ -1,62 +1,105 @@
 const fs = require('fs');
-
-function isTruthy(val) {
-  if (Array.isArray(val)) return val.length > 0;
-  return !!val;
-}
+const path = require('path');
 
 /**
- * Render bem simples no estilo Mustache:
- * - {{KEY}} substitui valor
- * - {{#KEY}} ... {{/KEY}} mostra bloco se KEY for truthy (ou array)
- *   - se KEY for array, repete bloco e, se item for string, usa como conteúdo
+ * Mini renderer compatível com:
+ * - {{KEY}}
+ * - {{#KEY}} ... {{/KEY}}  (renderiza bloco se KEY for truthy)
+ *
+ * Não usa libs externas.
+ * Determinístico.
  */
-function renderTemplateString(template, data = {}) {
-  let out = String(template || '');
 
-  // 1) Seções {{#KEY}}...{{/KEY}}
-  // (sem aninhamento complexo — suficiente pros teus templates)
-  out = out.replace(/{{#([A-Z0-9_]+)}}([\s\S]*?){{\/\1}}/gi, (m, key, inner) => {
-    const val = data[key];
+function renderSections(template, data) {
+  if (!template) return '';
 
-    if (!isTruthy(val)) return '';
+  return template.replace(/\{\{#([A-Z0-9_]+)\}\}([\s\S]*?)\{\{\/\1\}\}/gi, (_, key, inner) => {
+    const v = data?.[key];
 
-    // array => repete
-    if (Array.isArray(val)) {
-      return val
+    // falsy => remove bloco
+    if (!v) return '';
+
+    // se for array => repete bloco
+    if (Array.isArray(v)) {
+      return v
         .map((item) => {
-          // se item for string/number => coloca no lugar de {{KEY}} e também {{.}}
-          if (item === null || item === undefined) return '';
-          if (typeof item === 'string' || typeof item === 'number') {
-            const scoped = { ...data, [key]: String(item), '.': String(item) };
-            return renderTemplateString(inner, scoped);
-          }
-          // objeto => merge com escopo
-          const scoped = { ...data, ...(item || {}) };
-          return renderTemplateString(inner, scoped);
+          const ctx = (item && typeof item === 'object') ? { ...data, ...item } : { ...data, [key]: String(item) };
+          return renderTemplateString(inner, ctx);
         })
         .join('');
     }
 
-    // truthy normal => render inner com mesmo data
+    // se for string/number/bool => só renderiza o inner com o mesmo data
     return renderTemplateString(inner, data);
   });
+}
 
-  // 2) Variáveis {{KEY}} e {{.}}
-  out = out.replace(/{{\s*([A-Z0-9_.]+)\s*}}/gi, (m, key) => {
-    const val = data[key];
-    return val === null || val === undefined ? '' : String(val);
+function renderVars(template, data) {
+  if (!template) return '';
+
+  return template.replace(/\{\{([A-Z0-9_]+)\}\}/gi, (_, key) => {
+    const v = data?.[key];
+    if (v === undefined || v === null) return '';
+    return String(v);
   });
+}
+
+function renderTemplateString(template, data) {
+  // 1) resolve blocos primeiro (pode ter vars dentro)
+  let out = renderSections(template, data);
+
+  // 2) resolve vars simples
+  out = renderVars(out, data);
+
+  // 3) se existirem seções aninhadas, roda de novo (limitado)
+  // evita loop infinito: no máximo 3 passes
+  for (let i = 0; i < 3; i++) {
+    const next = renderSections(out, data);
+    if (next === out) break;
+    out = renderVars(next, data);
+  }
 
   return out;
 }
 
-function renderTemplateFromFile(templatePath, data = {}) {
-  const html = fs.readFileSync(templatePath, 'utf8');
+/**
+ * API principal
+ * Aceita:
+ * - renderTemplate('review/review-dark.html', data)
+ * - renderTemplate({ templatePath: 'review/review-dark.html', data })
+ */
+function renderTemplate(arg1, arg2) {
+  let templatePath = '';
+  let data = {};
+
+  if (arg1 && typeof arg1 === 'object') {
+    templatePath = arg1.templatePath || arg1.path || '';
+    data = arg1.data || {};
+  } else {
+    templatePath = arg1 || '';
+    data = arg2 || {};
+  }
+
+  if (!templatePath) return '';
+
+  const baseDir = __dirname; // src/templates
+  const absPath = path.isAbsolute(templatePath)
+    ? templatePath
+    : path.join(baseDir, templatePath);
+
+  let html = '';
+  try {
+    html = fs.readFileSync(absPath, 'utf8');
+  } catch (e) {
+    // não quebra engine
+    return '';
+  }
+
   return renderTemplateString(html, data);
 }
 
+// aliases pra compatibilidade
 module.exports = {
-  renderTemplateFromFile,
-  renderTemplateString,
+  renderTemplate,
+  render: renderTemplate,
 };
