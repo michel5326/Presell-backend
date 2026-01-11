@@ -2,6 +2,10 @@ const aiService = require('../../services/ai');
 const { resolveProductImage } = require('../product-images');
 const { renderTemplate } = require('../../templates/renderTemplate.service');
 
+/**
+ * Normaliza chaves da IA para UPPERCASE
+ * (segurança contra variação do modelo)
+ */
 function normalizeCopyKeys(copy = {}) {
   const out = {};
   for (const k of Object.keys(copy)) {
@@ -13,7 +17,9 @@ function normalizeCopyKeys(copy = {}) {
 async function generate({ productUrl, affiliateUrl, attempt, theme }) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
-  // 1) GERA COPY DA IA
+  /**
+   * 1) GERAR COPY DA IA
+   */
   const rawCopy = await aiService.generateCopy({
     type: 'review',
     productUrl,
@@ -21,38 +27,90 @@ async function generate({ productUrl, affiliateUrl, attempt, theme }) {
 
   const copy = normalizeCopyKeys(rawCopy);
 
-  // 2) IMAGEM
+  /**
+   * 2) RESOLVER IMAGEM DO PRODUTO
+   */
   const image = await resolveProductImage(productUrl, attempt);
   const now = new Date();
 
-  // 3) VIEW — CONTRATO 100% ALINHADO COM PROMPT + TEMPLATE
+  /**
+   * 3) VIEW — 100% COMPATÍVEL COM:
+   * - prompt atual da IA
+   * - template review-light / review-dark
+   */
   const view = {
-    // HERO
-    HEADLINE: copy.HEADLINE || '',
-    SUBHEADLINE: copy.SUBHEADLINE || '',
-    INTRO: copy.INTRO || '',
+    // ================= HERO =================
+    HEADLINE:
+      copy.HEADLINE_MAIN ||
+      copy.HEADLINE ||
+      'Product Review',
 
-    // SEÇÕES
-    WHY_IT_WORKS: copy.WHY_IT_WORKS || '',
-    FORMULA_TEXT: copy.FORMULA_TEXT || '',
-    BENEFITS_LIST: copy.BENEFITS_LIST || '',
-    SOCIAL_PROOF: copy.SOCIAL_PROOF || '',
-    GUARANTEE: copy.GUARANTEE || '',
+    SUBHEADLINE:
+      copy.SUBHEADLINE_MAIN ||
+      copy.SUBHEADLINE ||
+      '',
 
-    // OPCIONAIS (não quebram template)
+    INTRO:
+      copy.POSITIONING_STATEMENT ||
+      copy.DECISION_STAGE_LINE ||
+      copy.INTRO ||
+      '',
+
+    // ============== HOW IT WORKS ============
+    WHY_IT_WORKS: [
+      copy.MECHANISM_STEP_1,
+      copy.MECHANISM_STEP_2,
+      copy.MECHANISM_STEP_3,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    // ================= FORMULA ===============
+    FORMULA_TEXT:
+      copy.FORMULA_TEXT ||
+      '',
+
+    // ================= BENEFITS ==============
+    BENEFITS_LIST: [
+      copy.WHY_DIFFERENT_1,
+      copy.WHY_DIFFERENT_2,
+      copy.WHY_DIFFERENT_3,
+    ]
+      .filter(Boolean)
+      .map(text => `<div class="col">${text}</div>`)
+      .join(''),
+
+    // ================= SOCIAL PROOF ==========
+    SOCIAL_PROOF:
+      copy.TESTIMONIAL_NOTICE_TEXT ||
+      copy.SCAM_ALERT_TEXT ||
+      '',
+
+    // ================= GUARANTEE =============
+    GUARANTEE:
+      copy.GUARANTEE_TEXT ||
+      '',
+
+    // ============== OPCIONAIS =================
     TESTIMONIAL_IMAGES: '',
     GUARANTEE_IMAGE: '',
 
-    // GLOBAIS
+    // ================= GLOBAL =================
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
     CURRENT_YEAR: String(now.getFullYear()),
-    PAGE_TITLE: copy.HEADLINE || 'Review',
-    META_DESCRIPTION: copy.SUBHEADLINE || '',
+    PAGE_TITLE:
+      copy.HEADLINE_MAIN ||
+      'Review',
+    META_DESCRIPTION:
+      copy.SUBHEADLINE_MAIN ||
+      '',
     LANG: 'en',
   };
 
-  // 4) TEMPLATE
+  /**
+   * 4) TEMPLATE
+   */
   const templatePath =
     resolvedTheme === 'light'
       ? 'review/review-light.html'
@@ -60,6 +118,9 @@ async function generate({ productUrl, affiliateUrl, attempt, theme }) {
 
   const html = renderTemplate(templatePath, view);
 
+  /**
+   * 5) RESPONSE
+   */
   return {
     copy,
     image,
