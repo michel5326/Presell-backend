@@ -233,6 +233,27 @@ align-items: center;
 max-width: 100%;
 }
 }
+/* === ATLAS REVIEW — emoji polish === */
+
+/* textos que costumam receber emojis da IA */
+.card-universal p,
+.card-universal li,
+.lead,
+.fs-5 {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* dá destaque sutil ao emoji inicial */
+.card-universal p::first-letter,
+.card-universal li::first-letter,
+.lead::first-letter,
+.fs-5::first-letter {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
 </style>
 </head>
 <body>
