@@ -2,16 +2,8 @@ const aiService = require('../../services/ai');
 const { resolveProductImage } = require('../product-images');
 const { renderTemplate } = require('../../templates/renderTemplate.service');
 
-function normalizeTheme(theme) {
-  const t = String(theme || '').toLowerCase().trim();
-  if (t === 'light' || t === 'ligth' || t === 'claro' || t === 'white' || t.startsWith('l')) {
-    return 'light';
-  }
-  return 'dark';
-}
-
 async function generate({ productUrl, affiliateUrl, attempt, theme }) {
-  const resolvedTheme = normalizeTheme(theme);
+  const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
   const copy = await aiService.generateCopy({
     type: 'robusta',
