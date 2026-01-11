@@ -2,31 +2,41 @@ const aiService = require('../../services/ai');
 const { resolveProductImage } = require('../product-images');
 const { renderTemplate } = require('../../templates/renderTemplate.service');
 
+function normalizeCopyKeys(copy = {}) {
+  const out = {};
+  for (const k of Object.keys(copy)) {
+    out[k.toUpperCase()] = copy[k];
+  }
+  return out;
+}
+
 async function generate({ productUrl, affiliateUrl, attempt, theme }) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
-  const copy = await aiService.generateCopy({
+  const rawCopy = await aiService.generateCopy({
     type: 'review',
     productUrl,
   });
+
+  const copy = normalizeCopyKeys(rawCopy);
 
   const image = await resolveProductImage(productUrl, attempt);
   const now = new Date();
 
   const view = {
     // HERO
-    HEADLINE: copy?.HEADLINE || '',
-    SUBHEADLINE: copy?.SUBHEADLINE || '',
-    INTRO: copy?.INTRO || '',
+    HEADLINE: copy.HEADLINE || '',
+    SUBHEADLINE: copy.SUBHEADLINE || '',
+    INTRO: copy.INTRO || '',
 
-    // ATLAS SECTIONS (🔥 ESSENCIAL)
-    WHY_IT_WORKS: copy?.BODY || '',
-    FORMULA_TEXT: copy?.BODY || '',
-    BENEFITS_LIST: copy?.BODY || '',
-    SOCIAL_PROOF: copy?.BODY || '',
-    GUARANTEE: copy?.CTA_TEXT || '',
+    // ATLAS SECTIONS
+    WHY_IT_WORKS: copy.BODY || '',
+    FORMULA_TEXT: copy.BODY || '',
+    BENEFITS_LIST: copy.BODY || '',
+    SOCIAL_PROOF: copy.BODY || '',
+    GUARANTEE: copy.CTA_TEXT || '',
 
-    // OPCIONAIS (não quebra)
+    // OPCIONAIS
     TESTIMONIAL_IMAGES: '',
     GUARANTEE_IMAGE: '',
 
@@ -34,8 +44,8 @@ async function generate({ productUrl, affiliateUrl, attempt, theme }) {
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
     CURRENT_YEAR: String(now.getFullYear()),
-    PAGE_TITLE: copy?.HEADLINE || 'Review',
-    META_DESCRIPTION: copy?.SUBHEADLINE || '',
+    PAGE_TITLE: copy.HEADLINE || 'Review',
+    META_DESCRIPTION: copy.SUBHEADLINE || '',
     LANG: 'en',
   };
 
