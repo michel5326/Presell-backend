@@ -1,58 +1,38 @@
-const fetch = require('node-fetch');
+const { callDeepSeekJSON } = require("./deepseek.service");
 
-/**
- * 🔥 IA SEM RETRY / SEM BLOQUEIO
- * - Nunca quebra o fluxo
- * - Nunca lança erro
- * - Sempre retorna algo
- */
+const reviewPrompt = require("./prompts/review.prompt");
+const robustaPrompt = require("./prompts/robusta.prompt");
+
 async function generateCopy({ type, productUrl }) {
-  try {
-    console.log('[AI] generating copy (NO RETRY MODE)');
+  if (!type) throw new Error("AI type is required");
+  if (!productUrl) throw new Error("productUrl is required");
 
-    const response = await fetch(process.env.AI_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.AI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        type,
-        productUrl,
-      }),
-    });
+  let systemPrompt;
 
-    const text = await response.text();
-
-    // 🔥 TENTAR JSON
-    try {
-      const parsed = JSON.parse(text);
-      console.log('[AI] JSON parsed successfully');
-      return parsed;
-    } catch {
-      console.warn('[AI] JSON invalid, wrapping raw text');
-
-      // 🔥 FALLBACK ABSOLUTO (ESTILO FRANK)
-      return {
-        HEADLINE: 'Product Review',
-        SUBHEADLINE: 'Important information you should know',
-        INTRO: text.slice(0, 500),
-        BODY: text,
-        CTA_TEXT: 'Visit the official website',
-      };
-    }
-  } catch (err) {
-    console.error('[AI] fatal error, returning fallback copy', err.message);
-
-    // 🔥 NUNCA FALHA
-    return {
-      HEADLINE: 'Product Review',
-      SUBHEADLINE: 'Independent analysis',
-      INTRO: 'This product has gained attention recently.',
-      BODY: 'More details are available on the official website.',
-      CTA_TEXT: 'Check availability',
-    };
+  if (type === "review") {
+    systemPrompt = reviewPrompt;
+  } else if (type === "robusta") {
+    systemPrompt = robustaPrompt;
+  } else {
+    throw new Error(`Unknown AI type: ${type}`);
   }
+
+  // 🔥 GARANTIA DE URL ABSOLUTA (CRÍTICO)
+  if (!/^https?:\/\//i.test(productUrl)) {
+    throw new Error("Invalid productUrl (must be absolute URL)");
+  }
+
+  const userPrompt = `Product URL: ${productUrl}`;
+
+  console.log("[AI] generating copy (NO RETRY MODE)");
+
+  // ❌ REMOVE fallback
+  // ❌ REMOVE BODY genérico
+  // ✅ deixa falhar se a IA falhar
+  return callDeepSeekJSON({
+    systemPrompt,
+    userPrompt,
+  });
 }
 
 module.exports = {
