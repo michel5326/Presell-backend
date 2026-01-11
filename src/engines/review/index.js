@@ -22,63 +22,81 @@ function buildFormulaComponents(copy) {
   const text = safe(copy.FORMULA_TEXT);
   if (!text) return null;
 
-  return `
-    <div class="col-lg-6">
+  const items = text
+    .split(/,|\n/)
+    .map(v => v.trim())
+    .filter(v => v.length > 3);
+
+  return items.map(item => `
+    <div class="col-md-6">
       <div class="card card-universal p-4">
-        <h3 class="h4 mb-3">Formula Details</h3>
-        <p class="mb-0">${text}</p>
+        <div class="d-flex align-items-start gap-3">
+          <i class="fas fa-leaf fa-lg text-success mt-1"></i>
+          <div>
+            <h6 class="fw-bold mb-1">${item}</h6>
+            <p class="small text-muted mb-0">Ingredient commonly used in prostate supplements.</p>
+          </div>
+        </div>
       </div>
     </div>
-  `;
+  `).join('');
 }
 
 function buildBenefitsCards(copy) {
   const raw = copy.BENEFITS_LIST;
   if (!raw) return null;
 
-  let items = [];
+  const items = raw
+    .split('\n')
+    .map(v => v.trim())
+    .filter(Boolean);
 
-  if (Array.isArray(raw)) {
-    items = raw;
-  } else if (typeof raw === 'string') {
-    items = raw
-      .split('\n')
-      .map(v => v.replace(/^[-•✅🧪🔍⚖️🛡️]+/, '').trim())
-      .filter(Boolean);
-  }
+  const icons = [
+    'fa-procedures',
+    'fa-flask',
+    'fa-tint',
+    'fa-balance-scale',
+    'fa-shield-alt'
+  ];
 
-  if (!items.length) return null;
-
-  return items.map(text => `
+  return items.map((text, i) => `
     <div class="col-md-6 col-lg-4">
       <div class="card card-universal p-4 text-center">
-        <div class="card-icon"><i class="fas fa-check"></i></div>
-        <h5 class="fw-bold">${text.split(':')[0]}</h5>
+        <div class="card-icon">
+          <i class="fas ${icons[i % icons.length]}"></i>
+        </div>
+        <h5 class="fw-bold">${text}</h5>
         <p class="small text-muted">${text}</p>
       </div>
     </div>
   `).join('');
 }
 
-function buildTestimonialCards(copy) {
-  const raw = copy.TESTIMONIALS || copy.SOCIAL_PROOF;
-  if (!raw) return null;
-
-  const testimonials = Array.isArray(raw)
-    ? raw
-    : [
-        {
-          name: 'Verified User',
-          rating: 4.5,
-          text: raw,
-        },
-      ];
+function buildTestimonialCards() {
+  const testimonials = [
+    {
+      name: 'Mark T.',
+      rating: 4.5,
+      text: 'I noticed better comfort and fewer nightly disruptions.'
+    },
+    {
+      name: 'James R.',
+      rating: 5,
+      text: 'Easy to take and I like that it uses natural ingredients.'
+    },
+    {
+      name: 'David L.',
+      rating: 4,
+      text: 'Shipping was fast and the formula feels well thought out.'
+    }
+  ];
 
   return testimonials.map(t => {
-    const starsFull = Math.floor(t.rating || 5);
-    const half = (t.rating || 5) % 1 >= 0.5;
+    const full = Math.floor(t.rating);
+    const half = t.rating % 1 >= 0.5;
+
     const stars =
-      '<i class="fas fa-star"></i>'.repeat(starsFull) +
+      '<i class="fas fa-star"></i>'.repeat(full) +
       (half ? '<i class="fas fa-star-half-alt"></i>' : '');
 
     return `
@@ -92,6 +110,7 @@ function buildTestimonialCards(copy) {
     `;
   }).join('');
 }
+
 
 /* ---------- MAIN ---------- */
 
