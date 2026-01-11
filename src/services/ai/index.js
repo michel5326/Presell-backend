@@ -1,66 +1,45 @@
 const { callDeepSeekJSON } = require("./deepseek.service");
-
 const reviewPrompt = require("./prompts/review.prompt");
 const robustaPrompt = require("./prompts/robusta.prompt");
 
-const MAX_RETRIES = 3;
+const REQUIRED_KEYS = {
+  review: ["HEADLINE", "SUBHEADLINE", "BODY", "CTA_TEXT"],
+  robusta: ["HEADLINE", "SUBHEADLINE", "BODY", "CTA_TEXT"],
+};
 
-/**
- * Validação mínima da copy (estilo Frank)
- */
-function isValidCopy(copy) {
-  if (!copy || typeof copy !== "object") return false;
-  if (!copy.HEADLINE && !copy.headline) return false;
-  return true;
-}
+async function generateCopy({ type, productUrl, attempts = 3 }) {
+  const systemPrompt =
+    type === "review" ? reviewPrompt :
+    type === "robusta" ? robustaPrompt :
+    null;
 
-/**
- * AI Facade com retry automático
- */
-async function generateCopy({ type, productUrl }) {
-  if (!type) throw new Error("AI type is required");
-  if (!productUrl) throw new Error("productUrl is required");
+  if (!systemPrompt) throw new Error("Invalid AI type");
 
-  let systemPrompt;
-
-  if (type === "review") {
-    systemPrompt = reviewPrompt;
-  } else if (type === "robusta") {
-    systemPrompt = robustaPrompt;
-  } else {
-    throw new Error(`Unknown AI type: ${type}`);
-  }
-
-  const userPrompt = `Product URL: ${productUrl}`;
-
-  let lastError;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  for (let i = 1; i <= attempts; i++) {
     try {
-      console.log(`[AI] attempt ${attempt}/${MAX_RETRIES}`);
-
-      const copy = await callDeepSeekJSON({
+      const json = await callDeepSeekJSON({
         systemPrompt,
-        userPrompt,
+        userPrompt: `Product URL: ${productUrl}`,
       });
 
-      if (!isValidCopy(copy)) {
-        throw new Error("Invalid copy structure");
+      const required = REQUIRED_KEYS[type] || [];
+      const missing = required.filter(k => !json[k]);
+
+      if (missing.length) {
+        throw new Error(`Invalid copy structure`);
       }
 
-      console.log("[AI] valid copy received");
-      return copy;
+      console.log(`[AI] success on attempt ${i}`);
+      return json;
+
     } catch (err) {
-      lastError = err;
-      console.warn(`[AI] attempt ${attempt} failed:`, err.message);
+      console.error(`[AI] attempt ${i}/${attempts} failed:`, err.message);
+      if (i === attempts) {
+        throw new Error(`AI failed after ${attempts} attempts: ${err.message}`);
+      }
+      await new Promise(r => setTimeout(r, 1000 * i));
     }
   }
-
-  throw new Error(
-    `AI failed after ${MAX_RETRIES} attempts: ${lastError?.message}`
-  );
 }
 
-module.exports = {
-  generateCopy,
-};
+module.exports = { generateCopy };
