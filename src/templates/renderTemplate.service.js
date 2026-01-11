@@ -3,18 +3,38 @@ const path = require('path');
 
 /**
  * Mini renderer compatível com:
- * - {{KEY}}
+ * - {{KEY}}  (case-insensitive)
  * - {{#KEY}} ... {{/KEY}}  (renderiza bloco se KEY for truthy)
+ * - array em seção => repete bloco
  *
  * Não usa libs externas.
  * Determinístico.
  */
 
+function normKey(k) {
+  return String(k || '').trim();
+}
+
+function getValue(data, key) {
+  if (!data) return undefined;
+
+  // tenta chave exata
+  if (Object.prototype.hasOwnProperty.call(data, key)) return data[key];
+
+  // tenta case-insensitive
+  const wanted = String(key).toLowerCase();
+  const found = Object.keys(data).find((k) => String(k).toLowerCase() === wanted);
+  if (found) return data[found];
+
+  return undefined;
+}
+
 function renderSections(template, data) {
   if (!template) return '';
 
-  return template.replace(/\{\{#([A-Z0-9_]+)\}\}([\s\S]*?)\{\{\/\1\}\}/gi, (_, key, inner) => {
-    const v = data?.[key];
+  return template.replace(/\{\{#([^}]+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (_, rawKey, inner) => {
+    const key = normKey(rawKey);
+    const v = getValue(data, key);
 
     // falsy => remove bloco
     if (!v) return '';
@@ -23,13 +43,16 @@ function renderSections(template, data) {
     if (Array.isArray(v)) {
       return v
         .map((item) => {
-          const ctx = (item && typeof item === 'object') ? { ...data, ...item } : { ...data, [key]: String(item) };
+          const ctx =
+            item && typeof item === 'object'
+              ? { ...data, ...item }
+              : { ...data, [key]: String(item) };
           return renderTemplateString(inner, ctx);
         })
         .join('');
     }
 
-    // se for string/number/bool => só renderiza o inner com o mesmo data
+    // truthy => renderiza inner com mesmo data
     return renderTemplateString(inner, data);
   });
 }
@@ -37,8 +60,13 @@ function renderSections(template, data) {
 function renderVars(template, data) {
   if (!template) return '';
 
-  return template.replace(/\{\{([A-Z0-9_]+)\}\}/gi, (_, key) => {
-    const v = data?.[key];
+  return template.replace(/\{\{([^}]+)\}\}/g, (_, rawKey) => {
+    const key = normKey(rawKey);
+
+    // não deixar {{#X}} virar var
+    if (key.startsWith('#') || key.startsWith('/')) return `{{${rawKey}}}`;
+
+    const v = getValue(data, key);
     if (v === undefined || v === null) return '';
     return String(v);
   });
@@ -52,7 +80,6 @@ function renderTemplateString(template, data) {
   out = renderVars(out, data);
 
   // 3) se existirem seções aninhadas, roda de novo (limitado)
-  // evita loop infinito: no máximo 3 passes
   for (let i = 0; i < 3; i++) {
     const next = renderSections(out, data);
     if (next === out) break;
@@ -82,16 +109,18 @@ function renderTemplate(arg1, arg2) {
 
   if (!templatePath) return '';
 
-  const baseDir = __dirname; // src/templates
+  // ✅ garante que base é SEMPRE src/templates
+  const templatesDir = path.resolve(__dirname); // este arquivo fica em src/templates
   const absPath = path.isAbsolute(templatePath)
     ? templatePath
-    : path.join(baseDir, templatePath);
+    : path.join(templatesDir, templatePath);
 
   let html = '';
   try {
     html = fs.readFileSync(absPath, 'utf8');
   } catch (e) {
-    // não quebra engine
+    // não quebra engine, mas deixa rastreável no log
+    console.error('[renderTemplate] read fail:', absPath);
     return '';
   }
 
