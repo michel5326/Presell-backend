@@ -7,7 +7,6 @@ const { extractHeroScreenshotDataUrl } = require('./extractors/hero-screenshot')
  *
  * Ordem:
  * 1) Playwright screenshot recortado do elemento do produto (mais assertivo)
- *    - Agora rotaciona por attempt também
  * 2) HTML imgs (rápido, mas falha em muitos sites)
  * 3) OG image (último fallback)
  *
@@ -17,11 +16,9 @@ const { extractHeroScreenshotDataUrl } = require('./extractors/hero-screenshot')
 async function resolveProductImage(productUrl, attempt = 0) {
   if (!productUrl) return '';
 
-  const safeAttempt = Number.isFinite(Number(attempt)) ? Number(attempt) : 0;
-
   try {
-    // 1) ✅ mais assertivo (AGORA COM attempt)
-    const heroShot = await extractHeroScreenshotDataUrl(productUrl, safeAttempt);
+    // 1) ✅ mais assertivo (agora com rotação por attempt)
+    const heroShot = await extractHeroScreenshotDataUrl(productUrl, attempt);
     if (heroShot) return heroShot;
 
     // 2) fallback: lista de imagens do HTML
@@ -34,7 +31,7 @@ async function resolveProductImage(productUrl, attempt = 0) {
 
     if (!images.length) return '';
 
-    const index = Math.abs(safeAttempt) % images.length;
+    const index = Math.abs(Number(attempt) || 0) % images.length;
     return images[index] || '';
   } catch {
     return '';
