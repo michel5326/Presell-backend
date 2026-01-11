@@ -6,291 +6,211 @@
 <meta name="description" content="{{META_DESCRIPTION}}">
 <title>{{PAGE_TITLE}}</title>
 
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-/* ESTILOS UNIVERSAIS - ADAPTÁVEIS A QUALQUER PRODUTO */
 :root {
 --primary-color: #008080;
---secondary-color: #006666;
+--primary-dark: #006666;
+--primary-light: #e6f2f2;
 --accent-color: #e74c3c;
---light-bg: #f8f9fa;
 --text-dark: #212529;
---text-light: #6c757d;
---shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
---border-radius: 8px;
+--text-muted: #6c757d;
+--shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+--shadow-md: 0 8px 16px rgba(0,0,0,0.08);
+--border-radius: 12px;
+--transition: all 0.3s ease;
 }
 
 body {
-font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+font-family: 'Poppins', sans-serif;
 color: var(--text-dark);
-line-height: 1.6;
+line-height: 1.7;
+background: #fff;
+overflow-x: hidden;
 }
 
-/* NAVBAR UNIVERSAL */
+/* NAVBAR */
 .navbar-universal {
-background: white;
-box-shadow: var(--shadow);
-border-bottom: 2px solid var(--light-bg);
+background: rgba(255,255,255,.95);
+backdrop-filter: blur(10px);
+box-shadow: 0 2px 10px rgba(0,0,0,.05);
+border-bottom: 1px solid rgba(0,0,0,.05);
+padding: 1rem 0;
 }
 
 .navbar-brand {
 font-weight: 700;
 color: var(--primary-color);
-font-size: 1.2rem;
+font-size: 1.25rem;
 }
 
-/* BOTÃO CTA PRINCIPAL */
+/* CTA */
 .btn-universal {
-background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
 color: white;
 font-weight: 600;
-padding: 12px 24px;
-border-radius: var(--border-radius);
+padding: 12px 28px;
+border-radius: 50px;
 border: none;
-transition: all 0.3s ease;
+transition: var(--transition);
 text-transform: uppercase;
-letter-spacing: 0.5px;
+letter-spacing: .5px;
+font-size: .9rem;
+box-shadow: 0 4px 15px rgba(0,128,128,.3);
 }
 
 .btn-universal:hover {
 transform: translateY(-2px);
-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+box-shadow: 0 6px 20px rgba(0,128,128,.4);
 color: white;
 }
 
-/* SEÇÕES */
+/* HEADERS */
 .section-header {
-color: var(--secondary-color);
+color: var(--primary-dark);
 font-weight: 700;
-margin-bottom: 2rem;
+margin-bottom: 3rem;
 text-align: center;
 position: relative;
 padding-bottom: 15px;
+font-size: 2rem;
 }
 
 .section-header:after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 50%;
-transform: translateX(-50%);
-width: 60px;
-height: 3px;
-background: var(--primary-color);
+content:'';
+position:absolute;
+bottom:0;
+left:50%;
+transform:translateX(-50%);
+width:80px;
+height:4px;
+background:var(--primary-color);
+border-radius:2px;
 }
 
 /* CARDS */
 .card-universal {
-border: none;
-border-radius: var(--border-radius);
-box-shadow: var(--shadow);
-transition: transform 0.3s ease;
-height: 100%;
+border:1px solid rgba(0,0,0,.05);
+border-radius:var(--border-radius);
+box-shadow:var(--shadow-sm);
+transition:var(--transition);
+background:white;
 }
 
 .card-universal:hover {
-transform: translateY(-5px);
+transform:translateY(-5px);
+box-shadow:var(--shadow-md);
 }
 
-.card-icon {
-font-size: 2.5rem;
-margin-bottom: 1rem;
-color: var(--primary-color);
-}
-
-/* IMAGENS */
+/* IMAGES */
 .product-img {
-max-height: 400px;
-width: auto;
-border-radius: var(--border-radius);
-box-shadow: var(--shadow);
-border: 5px solid white;
+max-height:450px;
+border-radius:var(--border-radius);
+box-shadow:var(--shadow-md);
+padding:10px;
+background:white;
 }
 
-.ingredient-img {
-max-width: 100%;
-height: auto;
-border-radius: 10px;
-object-fit: cover;
+.mobile-product-img {
+max-height:300px;
+margin:0 auto 2rem;
+display:block;
+border-radius:var(--border-radius);
+box-shadow:var(--shadow-md);
+padding:10px;
+background:white;
 }
 
-/* TESTIMONIALS */
-.testimonial-item {
-background: var(--light-bg);
-padding: 1.5rem;
-border-radius: var(--border-radius);
-border-left: 4px solid var(--primary-color);
+/* AUTO HIDE */
+.hide-if-empty:empty,
+.hide-if-empty > :empty:not(h2):not(.section-header) {
+display:none!important;
 }
 
-.testimonial-img {
-width: 60px;
-height: 60px;
-border-radius: 50%;
-object-fit: cover;
-border: 2px solid var(--primary-color);
-}
-
-/* GRIDS UNIVERSAL */
-.ingredient-grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-gap: 1rem;
-margin: 1.5rem 0;
-}
-
-.bonus-grid {
-display: flex;
-flex-wrap: wrap;
-gap: 1rem;
-justify-content: center;
-}
-
-.bonus-img {
-max-width: 200px;
-border-radius: var(--border-radius);
-}
-
-/* GUARANTEE */
-.guarantee-badge {
-max-width: 200px;
-height: auto;
+.auto-hide-section:not(:has(*:not(:empty))) {
+display:none!important;
 }
 
 /* FOOTER */
 .footer-universal {
-background: var(--secondary-color);
-color: white;
-margin-top: 4rem;
-padding: 2rem 0;
+background:var(--primary-dark);
+color:white;
+margin-top:5rem;
+padding:3rem 0;
 }
 
-/* --- REGRAS PARA OCULTAR ELEMENTOS VAZIOS --- */
-.hide-if-empty:empty,
-.hide-if-empty > :empty:not(.section-header):not(h2):not(hr) {
-display: none !important;
+@media(max-width:768px){
+.section-header{font-size:1.6rem}
+.btn-universal{width:100%}
 }
-
-.auto-hide-section:not(:has(*:not(.section-header):not(h2):not(hr):not(:empty))) {
-display: none !important;
-}
-
-/* Ocultar imagens específicas problemáticas */
-img[src*="facebook.com/tr?id="],
-img[src*="pixel"],
-img[src*="tracking"],
-img[src*="analytics"],
-img[src*="google-analytics"],
-img[width="1"],
-img[height="1"] {
-display: none !important;
-width: 0 !important;
-height: 0 !important;
-opacity: 0 !important;
-}
-
-/* Seções que devem desaparecer se vazias */
-.auto-hide-section:not(:has(*:not(.section-header):not(h2):not(hr):not(:empty))) {
-display: none !important;
-}
-
-/* Cards vazios */
-.card-universal:empty,
-.card-universal > :empty:not(.card-icon) {
-display: none !important;
-}
-
-/* --- EXCEÇÃO PARA IMAGEM DO PRODUTO (NOVA REGRA) --- */
-.product-img-container,
-.col-lg-6.text-center.hide-if-empty:has(img.product-img) {
-display: block !important;
-}
-
-/* RESPONSIVIDADE */
-@media (max-width: 768px) {
-.section-header {
-font-size: 1.5rem;
-}
-
-.product-img {
-max-height: 300px;
-}
-
-.btn-universal {
-width: 100%;
-}
-
-.bonus-grid {
-flex-direction: column;
-align-items: center;
-}
-
-.bonus-img {
-max-width: 100%;
-}
-}
-/* ATLAS — emoji polish (safe) */
-.emoji {
-  display: inline-block;
-  margin-right: 8px;
-  transform: translateY(1px);
-  font-size: 1.15em;
-}
-
 </style>
 </head>
+
 <body>
 
-<!-- NAVBAR UNIVERSAL -->
+<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-universal sticky-top">
 <div class="container">
 <a class="navbar-brand" href="#">
-<i class="fas fa-star me-2"></i>REVIEW GUIDE
+<i class="fas fa-layer-group me-2"></i>REVIEW GUIDE
 </a>
 <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">
-<i class="fas fa-shopping-cart me-2"></i>VISIT OFFICIAL SITE
+VISIT OFFICIAL SITE
 </a>
 </div>
 </nav>
 
 <main class="container my-5">
 
-<!-- HERO SECTION -->
+<!-- HERO -->
 <section class="row align-items-center gy-5 mb-5 auto-hide-section">
+
 <div class="col-lg-6">
-<h1 class="display-5 fw-bold mb-3">{{HEADLINE}}</h1>
+<h1 class="display-4 fw-bold mb-3" style="color:var(--primary-dark)">
+{{HEADLINE}}
+</h1>
+
 <p class="lead text-muted mb-4">{{SUBHEADLINE}}</p>
 
-<div class="bg-light p-4 rounded mb-4">
+<div class="d-block d-lg-none text-center mb-4 product-img-container">
+{{#PRODUCT_IMAGE}}
+<img src="{{PRODUCT_IMAGE}}" class="mobile-product-img" alt="Product Image">
+{{/PRODUCT_IMAGE}}
+</div>
+
+<div class="bg-light p-4 rounded-4 mb-4 border-start border-4 border-primary">
 <p class="mb-0">{{INTRO}}</p>
 </div>
 
-<div class="d-grid gap-2 d-md-flex">
 <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
-<i class="fas fa-bolt me-2"></i>GET IT NOW
+GET IT NOW <i class="fas fa-chevron-right ms-2"></i>
 </a>
 </div>
-</div>
 
-<!-- CONTAINER DA IMAGEM COM CLASSE ESPECIAL -->
-<div class="col-lg-6 text-center product-img-container">
-<!-- IMAGEM DO PRODUTO -->
+<div class="col-lg-6 text-center d-none d-lg-block product-img-container">
 {{#PRODUCT_IMAGE}}
-<img src="{{PRODUCT_IMAGE}}" alt="Product Image" class="product-img img-fluid">
+<img src="{{PRODUCT_IMAGE}}" class="product-img img-fluid mx-auto d-block" alt="Product Image">
 {{/PRODUCT_IMAGE}}
 </div>
+
 </section>
 
 <!-- HOW IT WORKS -->
 <section class="mb-5 auto-hide-section">
 <h2 class="section-header">How It Works</h2>
-<div class="card card-universal">
+<div class="card card-universal" style="background:var(--primary-light)">
 <div class="card-body p-4">
-<p class="fs-5 mb-0">{{WHY_IT_WORKS}}</p>
+<p class="fs-5 text-center mb-0">{{WHY_IT_WORKS}}</p>
 <div class="text-center mt-4">
 <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">LEARN MORE</a>
 </div>
@@ -298,34 +218,15 @@ max-width: 100%;
 </div>
 </section>
 
-<!-- FORMULA / INGREDIENTS -->
+<!-- FORMULA -->
 <section class="mb-5 auto-hide-section">
 <h2 class="section-header">Key Components</h2>
 <div class="row gy-4 hide-if-empty">
-<div class="col-md-6">
-<!-- TEXTO DA FÓRMULA -->
-{{#FORMULA_TEXT}}
-<div class="card card-universal h-100">
-<div class="card-body">
-<h3 class="h5 mb-3"><i class="fas fa-flask me-2"></i>Formula Details</h3>
+<div class="col-lg-6">
+<div class="card card-universal p-4">
+<h3 class="h4 mb-4">Formula Details</h3>
 {{FORMULA_TEXT}}
 </div>
-</div>
-{{/FORMULA_TEXT}}
-</div>
-
-<div class="col-md-6">
-<!-- IMAGENS DOS INGREDIENTES -->
-{{#INGREDIENT_IMAGES}}
-<div class="card card-universal h-100">
-<div class="card-body">
-<h3 class="h5 mb-3"><i class="fas fa-leaf me-2"></i>Natural Ingredients</h3>
-<div class="ingredient-grid">
-{{INGREDIENT_IMAGES}}
-</div>
-</div>
-</div>
-{{/INGREDIENT_IMAGES}}
 </div>
 </div>
 </section>
@@ -334,7 +235,6 @@ max-width: 100%;
 <section class="mb-5 auto-hide-section">
 <h2 class="section-header">Key Benefits</h2>
 <div class="row g-4 hide-if-empty">
-<!-- LISTA DE BENEFÍCIOS -->
 {{BENEFITS_LIST}}
 </div>
 </section>
@@ -343,100 +243,53 @@ max-width: 100%;
 <section class="mb-5 auto-hide-section">
 <h2 class="section-header">What Users Say</h2>
 <div class="row g-4 hide-if-empty">
-<!-- TESTIMONIALS -->
 {{TESTIMONIAL_IMAGES}}
 </div>
-<p class="text-center mt-4 fs-5 hide-if-empty">{{SOCIAL_PROOF}}</p>
+<p class="text-center mt-4 text-muted hide-if-empty">{{SOCIAL_PROOF}}</p>
 </section>
-
-<!-- BONUSES -->
-{{#BONUS_IMAGES}}
-<section class="mb-5 auto-hide-section">
-<h2 class="section-header">Special Bonuses</h2>
-<div class="bonus-grid hide-if-empty">
-{{BONUS_IMAGES}}
-</div>
-</section>
-{{/BONUS_IMAGES}}
 
 <!-- GUARANTEE -->
 <section class="mb-5 auto-hide-section">
 <h2 class="section-header">Our Guarantee</h2>
-<div class="text-center hide-if-empty">
+<div class="card card-universal" style="background:#f0f7f7">
+<div class="card-body text-center py-5">
 {{#GUARANTEE_IMAGE}}
-<img src="{{GUARANTEE_IMAGE}}" alt="Guarantee Badge" class="guarantee-badge mb-4">
+<img src="{{GUARANTEE_IMAGE}}" class="guarantee-badge mb-4" alt="Guarantee">
 {{/GUARANTEE_IMAGE}}
-<p class="fs-5">{{GUARANTEE}}</p>
-<a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg mt-3">
-<i class="fas fa-shield-alt me-2"></i>TRY RISK-FREE
+<p class="fs-5 mb-4">{{GUARANTEE}}</p>
+<a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
+TRY RISK-FREE
 </a>
-</div>
-</section>
-
-<!-- FAQ (FIXO OU VARIÁVEL) -->
-<section class="mb-5">
-<h2 class="section-header">Frequently Asked Questions</h2>
-<div class="accordion" id="faqAccordion">
-<!-- FAQ pode ser hardcoded ou variável -->
-<div class="accordion-item">
-<h2 class="accordion-header">
-<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-Is this product safe?
-</button>
-</h2>
-<div id="faq1" class="accordion-collapse collapse">
-<div class="accordion-body">
-Always consult with a healthcare professional before starting any new supplement.
-</div>
-</div>
-</div>
-
-<div class="accordion-item">
-<h2 class="accordion-header">
-<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-What if I'm not satisfied?
-</button>
-</h2>
-<div id="faq2" class="accordion-collapse collapse">
-<div class="accordion-body">
-Most reputable products offer satisfaction guarantees. Check the official website for details.
-</div>
-</div>
 </div>
 </div>
 </section>
 
 <!-- FINAL CTA -->
-<section class="text-center py-5 bg-light rounded">
-<h2 class="mb-4">Ready to Make a Change?</h2>
-<p class="lead mb-4">Join thousands who have already experienced the benefits.</p>
-<a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg px-5">
-<i class="fas fa-rocket me-2"></i>GET STARTED NOW
+<section class="py-5 rounded-4 mb-5" style="background:linear-gradient(135deg,var(--primary-color),var(--primary-dark));color:white">
+<div class="container text-center">
+<h2 class="fw-bold mb-3">Ready to Make a Change?</h2>
+<p class="lead opacity-75 mb-4">Join thousands who have already experienced the benefits.</p>
+<a href="{{AFFILIATE_LINK}}" class="btn btn-light fw-bold px-5 py-3 rounded-pill">
+GET STARTED NOW
 </a>
+</div>
 </section>
 
 </main>
 
-<!-- FOOTER UNIVERSAL -->
 <footer class="footer-universal">
 <div class="container">
-<div class="row align-items-center">
+<div class="row">
 <div class="col-md-6">
-<p class="mb-0">
-<i class="fas fa-copyright me-2"></i>{{CURRENT_YEAR}} Review Guide. All rights reserved.
-</p>
+<p class="mb-0">&copy; {{CURRENT_YEAR}} Review Guide</p>
 </div>
 <div class="col-md-6 text-md-end">
-<p class="mb-0 small opacity-75">
-Disclaimer: This is an independent review. Results may vary.
-</p>
+<p class="mb-0 small opacity-75">Disclaimer: This is an independent review.</p>
 </div>
 </div>
 </div>
 </footer>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
