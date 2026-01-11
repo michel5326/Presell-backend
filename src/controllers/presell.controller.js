@@ -4,10 +4,11 @@ const robustaEngine = require('../engines/robusta');
 async function generatePresellData(req, res) {
   try {
     const {
-      type,        // 'review' | 'robusta'
+      type,
       productUrl,
       affiliateUrl,
       attempt = 0,
+      theme, // ← FALTAVA ISSO
     } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
@@ -23,12 +24,14 @@ async function generatePresellData(req, res) {
         productUrl,
         affiliateUrl,
         attempt,
+        theme, // ← E ISSO
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
         productUrl,
         affiliateUrl,
         attempt,
+        theme, // ← opcional, mas consistente
       });
     } else {
       return res.status(400).json({
