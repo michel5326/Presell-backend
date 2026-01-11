@@ -1,701 +1,219 @@
 <!DOCTYPE html>
 <html lang="{{LANG}}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{{META_DESCRIPTION}}">
-    <title>{{PAGE_TITLE}}</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{META_DESCRIPTION}}">
+  <title>{{PAGE_TITLE}}</title>
 
-    <style>
-        /* --- DESIGN SYSTEM DARK MODE --- */
-        :root {
-            --primary-color: #00e676; /* Neon Green Brilhante */
-            --secondary-color: #00b0ff;
-            --bg-body: #02040a; /* Fundo Principal Escuro */
-            --bg-card: #0f1525; /* Fundo dos Cards */
-            --text-main: #ffffff; /* Texto Principal */
-            --text-sec: #94a3b8; /* Texto Secundário */
-            --border: rgba(255, 255, 255, 0.08); /* Bordas Sutis */
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Sombras Escuras */
-            --border-radius: 12px;
-        }
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-        /* --- RESETS & BODY --- */
-        body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            line-height: 1.6;
-            transition: background-color 0.3s;
-        }
+  <style>
+    :root {
+      --primary-color: #00e676;
+      --secondary-color: #00b0ff;
+      --bg-body: #02040a;
+      --bg-card: #0f1525;
+      --text-main: #ffffff;
+      --text-sec: #94a3b8;
+      --border: rgba(255,255,255,.08);
+      --shadow: 0 4px 20px rgba(0,0,0,.5);
+      --radius: 12px;
+    }
 
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--text-main);
-        }
+    body {
+      background: var(--bg-body);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+    }
 
-        p, .lead {
-            color: var(--text-sec);
-        }
+    .navbar-universal {
+      background: rgba(2,4,10,.9);
+      border-bottom: 1px solid var(--border);
+    }
 
-        /* --- NAVBAR UNIVERSAL --- */
-        .navbar-universal {
-            background: rgba(2, 4, 10, 0.8);
-            backdrop-filter: blur(12px);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            border-bottom: 1px solid var(--border);
-        }
+    .btn-universal {
+      background: linear-gradient(135deg,var(--primary-color),var(--secondary-color));
+      color:#000;
+      font-weight:800;
+      padding:12px 30px;
+      border-radius:var(--radius);
+      border:none;
+      text-transform:uppercase;
+    }
 
-        .navbar-brand {
-            font-weight: 800;
-            color: var(--text-main);
-            text-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
-            font-size: 1.2rem;
-        }
+    .section-header {
+      text-align:center;
+      font-weight:700;
+      margin-bottom:2rem;
+      position:relative;
+    }
 
-        /* --- BOTÃO CTA PRINCIPAL --- */
-        .btn-universal {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: #000;
-            font-weight: 800;
-            padding: 12px 30px;
-            border-radius: var(--border-radius);
-            border: none;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
-        }
+    .section-header:after {
+      content:'';
+      display:block;
+      width:80px;
+      height:3px;
+      background:var(--primary-color);
+      margin:12px auto 0;
+    }
 
-        .btn-universal:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 0 25px rgba(0, 230, 118, 0.6);
-            color: #000;
-        }
+    .card-universal {
+      background:var(--bg-card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      height:100%;
+    }
 
-        /* --- SEÇÕES --- */
-        .section-header {
-            color: var(--text-main);
-            font-weight: 700;
-            margin-bottom: 2rem;
-            text-align: center;
-            position: relative;
-            padding-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .product-img {
+      max-height:450px;
+      max-width:100%;
+      border-radius:var(--radius);
+      box-shadow:0 20px 50px rgba(0,0,0,.6);
+    }
 
-        .section-header:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 3px;
-            background: var(--primary-color);
-            box-shadow: 0 0 10px var(--primary-color);
-        }
+    .ingredient-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:1rem;
+    }
 
-        /* --- CARDS (Dark Style) --- */
-        .card-universal {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-            height: 100%;
-            color: var(--text-main);
-        }
+    .bonus-grid {
+      display:flex;
+      flex-wrap:wrap;
+      gap:1rem;
+      justify-content:center;
+    }
 
-        .card-universal:hover {
-            transform: translateY(-5px);
-            border-color: rgba(0, 230, 118, 0.5);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
+    .guarantee-badge {
+      max-width:200px;
+    }
 
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-            filter: drop-shadow(0 0 8px rgba(0, 230, 118, 0.5));
-        }
+    .hide-if-empty:empty {
+      display:none !important;
+    }
 
-        /* --- OVERRIDE DO BOOTSTRAP --- */
-        .bg-light {
-            background-color: var(--bg-card) !important;
-            border: 1px solid var(--border);
-            color: var(--text-main);
-        }
-        
-        .text-muted {
-            color: var(--text-sec) !important;
-        }
+    .auto-hide-section:not(:has(*:not(h2):not(:empty))) {
+      display:none !important;
+    }
 
-        /* --- IMAGENS --- */
-        .product-img {
-            max-height: 450px;
-            width: auto;
-            max-width: 100%;
-            border-radius: var(--border-radius);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            border: 2px solid var(--border);
-        }
-
-        .ingredient-img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-            object-fit: cover;
-            border: 1px solid var(--border);
-        }
-
-        /* --- TESTIMONIALS --- */
-        .testimonial-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .testimonial-img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary-color);
-            box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
-        }
-
-        /* --- GRIDS --- */
-        .ingredient-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .bonus-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            justify-content: center;
-        }
-
-        .bonus-img {
-            max-width: 220px;
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border);
-            transition: 0.3s;
-        }
-        .bonus-img:hover {
-            transform: scale(1.05);
-            border-color: var(--primary-color);
-        }
-
-        /* --- GUARANTEE --- */
-        .guarantee-badge {
-            max-width: 200px;
-            height: auto;
-            filter: drop-shadow(0 0 15px rgba(0, 230, 118, 0.4));
-        }
-
-        /* --- FOOTER --- */
-        .footer-universal {
-            background: var(--bg-card);
-            border-top: 1px solid var(--border);
-            color: var(--text-sec);
-            margin-top: 5rem;
-            padding: 3rem 0;
-        }
-
-        /* --- ACCORDION DARK MODE --- */
-        .accordion-dark .accordion-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--border-radius) !important;
-            margin-bottom: 1rem;
-        }
-
-        .accordion-dark .accordion-button {
-            background: var(--bg-card);
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        .accordion-dark .accordion-button:not(.collapsed) {
-            background: rgba(0, 230, 118, 0.1);
-            color: var(--primary-color);
-        }
-
-        .accordion-dark .accordion-button:focus {
-            box-shadow: 0 0 0 0.25rem rgba(0, 230, 118, 0.25);
-            border-color: var(--primary-color);
-        }
-
-        .accordion-dark .accordion-body {
-            background: rgba(255, 255, 255, 0.02);
-            color: var(--text-sec);
-        }
-
-        /* --- OCULTAR ELEMENTOS VAZIOS OU PROBLEMÁTICOS --- */
-        .hide-if-empty:empty,
-        .hide-if-empty > :empty:not(.section-header):not(h2):not(hr) {
-            display: none !important;
-        }
-
-        .hide-section:empty,
-        .hide-section > :empty {
-            display: none !important;
-        }
-
-        /* Ocultar imagens específicas problemáticas */
-        img[src*="facebook.com/tr?id="],
-        img[src*="pixel"],
-        img[src*="tracking"],
-        img[src*="analytics"],
-        img[src*="google-analytics"],
-        img[width="1"],
-        img[height="1"] {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-            opacity: 0 !important;
-        }
-
-        /* Seções que devem desaparecer se vazias */
-        .auto-hide-section:not(:has(*:not(.section-header):not(h2):not(hr):not(:empty))) {
-            display: none !important;
-        }
-
-        /* Cards vazios */
-        .card-universal:empty,
-        .card-universal > :empty:not(.card-icon) {
-            display: none !important;
-        }
-
-        /* --- EXCEÇÃO PARA IMAGEM DO PRODUTO --- */
-        .hide-if-empty.product-img-container,
-        .col-lg-6.text-center.hide-if-empty:has(img.product-img) {
-            display: block !important;
-        }
-
-        /* --- RESPONSIVIDADE --- */
-        @media (max-width: 768px) {
-            .section-header {
-                font-size: 1.5rem;
-            }
-            
-            .product-img {
-                max-height: 300px;
-            }
-            
-            .btn-universal {
-                width: 100%;
-                font-size: 0.9rem;
-                padding: 12px;
-            }
-            
-            .display-4 {
-                font-size: 2rem;
-            }
-            
-            .bonus-grid {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .bonus-img {
-                max-width: 100%;
-            }
-        }
-       /* ATLAS — emoji polish (safe) */
-.emoji {
-  display: inline-block;
-  margin-right: 8px;
-  transform: translateY(1px);
-  font-size: 1.15em;
-}
-
-
-    </style>
+    .emoji {
+      margin-right:6px;
+    }
+  </style>
 </head>
+
 <body>
 
-    <!-- NAVBAR UNIVERSAL -->
-    <nav class="navbar navbar-expand-lg navbar-universal sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-star me-2"></i>REVIEW GUIDE
-            </a>
-            <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">
-                <i class="fas fa-shopping-cart me-2"></i>VISIT OFFICIAL SITE
-            </a>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-universal sticky-top">
+  <div class="container">
+    <a class="navbar-brand text-white fw-bold" href="#">
+      <i class="fas fa-star me-2"></i>REVIEW GUIDE
+    </a>
+    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">
+      VISIT OFFICIAL SITE
+    </a>
+  </div>
+</nav>
+
+<main class="container my-5">
+
+  <!-- HERO -->
+  <section class="row align-items-center gy-5 mb-5 auto-hide-section">
+    <div class="col-lg-6">
+      <h1 class="display-4 fw-bold">{{HEADLINE}}</h1>
+      <p class="lead">{{SUBHEADLINE}}</p>
+
+      <div class="bg-light p-4 rounded mb-4">
+        <p class="mb-0">{{INTRO}}</p>
+      </div>
+
+      <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
+        GET IT NOW
+      </a>
+    </div>
+
+    <div class="col-lg-6 text-center product-img-container">
+      <img src="{{PRODUCT_IMAGE}}" alt="Product Image" class="product-img img-fluid">
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="mb-5 auto-hide-section">
+    <h2 class="section-header">How It Works</h2>
+    <div class="card card-universal p-4">
+      <p class="fs-5 mb-0">{{WHY_IT_WORKS}}</p>
+    </div>
+  </section>
+
+  <!-- FORMULA -->
+  <section class="mb-5 auto-hide-section">
+    <h2 class="section-header">Key Components</h2>
+    <div class="row gy-4">
+      <div class="col-md-6">
+        <div class="card card-universal p-4">
+          {{FORMULA_TEXT}}
         </div>
-    </nav>
-
-    <main class="container my-5">
-        
-        <!-- HERO SECTION -->
-        <section class="row align-items-center gy-5 mb-5">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-3">{{HEADLINE}}</h1>
-                <p class="lead mb-4">{{SUBHEADLINE}}</p>
-                
-                <div class="bg-light p-4 rounded mb-4">
-                    <p class="mb-0">{{INTRO}}</p>
-                </div>
-                
-                <div class="d-grid gap-2 d-md-flex">
-                    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
-                        <i class="fas fa-bolt me-2"></i>GET IT NOW
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-lg-6 text-center product-img-container">
-                {{#PRODUCT_IMAGE}}
-                <img src="{{PRODUCT_IMAGE}}" alt="Product Image" class="product-img img-fluid">
-                {{/PRODUCT_IMAGE}}
-            </div>
-        </section>
-
-        <!-- HOW IT WORKS -->
-        <section class="mb-5 auto-hide-section">
-            <h2 class="section-header">How It Works</h2>
-            <div class="card card-universal">
-                <div class="card-body p-4">
-                    <p class="fs-5 mb-0">{{WHY_IT_WORKS}}</p>
-                    <div class="text-center mt-4">
-                        <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">LEARN MORE</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FORMULA / INGREDIENTS -->
-        <section class="mb-5 auto-hide-section">
-            <h2 class="section-header">Key Components</h2>
-            <div class="row gy-4 hide-if-empty">
-                <div class="col-md-6">
-                    {{#FORMULA_TEXT}}
-                    <div class="card card-universal h-100">
-                        <div class="card-body">
-                            <h3 class="h5 mb-3"><i class="fas fa-flask me-2"></i>Formula Details</h3>
-                            {{FORMULA_TEXT}}
-                        </div>
-                    </div>
-                    {{/FORMULA_TEXT}}
-                </div>
-                
-                <div class="col-md-6">
-                    {{#INGREDIENT_IMAGES}}
-                    <div class="card card-universal h-100">
-                        <div class="card-body">
-                            <h3 class="h5 mb-3"><i class="fas fa-leaf me-2"></i>Natural Ingredients</h3>
-                            <div class="ingredient-grid">
-                                {{INGREDIENT_IMAGES}}
-                            </div>
-                        </div>
-                    </div>
-                    {{/INGREDIENT_IMAGES}}
-                </div>
-            </div>
-        </section>
-
-        <!-- BENEFITS -->
-        <section class="mb-5 auto-hide-section">
-            <h2 class="section-header">Key Benefits</h2>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 hide-if-empty">
-                {{BENEFITS_LIST}}
-            </div>
-        </section>
-
-        <!-- SOCIAL PROOF -->
-        <section class="mb-5 auto-hide-section">
-            <h2 class="section-header">What Users Say</h2>
-            <div class="row g-4 hide-if-empty">
-                {{TESTIMONIAL_IMAGES}}
-            </div>
-            <p class="text-center mt-4 fs-5 text-muted hide-if-empty">{{SOCIAL_PROOF}}</p>
-        </section>
-
-        <!-- BONUSES -->
-        {{#BONUS_IMAGES}}
-        <section class="mb-5 auto-hide-section">
-            <h2 class="section-header">Exclusive Bonuses</h2>
-            <div class="bonus-grid hide-if-empty">
-                {{BONUS_IMAGES}}
-            </div>
-        </section>
-        {{/BONUS_IMAGES}}
-
-        <!-- GUARANTEE -->
-        <section class="mb-5 auto-hide-section">
-            <h2 class="section-header">Our Guarantee</h2>
-            <div class="text-center hide-if-empty">
-                {{#GUARANTEE_IMAGE}}
-                <img src="{{GUARANTEE_IMAGE}}" alt="Guarantee Badge" class="guarantee-badge mb-4">
-                {{/GUARANTEE_IMAGE}}
-                <p class="fs-5">{{GUARANTEE}}</p>
-                <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg mt-3">
-                    <i class="fas fa-shield-alt me-2"></i>TRY RISK-FREE
-                </a>
-            </div>
-        </section>
-
-        <!-- FAQ -->
-        <section class="mb-5">
-            <h2 class="section-header">Frequently Asked Questions</h2>
-            <div class="accordion accordion-dark" id="faqAccordion">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                            Is this product safe?
-                        </button>
-                    </h2>
-                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            Always consult with a healthcare professional before starting any new supplement.
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                            What if I'm not satisfied?
-                        </button>
-                    </h2>
-                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                        <div class="accordion-body">
-                            Most reputable products offer satisfaction guarantees. Check the official website for details.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FINAL CTA -->
-        <section class="text-center py-5 bg-light rounded">
-            <h2 class="mb-4">Ready to Make a Change?</h2>
-            <p class="lead mb-4">Join thousands who have already experienced the benefits.</p>
-            <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg px-5">
-                <i class="fas fa-rocket me-2"></i>GET STARTED NOW
-            </a>
-        </section>
-
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="footer-universal">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="mb-0">
-                        <i class="fas fa-copyright me-2"></i>{{CURRENT_YEAR}} Review Guide. All rights reserved.
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-0 small opacity-75">
-                        Disclaimer: This is an independent review. Results may vary.
-                    </p>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-6">
+        <div class="ingredient-grid">
+          {{INGREDIENT_IMAGES}}
         </div>
-    </footer>
+      </div>
+    </div>
+  </section>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- BENEFITS -->
+  <section class="mb-5 auto-hide-section">
+    <h2 class="section-header">Key Benefits</h2>
+    <div class="row g-4">
+      {{BENEFITS_LIST}}
+    </div>
+  </section>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Suaviza rolagem
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
-            });
-            
-            // 🔥 FUNÇÃO CORRIGIDA PARA OCULTAR ELEMENTOS VAZIOS
-            function hideEmptyOrProblematicElements() {
-                console.log('🔍 Iniciando limpeza de elementos...');
-                
-                // 1. Coletar todas as imagens problemáticas primeiro
-                const problematicImages = [];
-                document.querySelectorAll('img').forEach(img => {
-                    const src = img.src.toLowerCase();
-                    if (
-                        src.includes('facebook.com/tr?id=') ||
-                        src.includes('pixel') ||
-                        src.includes('tracking') ||
-                        src.includes('analytics') ||
-                        img.width <= 1 ||
-                        img.height <= 1 ||
-                        img.style.display === 'none'
-                    ) {
-                        problematicImages.push(img);
-                    }
-                });
-                
-                // 2. Remover imagens problemáticas
-                problematicImages.forEach(img => {
-                    img.style.display = 'none';
-                    img.style.opacity = '0';
-                    img.style.visibility = 'hidden';
-                    img.parentNode?.removeChild(img);
-                });
-                
-                // 3. Verificar seções vazias (IGNORAR SEÇÃO DA IMAGEM DO PRODUTO)
-                document.querySelectorAll('section.auto-hide-section').forEach(section => {
-                    // Pular a seção do herói (onde está a imagem do produto)
-                    if (section.querySelector('.product-img')) {
-                        console.log('✅ Mantendo seção com imagem do produto');
-                        return;
-                    }
-                    
-                    const hasContent = Array.from(section.children).some(child => {
-                        // Ignora cabeçalhos e HR
-                        if (child.tagName === 'H2' || 
-                            child.classList.contains('section-header') ||
-                            child.tagName === 'HR') {
-                            return false;
-                        }
-                        
-                        // Verifica conteúdo real
-                        if (child.textContent && child.textContent.trim().length > 20) return true;
-                        if (child.querySelector('img:not([style*="none"]):not([style*="hidden"])')) return true;
-                        if (child.querySelector('.card-universal:not(:empty)')) return true;
-                        if (child.querySelector('.btn-universal')) return true;
-                        
-                        return false;
-                    });
-                    
-                    if (!hasContent) {
-                        console.log('📦 Ocultando seção vazia:', section.querySelector('h2')?.textContent || 'Sem título');
-                        section.style.display = 'none';
-                        section.style.opacity = '0';
-                        section.style.height = '0';
-                        section.style.margin = '0';
-                        section.style.padding = '0';
-                        section.style.overflow = 'hidden';
-                    }
-                });
-                
-                // 4. Verificar divs com hide-if-empty (CORREÇÃO CRÍTICA)
-                document.querySelectorAll('.hide-if-empty').forEach(element => {
-                    // NUNCA ocultar o container da imagem do produto
-                    if (element.classList.contains('product-img-container') || element.querySelector('.product-img')) {
-                        console.log('✅ Mantendo container da imagem do produto');
-                        element.style.display = 'block';
-                        return;
-                    }
-                    
-                    if (!element.hasChildNodes() || 
-                        (element.children.length === 0 && element.textContent.trim() === '')) {
-                        element.style.display = 'none';
-                    } else {
-                        // Verifica se todos os filhos estão vazios (CORREÇÃO DA LÓGICA)
-                        const allChildrenEmpty = Array.from(element.children).every(child => {
-                            // Se for uma imagem, NÃO está vazio
-                            if (child.tagName === 'IMG') {
-                                return false;
-                            }
-                            
-                            // Se contém uma imagem, card ou botão, NÃO está vazio
-                            if (child.querySelector('img, .card-universal, .btn-universal')) {
-                                return false;
-                            }
-                            
-                            // Verifica conteúdo de texto
-                            return !child.textContent || child.textContent.trim() === '';
-                        });
-                        
-                        if (allChildrenEmpty) {
-                            element.style.display = 'none';
-                        }
-                    }
-                });
-                
-                // 5. Limpar bônus inválidos
-                document.querySelectorAll('.bonus-img').forEach(img => {
-                    if (img.src.includes('facebook.com/tr?id=') || 
-                        (img.src.includes('breatheagain.io') && !img.src.includes('bottle'))) {
-                        const parent = img.parentElement;
-                        img.style.display = 'none';
-                        img.remove();
-                        
-                        // Se o container de bônus ficou vazio, remove a seção
-                        if (parent && parent.classList.contains('bonus-grid') && 
-                            parent.children.length === 0) {
-                            const section = parent.closest('section');
-                            if (section) {
-                                section.style.display = 'none';
-                            }
-                        }
-                    }
-                });
-                
-                console.log('✅ Limpeza concluída:', problematicImages.length, 'elementos removidos');
-            }
-            
-            // 6. GARANTIR QUE A IMAGEM DO PRODUTO SEMPRE SEJA EXIBIDA
-            function ensureProductImageVisible() {
-                const productImage = document.querySelector('.product-img');
-                const productContainer = document.querySelector('.product-img-container, .col-lg-6.text-center');
-                
-                if (productImage && productContainer) {
-                    console.log('👁️ Garantindo visibilidade da imagem do produto');
-                    productContainer.style.display = 'block';
-                    productContainer.style.visibility = 'visible';
-                    productContainer.style.opacity = '1';
-                    productContainer.style.height = 'auto';
-                    
-                    // Remover classes que podem estar ocultando
-                    productContainer.classList.remove('hide-if-empty');
-                    productContainer.classList.remove('hide-section');
-                }
-            }
-            
-            // Executar após carregamento
-            setTimeout(() => {
-                ensureProductImageVisible();
-                hideEmptyOrProblematicElements();
-            }, 300);
-            
-            // Também executar quando todas as imagens carregarem
-            window.addEventListener('load', () => {
-                ensureProductImageVisible();
-                hideEmptyOrProblematicElements();
-            });
-        });
-    </script>
-    <script>
-(function(){
-  function addEmoji(el, emoji){
-    if(!el) return;
-    const t = (el.textContent || "").trim();
-    if(!t) return;
-    if(/^[\u{1F300}-\u{1FAFF}]/u.test(t)) return; // já começa com emoji
-    el.innerHTML = '<span class="emoji">'+emoji+'</span>' + el.innerHTML;
-  }
+  <!-- SOCIAL PROOF -->
+  <section class="mb-5 auto-hide-section">
+    <h2 class="section-header">What Users Say</h2>
+    <div class="row g-4">
+      {{TESTIMONIAL_IMAGES}}
+    </div>
+    <p class="text-center mt-4 fs-5">{{SOCIAL_PROOF}}</p>
+  </section>
 
-  addEmoji(document.querySelector('h1'), "⭐");
-  addEmoji(document.querySelector('.lead'), "🧠");
-  addEmoji(document.querySelector('.bg-light p'), "✅");
-  addEmoji(document.querySelector('section:has(h2.section-header:contains("How It Works")) .fs-5'), "⚙️");
-})();
-</script>
+  <!-- BONUS -->
+  <section class="mb-5 auto-hide-section">
+    <h2 class="section-header">Exclusive Bonuses</h2>
+    <div class="bonus-grid">
+      {{BONUS_IMAGES}}
+    </div>
+  </section>
+
+  <!-- GUARANTEE -->
+  <section class="mb-5 auto-hide-section">
+    <h2 class="section-header">Our Guarantee</h2>
+    <div class="text-center">
+      <img src="{{GUARANTEE_IMAGE}}" class="guarantee-badge mb-3">
+      <p class="fs-5">{{GUARANTEE}}</p>
+      <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
+        TRY RISK-FREE
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer-universal py-4 text-center">
+  <p class="mb-0 small">
+    © {{CURRENT_YEAR}} Review Guide. All rights reserved.
+  </p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
