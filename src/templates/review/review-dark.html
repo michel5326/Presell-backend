@@ -315,26 +315,14 @@
                 max-width: 100%;
             }
         }
-        /* === ATLAS REVIEW — emoji polish === */
-
-/* textos que costumam receber emojis da IA */
-.card-universal p,
-.card-universal li,
-.lead,
-.fs-5 {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+       /* ATLAS — emoji polish (safe) */
+.emoji {
+  display: inline-block;
+  margin-right: 8px;
+  transform: translateY(1px);
+  font-size: 1.15em;
 }
 
-/* dá destaque sutil ao emoji inicial */
-.card-universal p::first-letter,
-.card-universal li::first-letter,
-.lead::first-letter,
-.fs-5::first-letter {
-  font-size: 1.2em;
-  line-height: 1;
-}
 
     </style>
 </head>
@@ -692,5 +680,22 @@
             });
         });
     </script>
+    <script>
+(function(){
+  function addEmoji(el, emoji){
+    if(!el) return;
+    const t = (el.textContent || "").trim();
+    if(!t) return;
+    if(/^[\u{1F300}-\u{1FAFF}]/u.test(t)) return; // já começa com emoji
+    el.innerHTML = '<span class="emoji">'+emoji+'</span>' + el.innerHTML;
+  }
+
+  addEmoji(document.querySelector('h1'), "⭐");
+  addEmoji(document.querySelector('.lead'), "🧠");
+  addEmoji(document.querySelector('.bg-light p'), "✅");
+  addEmoji(document.querySelector('section:has(h2.section-header:contains("How It Works")) .fs-5'), "⚙️");
+})();
+</script>
+
 </body>
 </html>
