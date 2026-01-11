@@ -6,8 +6,9 @@ const MODEL = "deepseek-chat";
 /**
  * Contrato:
  * - recebe systemPrompt + userPrompt
- * - retorna SEMPRE um objeto JSON
- * - se falhar, lança erro
+ * - retorna SEMPRE um objeto JSON plano
+ * - sem regex
+ * - determinístico
  */
 async function callDeepSeekJSON({ systemPrompt, userPrompt }) {
   const res = await fetch(API_URL, {
@@ -37,13 +38,25 @@ async function callDeepSeekJSON({ systemPrompt, userPrompt }) {
     throw new Error("DeepSeek empty response");
   }
 
-  // Extrai o primeiro JSON válido da resposta
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) {
-    throw new Error("DeepSeek response is not valid JSON");
+  // 🔒 limpeza segura (remove markdown / lixo comum)
+  const cleaned = raw
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    console.error("[DeepSeek RAW]", raw);
+    throw new Error("DeepSeek returned invalid JSON");
   }
 
-  return JSON.parse(match[0]);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("DeepSeek JSON is not a plain object");
+  }
+
+  return parsed;
 }
 
 module.exports = {
