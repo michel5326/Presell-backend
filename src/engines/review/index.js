@@ -13,6 +13,7 @@ function normalizeCopyKeys(copy = {}) {
 async function generate({ productUrl, affiliateUrl, attempt, theme }) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
+  // 1) GERA COPY DA IA
   const rawCopy = await aiService.generateCopy({
     type: 'review',
     productUrl,
@@ -20,23 +21,25 @@ async function generate({ productUrl, affiliateUrl, attempt, theme }) {
 
   const copy = normalizeCopyKeys(rawCopy);
 
+  // 2) IMAGEM
   const image = await resolveProductImage(productUrl, attempt);
   const now = new Date();
 
+  // 3) VIEW — CONTRATO 100% ALINHADO COM PROMPT + TEMPLATE
   const view = {
     // HERO
     HEADLINE: copy.HEADLINE || '',
     SUBHEADLINE: copy.SUBHEADLINE || '',
     INTRO: copy.INTRO || '',
 
-    // ATLAS SECTIONS
-    WHY_IT_WORKS: copy.BODY || '',
-    FORMULA_TEXT: copy.BODY || '',
-    BENEFITS_LIST: copy.BODY || '',
-    SOCIAL_PROOF: copy.BODY || '',
-    GUARANTEE: copy.CTA_TEXT || '',
+    // SEÇÕES
+    WHY_IT_WORKS: copy.WHY_IT_WORKS || '',
+    FORMULA_TEXT: copy.FORMULA_TEXT || '',
+    BENEFITS_LIST: copy.BENEFITS_LIST || '',
+    SOCIAL_PROOF: copy.SOCIAL_PROOF || '',
+    GUARANTEE: copy.GUARANTEE || '',
 
-    // OPCIONAIS
+    // OPCIONAIS (não quebram template)
     TESTIMONIAL_IMAGES: '',
     GUARANTEE_IMAGE: '',
 
@@ -49,6 +52,7 @@ async function generate({ productUrl, affiliateUrl, attempt, theme }) {
     LANG: 'en',
   };
 
+  // 4) TEMPLATE
   const templatePath =
     resolvedTheme === 'light'
       ? 'review/review-light.html'
