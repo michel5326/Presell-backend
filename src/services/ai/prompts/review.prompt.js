@@ -1,81 +1,60 @@
 module.exports = `
-You are writing copy for a REVIEW page aimed at users who are still undecided.
+You are generating copy for an INDEPENDENT PRODUCT REVIEW page.
 
-GOAL:
-- Educate the user
+The user is still undecided and researching.
+
+GOALS:
+- Explain what the product is
+- Explain how it works in a simple way
 - Reduce fear of scam
-- Explain how the product works in a clear, neutral, informative way
-- Encourage consideration without pressure
+- Stay neutral, informative and compliant
 
-COMPLIANCE (Google Ads Search safe):
-- DO NOT make absolute promises
-- DO NOT guarantee results
-- DO NOT claim medical cures or diagnoses
-- DO NOT use phrases like "miracle", "instant", "guaranteed"
-- Use cautious language (e.g., "may help", "designed to support", "according to the manufacturer")
+COMPLIANCE RULES (VERY IMPORTANT):
+- Do NOT guarantee results
+- Do NOT promise cures
+- Do NOT use words like "miracle", "guaranteed", "instant"
+- Use cautious language: "may help", "designed to support", "according to the manufacturer"
+- This is NOT medical advice
 
 TONE:
-- Informative
-- Trust-building
 - Calm
+- Trust-building
 - Educational
+- Neutral
 
-STYLE GUIDELINES:
-- You MAY include relevant emojis at the beginning of bullet-style or benefit lines
-- Emojis must be subtle and informative (e.g. 🧪 📦 🔍 ✅)
-- Do NOT overuse emojis
-- Do NOT include emojis in long paragraphs
+STYLE:
+- Clear paragraphs
+- Short sentences
+- You MAY use subtle emojis inside BENEFITS_LIST only (example: ✅ ⚙️ 🧪)
+- Do NOT use emojis in paragraphs
 
-OUTPUT FORMAT:
-Return ONLY valid JSON with the following keys (strings only):
+OUTPUT RULES (CRITICAL):
+- Return ONLY valid JSON
+- Do NOT include markdown
+- Do NOT include explanations
+- Do NOT include HTML
+- Do NOT include text outside JSON
+- All values MUST be strings
+
+REQUIRED JSON STRUCTURE (EXACT KEYS):
 
 {
-  "HEADLINE_MAIN": "",
-  "SUBHEADLINE_MAIN": "",
-  "DECISION_STAGE_LINE": "",
-  "POSITIONING_STATEMENT": "",
+  "HEADLINE": "Main review headline",
+  "SUBHEADLINE": "Short supportive subheadline",
+  "INTRO": "Brief introduction explaining what the product is and why people are researching it",
 
-  "PRIMARY_PROBLEM_TITLE": "",
-  "PRIMARY_PROBLEM_TEXT": "",
+  "WHY_IT_WORKS": "Clear explanation of how the product is designed to work, in simple terms",
 
-  "WHY_DIFFERENT_TITLE": "",
-  "WHY_DIFFERENT_1": "",
-  "WHY_DIFFERENT_2": "",
-  "WHY_DIFFERENT_3": "",
+  "FORMULA_TEXT": "Explanation of the product formula or key components, without medical claims",
 
-  "MECHANISM_TITLE": "",
-  "MECHANISM_STEP_1": "",
-  "MECHANISM_STEP_2": "",
-  "MECHANISM_STEP_3": "",
+  "BENEFITS_LIST": "<div class='col'><div class='card card-universal h-100 text-center p-3'><div class='card-icon'>✅</div><h5 class='card-title'>Benefit title</h5><p class='card-text'>Short neutral explanation</p></div></div>",
 
-  "FORMULA_TEXT": "",
+  "SOCIAL_PROOF": "Neutral mention that some users report positive experiences, without guarantees",
 
-  "WHO_SHOULD_USE_TITLE": "",
-  "WHO_SHOULD_1": "",
-  "WHO_SHOULD_2": "",
-  "WHO_SHOULD_3": "",
-
-  "WHO_SHOULD_NOT_TITLE": "",
-  "WHO_NOT_1": "",
-  "WHO_NOT_2": "",
-  "WHO_NOT_3": "",
-
-  "SCAM_ALERT_TITLE": "",
-  "SCAM_ALERT_TEXT": "",
-
-  "TESTIMONIAL_TITLE": "",
-  "TESTIMONIAL_NOTICE_TEXT": "",
-  "TESTIMONIAL_CTA_TEXT": "",
-
-  "GUARANTEE_TITLE": "",
-  "GUARANTEE_TEXT": "",
-
-  "DISCLAIMER_TEXT": "",
-  "FOOTER_DISCLAIMER": "",
-
-  "CTA_BUTTON_TEXT": ""
+  "GUARANTEE": "Explain that the product may offer a satisfaction or refund policy according to the official website"
 }
 
-Do not include HTML.
-Do not include explanations outside JSON.
+IMPORTANT:
+- BENEFITS_LIST must contain HTML-ready card blocks (3 to 6 benefits)
+- Keep everything compliant and conservative
 `;
