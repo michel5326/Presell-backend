@@ -18,33 +18,45 @@
 
   <style>
     :root {
+      /* Cores Premium */
       --primary-color: #00e676;
       --secondary-color: #00b0ff;
+      --accent-glow: rgba(0, 230, 118, 0.2);
+      
+      /* Fundo com Gradiente (Deep Space) */
       --bg-body: #02040a;
-      --bg-card: #0f1525;
-      --text-main: #ffffff;
-      --text-sec: #94a3b8; /* Cinza Claro para textos */
-      --border: rgba(255, 255, 255, 0.08);
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      --radius: 12px;
+      --bg-gradient: radial-gradient(circle at 50% 0%, #1a233e 0%, #02040a 60%);
+      
+      /* Vidro (Glassmorphism) */
+      --glass-bg: rgba(15, 21, 37, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      
+      /* Texto */
+      --text-main: #f8fafc;
+      --text-sec: #94a3b8;
+      --text-muted-dark: #64748b;
+      
+      --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      --radius: 16px;
     }
 
     body {
-      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-body);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
       color: var(--text-main);
-      line-height: 1.6;
+      line-height: 1.7;
+      min-height: 100vh;
     }
 
-    /* --- CORREÇÃO DEFINITIVA DE VISIBILIDADE --- */
+    /* --- CORREÇÃO DE VISIBILIDADE (Preservada) --- */
     
-    /* 1. Força TODOS os textos dentro do MAIN a serem cinza claro (visível) */
     main, main p, main span, main div, main .lead, main .small, 
     main .text-muted, main .blockquote-footer, main ul, main li, main .card-body {
         color: var(--text-sec) !important;
     }
 
-    /* 2. Força TÍTULOS e NEGRITO a ficarem BRANCOS */
     main h1, main h2, main h3, main h4, main h5, main h6, 
     main .h1, main .h2, main .h3, main .h4, main .h5, main .h6,
     main strong, main b, 
@@ -54,134 +66,170 @@
         font-weight: 700;
     }
 
-    /* 3. CORREÇÃO DOS BOTÕES: Força o texto do botão a ficar PRETO */
     .btn-universal, .btn-universal:hover, .btn-universal:visited {
         color: #000000 !important;
         text-decoration: none !important;
     }
 
-    /* 4. Links de texto (apenas dentro de parágrafos ou textos de cards) */
     main p a, main .card-body a, main .card-text a {
         color: var(--primary-color) !important;
         text-decoration: underline;
     }
 
-    /* 5. Restaura cores de ÍCONES e Classes Utilitárias */
     main .text-success, main i.fas.fa-leaf, main i.fas.fa-check-circle {
         color: var(--primary-color) !important;
     }
-    main .text-primary {
-        color: var(--primary-color) !important;
-    }
-    main .text-warning {
-        color: #ffc107 !important;
-    }
-    main .testimonial-stars {
-        color: #f1c40f !important;
-    }
+    main .text-primary { color: var(--primary-color) !important; }
+    main .text-warning { color: #ffc107 !important; }
+    main .testimonial-stars { color: #fbbf24 !important; }
 
-    /* Footer fix */
-    .footer-universal, .footer-universal p, .footer-universal small {
-      color: var(--text-sec) !important;
-    }
-    .footer-universal a {
-      color: var(--primary-color) !important;
-    }
+    .footer-universal, .footer-universal p, .footer-universal small { color: var(--text-sec) !important; }
+    .footer-universal a { color: var(--primary-color) !important; }
 
-    /* --- COMPONENT STYLES --- */
+    /* --- DESIGN UPGRADES (PREMIUM) --- */
 
+    /* Navbar */
     .navbar-universal {
-      background: rgba(2, 4, 10, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
+      background: rgba(2, 4, 10, 0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--glass-border);
     }
 
     .navbar-brand {
       font-weight: 800;
+      letter-spacing: -0.5px;
       color: var(--text-main) !important;
+      text-transform: uppercase;
+      font-size: 1.2rem;
     }
 
+    /* Botões Modernos */
     .btn-universal {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      font-weight: 800;
-      padding: 12px 30px;
-      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary-color), #00c853);
+      color: #000;
+      font-weight: 700;
+      padding: 12px 32px;
+      border-radius: 50px; /* Mais arredondado */
       border: none;
       text-transform: uppercase;
       letter-spacing: 1px;
-      box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
-      transition: .3s;
+      font-size: 0.85rem;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .btn-universal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #fff, var(--secondary-color));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
     }
 
     .btn-universal:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 25px rgba(0, 230, 118, 0.6);
-      /* Cor já tratada no item 3 acima */
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 230, 118, 0.5);
+    }
+    .btn-universal:hover::before {
+      opacity: 1;
     }
 
+    /* Cabeçalhos de Seção */
     .section-header {
       text-align: center;
-      margin-bottom: 2rem;
+      font-weight: 800;
+      margin-bottom: 3rem;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      font-size: 0.9rem;
       position: relative;
+      display: inline-block;
+      width: 100%;
     }
 
     .section-header::after {
       content: '';
-      width: 80px;
-      height: 3px;
-      background: var(--primary-color);
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
       position: absolute;
-      bottom: -10px;
+      bottom: -12px;
       left: 50%;
       transform: translateX(-50%);
+      border-radius: 2px;
+      box-shadow: 0 0 10px var(--primary-color);
     }
 
+    /* Cards com Glassmorphism */
     .card-universal {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       height: 100%;
-      transition: .3s;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .card-universal:hover {
-      transform: translateY(-4px);
-      border-color: rgba(0, 230, 118, 0.4);
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 230, 118, 0.1);
     }
 
+    /* Ícones com Glow */
     .card-icon {
       font-size: 2.5rem;
-      color: var(--primary-color);
-      margin-bottom: 1rem;
+      background: -webkit-linear-gradient(var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 0 8px rgba(0, 230, 118, 0.3));
     }
 
-    .product-img {
-      max-height: 450px;
+    /* Imagem do Produto com brilho */
+    .product-img-container img {
       border-radius: var(--radius);
-      box-shadow: 0 20px 50px rgba(0,0,0,.6);
-      border: 1px solid var(--border);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0, 176, 255, 0.15);
+      border: 1px solid var(--glass-border);
+      transition: transform 0.5s ease;
+    }
+    .product-img-container img:hover {
+      transform: scale(1.02);
     }
 
-    .hide-if-empty:empty,
-    .hide-if-empty > :empty:not(h2):not(.section-header) {
-      display: none !important;
-    }
-
-    .auto-hide-section:not(:has(*:not(:empty))) {
-      display: none !important;
-    }
-
+    /* Caixa de Destaque (Intro) */
     .bg-dark {
-      background-color: #0f1525 !important;
-      border-color: var(--border) !important;
+      background: rgba(0,0,0,0.3) !important;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+    }
+
+    /* Footer Moderno */
+    .footer-universal {
+      background: rgba(2, 4, 10, 0.95);
+      border-top: 1px solid var(--glass-border);
+      margin-top: 6rem;
+      padding: 4rem 0;
+      position: relative;
     }
     
+    /* Classes utilitárias */
+    .hide-if-empty:empty, .hide-if-empty > :empty:not(h2):not(.section-header) { display: none !important; }
+    .auto-hide-section:not(:has(*:not(:empty))) { display: none !important; }
+
     @media (max-width: 768px) {
-      .btn-universal { width: 100%; }
+      .btn-universal { width: 100%; padding: 14px; }
       .display-4 { font-size: 2rem; }
+      .section-header { font-size: 0.8rem; margin-bottom: 2rem; }
     }
   </style>
 </head>
@@ -191,7 +239,7 @@
 <nav class="navbar navbar-expand-lg navbar-universal sticky-top">
   <div class="container">
     <a class="navbar-brand" href="#">
-      <i class="fas fa-layer-group me-2"></i>REVIEW GUIDE
+      <i class="fas fa-layer-group me-2" style="color: var(--primary-color);"></i>REVIEW GUIDE
     </a>
     <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">
       VISIT OFFICIAL SITE
@@ -201,75 +249,92 @@
 
 <main class="container my-5">
 
-<section class="row align-items-center gy-5 mb-5 auto-hide-section">
-  <div class="col-lg-6">
-    <h1 class="display-4 fw-bold mb-3">{{HEADLINE}}</h1>
-    <p class="lead mb-4">{{SUBHEADLINE}}</p>
+<!-- Hero Section -->
+<section class="row align-items-center gy-5 mb-5 auto-hide-section" style="min-height: 80vh;">
+  <div class="col-lg-6 order-lg-1 order-2">
+    <span class="badge rounded-pill text-bg-success mb-3 px-3 py-2" style="background: rgba(0, 230, 118, 0.15) !important; color: var(--primary-color) !important; border: 1px solid rgba(0, 230, 118, 0.3); font-weight: 600;">
+      <i class="fas fa-bolt me-2"></i>TOP RATED 2024
+    </span>
+    <h1 class="display-3 fw-bold mb-4 lh-sm" style="background: -webkit-linear-gradient(#fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+      {{HEADLINE}}
+    </h1>
+    <p class="lead mb-4" style="font-size: 1.2rem;">{{SUBHEADLINE}}</p>
 
-    <div class="bg-dark p-4 rounded mb-4 border border-secondary">
+    <div class="bg-dark p-4 rounded mb-5">
       <p class="mb-0">{{INTRO}}</p>
     </div>
 
-    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
-      GET IT NOW <i class="fas fa-chevron-right ms-2"></i>
+    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg shadow-lg">
+      GET IT NOW <i class="fas fa-arrow-right ms-2"></i>
     </a>
   </div>
 
-  <div class="col-lg-6 text-center product-img-container">
+  <div class="col-lg-6 text-center product-img-container order-lg-2 order-1">
     {{#PRODUCT_IMAGE}}
     <img src="{{PRODUCT_IMAGE}}" class="product-img img-fluid" alt="Product Image">
     {{/PRODUCT_IMAGE}}
   </div>
 </section>
 
-<section class="mb-5 auto-hide-section">
+<!-- How It Works -->
+<section class="mb-5 pb-5 auto-hide-section">
   <h2 class="section-header">How It Works</h2>
-  <div class="card card-universal p-4">
-    <p class="fs-5 mb-0 text-center">{{WHY_IT_WORKS}}</p>
+  <div class="card card-universal p-5 text-center border-0" style="background: rgba(0, 230, 118, 0.05);">
+    <p class="fs-5 mb-0">{{WHY_IT_WORKS}}</p>
     <div class="text-center mt-4">
       <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">LEARN MORE</a>
     </div>
   </div>
 </section>
 
-<section class="mb-5 auto-hide-section">
+<!-- Components -->
+<section class="mb-5 py-4 auto-hide-section">
   <h2 class="section-header">Key Components</h2>
   <div class="row g-4 hide-if-empty">
     {{FORMULA_COMPONENTS}}
   </div>
 </section>
 
-<section class="mb-5 auto-hide-section">
+<!-- Benefits -->
+<section class="mb-5 py-4 auto-hide-section">
   <h2 class="section-header">Key Benefits</h2>
   <div class="row g-4 hide-if-empty">
     {{BENEFITS_CARDS}}
   </div>
 </section>
 
-<section class="mb-5 auto-hide-section">
+<!-- Testimonials -->
+<section class="mb-5 py-4 auto-hide-section">
   <h2 class="section-header">What Users Say</h2>
   <div class="row g-4 hide-if-empty">
     {{TESTIMONIAL_CARDS}}
   </div>
-  <p class="text-center mt-4 hide-if-empty">{{SOCIAL_PROOF}}</p>
+  <p class="text-center mt-5 hide-if-empty small text-muted text-uppercase tracking-wide">{{SOCIAL_PROOF}}</p>
 </section>
 
-<section class="mb-5 auto-hide-section">
+<!-- Guarantee -->
+<section class="mb-5 py-5 auto-hide-section">
   <h2 class="section-header">Our Guarantee</h2>
-  <div class="card card-universal p-5 text-center">
+  <div class="card card-universal p-5 text-center border-0" style="border-top: 4px solid var(--secondary-color) !important;">
+    <div class="mb-3">
+      <i class="fas fa-shield-alt fa-3x" style="color: var(--secondary-color); opacity: 0.8;"></i>
+    </div>
     <p class="fs-5 mb-4">{{GUARANTEE}}</p>
-    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
+    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg shadow-lg">
       TRY RISK-FREE
     </a>
   </div>
 </section>
 
-<section class="py-5 text-center auto-hide-section">
-  <h2 class="mb-3 fw-bold">Ready to Make a Change?</h2>
-  <p class="lead mb-4">Join thousands who have already experienced the benefits.</p>
-  <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg px-5">
-    GET STARTED NOW
-  </a>
+<!-- Final CTA -->
+<section class="py-5 text-center auto-hide-section mb-5">
+  <div class="card card-universal p-5 border-0" style="background: linear-gradient(180deg, rgba(15,21,37,0.8), rgba(0,230,118,0.1)); border: 1px solid var(--primary-color) !important;">
+    <h2 class="mb-4 fw-bold">Ready to Make a Change?</h2>
+    <p class="lead mb-5">Join thousands who have already experienced the benefits.</p>
+    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg px-5 shadow-lg">
+      GET STARTED NOW
+    </a>
+  </div>
 </section>
 
 </main>
@@ -277,11 +342,12 @@
 <footer class="footer-universal">
   <div class="container">
     <div class="row">
-      <div class="col-md-6">
-        <p class="mb-0">&copy; {{CURRENT_YEAR}} Review Guide</p>
+      <div class="col-md-6 text-center text-md-start">
+        <p class="mb-2 fw-bold">&copy; {{CURRENT_YEAR}} Review Guide</p>
+        <p class="small opacity-50 mb-0">Designed for performance.</p>
       </div>
-      <div class="col-md-6 text-md-end">
-        <p class="mb-0 small">Disclaimer: This is an independent review.</p>
+      <div class="col-md-6 text-center text-md-end">
+        <p class="mb-0 small opacity-75">Disclaimer: This is an independent review.</p>
       </div>
     </div>
   </div>
