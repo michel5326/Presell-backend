@@ -4,15 +4,14 @@ const robustaEngine = require('../engines/robusta');
 async function generatePresellData(req, res) {
   try {
     const {
-  type,
-  productUrl,
-  affiliateUrl,
-  attempt = 0,
-  theme,
-  trackingScript, // ✅ PASS-THROUGH DO FRONT
-  productImageUrl, // ✅ NOVO (opcional)
-} = req.body;
-
+      type,
+      productUrl,
+      affiliateUrl,
+      attempt = 0,
+      theme,
+      trackingScript,   // pass-through
+      productImageUrl,  // ✅ imagem manual opcional
+    } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
       return res.status(400).json({
@@ -28,7 +27,8 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
-        trackingScript, // ✅ REPASSADO
+        trackingScript,
+        productImageUrl, // ✅ REPASSADO
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
@@ -36,7 +36,8 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
-        trackingScript, // ✅ REPASSADO
+        trackingScript,
+        productImageUrl, // ✅ MANTÉM CONTRATO IGUAL
       });
     } else {
       return res.status(400).json({
@@ -44,11 +45,11 @@ async function generatePresellData(req, res) {
       });
     }
 
-    // 🔥 DEBUG CRÍTICO (ESTILO FRANK)
+    // 🔍 DEBUG LIMPO E ÚTIL
     console.log('================ PRESSELL DEBUG ================');
     console.log('[TYPE]', type);
-    console.log('[COPY FROM AI]', result?.copy);
-    console.log('[IMAGE]', result?.image ? 'OK' : 'EMPTY');
+    console.log('[IMAGE SOURCE]', productImageUrl ? 'FRONT' : 'AUTO');
+    console.log('[IMAGE FINAL]', result?.image || 'EMPTY');
     console.log('[HTML LENGTH]', result?.html?.length || 0);
     console.log('[TRACKING_SCRIPT]', trackingScript ? 'PRESENT' : 'EMPTY');
     console.log('================================================');
