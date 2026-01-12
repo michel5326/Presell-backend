@@ -23,7 +23,7 @@
       --bg-body: #02040a;
       --bg-card: #0f1525;
       --text-main: #ffffff;
-      --text-sec: #94a3b8;
+      --text-sec: #94a3b8; /* Cinza Claro para textos */
       --border: rgba(255, 255, 255, 0.08);
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
       --radius: 12px;
@@ -36,41 +36,56 @@
       line-height: 1.6;
     }
 
-    /* --- VISIBILITY FIXES --- */
+    /* --- CORREÇÃO DEFINITIVA DE VISIBILIDADE --- */
     
-    /* Títulos e Subtítulos Brancos */
-    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
-      color: var(--text-main) !important;
+    /* 1. Força TODOS os textos dentro do MAIN a serem cinza claro (visível) */
+    main, main p, main span, main div, main .lead, main .small, 
+    main .text-muted, main .blockquote-footer, main ul, main li, main .card-body {
+        color: var(--text-sec) !important;
     }
 
-    /* Textos dos Cards (Citações, Descrições) em cinza visível */
-    .card-text, .card .text-muted, .card .blockquote-footer {
-      color: var(--text-sec) !important; 
-      opacity: 1 !important;
+    /* 2. Força TÍTULOS e NEGRITO a ficarem BRANCOS */
+    main h1, main h2, main h3, main h4, main h5, main h6, 
+    main .h1, main .h2, main .h3, main .h4, main .h5, main .h6,
+    main strong, main b, 
+    main .card-title, main .card-subtitle, 
+    main .section-header {
+        color: var(--text-main) !important;
+        font-weight: 700;
     }
 
-    /* CORREÇÃO FINAL: Forçar nomes (tag <strong>) dentro dos cards a ficarem BRANCOS */
-    .card strong, .card b, .card-universal strong, .card-universal b {
-      color: var(--text-main) !important;
-      font-weight: 700;
+    /* 3. CORREÇÃO DOS BOTÕES: Força o texto do botão a ficar PRETO */
+    .btn-universal, .btn-universal:hover, .btn-universal:visited {
+        color: #000000 !important;
+        text-decoration: none !important;
     }
 
-    .card-title, .card-subtitle {
-      color: var(--text-main) !important;
+    /* 4. Links de texto (apenas dentro de parágrafos ou textos de cards) */
+    main p a, main .card-body a, main .card-text a {
+        color: var(--primary-color) !important;
+        text-decoration: underline;
     }
 
-    .section-header {
-      color: var(--text-main) !important;
+    /* 5. Restaura cores de ÍCONES e Classes Utilitárias */
+    main .text-success, main i.fas.fa-leaf, main i.fas.fa-check-circle {
+        color: var(--primary-color) !important;
+    }
+    main .text-primary {
+        color: var(--primary-color) !important;
+    }
+    main .text-warning {
+        color: #ffc107 !important;
+    }
+    main .testimonial-stars {
+        color: #f1c40f !important;
     }
 
-    /* Links */
-    a {
-      color: var(--primary-color);
-      text-decoration: none;
+    /* Footer fix */
+    .footer-universal, .footer-universal p, .footer-universal small {
+      color: var(--text-sec) !important;
     }
-    a:hover {
-      color: var(--secondary-color);
-      text-decoration: underline;
+    .footer-universal a {
+      color: var(--primary-color) !important;
     }
 
     /* --- COMPONENT STYLES --- */
@@ -88,7 +103,6 @@
 
     .btn-universal {
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: #000;
       font-weight: 800;
       padding: 12px 30px;
       border-radius: var(--radius);
@@ -102,12 +116,11 @@
     .btn-universal:hover {
       transform: translateY(-2px);
       box-shadow: 0 0 25px rgba(0, 230, 118, 0.6);
-      color: #000;
+      /* Cor já tratada no item 3 acima */
     }
 
     .section-header {
       text-align: center;
-      font-weight: 700;
       margin-bottom: 2rem;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -150,19 +163,6 @@
       border-radius: var(--radius);
       box-shadow: 0 20px 50px rgba(0,0,0,.6);
       border: 1px solid var(--border);
-    }
-
-    .testimonial-stars {
-      color: #f1c40f;
-      margin-bottom: .5rem;
-    }
-
-    .footer-universal {
-      background: var(--bg-card);
-      border-top: 1px solid var(--border);
-      color: var(--text-sec);
-      margin-top: 5rem;
-      padding: 3rem 0;
     }
 
     .hide-if-empty:empty,
@@ -251,7 +251,7 @@
   <div class="row g-4 hide-if-empty">
     {{TESTIMONIAL_CARDS}}
   </div>
-  <p class="text-center mt-4 text-muted hide-if-empty">{{SOCIAL_PROOF}}</p>
+  <p class="text-center mt-4 hide-if-empty">{{SOCIAL_PROOF}}</p>
 </section>
 
 <section class="mb-5 auto-hide-section">
@@ -281,7 +281,7 @@
         <p class="mb-0">&copy; {{CURRENT_YEAR}} Review Guide</p>
       </div>
       <div class="col-md-6 text-md-end">
-        <p class="mb-0 small opacity-75">Disclaimer: This is an independent review.</p>
+        <p class="mb-0 small">Disclaimer: This is an independent review.</p>
       </div>
     </div>
   </div>
