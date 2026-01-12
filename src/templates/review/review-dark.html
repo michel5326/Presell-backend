@@ -16,8 +16,6 @@
  {{TRACKING_SCRIPT}}
  {{/TRACKING_SCRIPT}}
 
-
-
   <style>
     :root {
       --primary-color: #00e676;
@@ -38,9 +36,44 @@
       line-height: 1.6;
     }
 
-    p, .lead {
+    /* --- CORREÇÃO DE VISIBILIDADE (INÍCIO) --- */
+    
+    /* Forçar todos os títulos e subtítulos a serem brancos */
+    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+      color: var(--text-main) !important;
+    }
+
+    /* Garantir que títulos de cards (injetados pelo template) fiquem brancos */
+    .card-title, .card-subtitle {
+      color: var(--text-main) !important;
+    }
+
+    /* Garantir que o texto padrão dos cards não seja escuro */
+    .card-text {
+      color: #e2e8f0 !important;
+    }
+
+    /* Correção específica para o cabeçalho de seção */
+    .section-header {
+      color: var(--text-main) !important;
+    }
+
+    /* Parágrafos e textos secundários */
+    p, .lead, span, div {
       color: var(--text-sec);
     }
+
+    /* Links dentro de textos precisam de cor visível */
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    a:hover {
+      color: var(--secondary-color);
+      text-decoration: underline;
+    }
+
+    /* --- FIM DA CORREÇÃO DE VISIBILIDADE --- */
 
     .navbar-universal {
       background: rgba(2, 4, 10, 0.85);
@@ -50,7 +83,7 @@
 
     .navbar-brand {
       font-weight: 800;
-      color: var(--text-main);
+      color: var(--text-main) !important;
     }
 
     .btn-universal {
@@ -141,22 +174,21 @@
       display: none !important;
     }
 
-   
+    /* Overrides para garantir contraste em componentes do Bootstrap */
+    .bg-dark {
+      background-color: #0f1525 !important;
+      border-color: var(--border) !important;
+    }
+    
+    .text-muted {
+      color: var(--text-sec) !important;
+    }
 
-  @media (max-width: 768px) {
-    .btn-universal { width: 100%; }
-    .display-4 { font-size: 2rem; }
-  }
-
-  /* ===== DARK MODE FIX FOR BOOTSTRAP TEXT ===== */
-  .text-muted,
-  .text-secondary,
-  .small.text-muted,
-  p.text-muted,
-  .fst-italic.text-muted {
-    color: var(--text-sec) !important;
-  }
-</style>
+    @media (max-width: 768px) {
+      .btn-universal { width: 100%; }
+      .display-4 { font-size: 2rem; }
+    }
+  </style>
 </head>
 
 <body>
