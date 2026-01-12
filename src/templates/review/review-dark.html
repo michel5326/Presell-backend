@@ -12,7 +12,10 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+ {{#TRACKING_SCRIPT}}
  {{TRACKING_SCRIPT}}
+ {{/TRACKING_SCRIPT}}
+
 
 
   <style>
@@ -138,11 +141,22 @@
       display: none !important;
     }
 
-    @media (max-width: 768px) {
-      .btn-universal { width: 100%; }
-      .display-4 { font-size: 2rem; }
-    }
-  </style>
+   
+
+  @media (max-width: 768px) {
+    .btn-universal { width: 100%; }
+    .display-4 { font-size: 2rem; }
+  }
+
+  /* ===== DARK MODE FIX FOR BOOTSTRAP TEXT ===== */
+  .text-muted,
+  .text-secondary,
+  .small.text-muted,
+  p.text-muted,
+  .fst-italic.text-muted {
+    color: var(--text-sec) !important;
+  }
+</style>
 </head>
 
 <body>
