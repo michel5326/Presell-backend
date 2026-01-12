@@ -36,34 +36,41 @@
       line-height: 1.6;
     }
 
-    /* --- CORREÇÃO DE VISIBILIDADE (INÍCIO) --- */
+    /* --- VISIBILITY FIXES --- */
     
-    /* Forçar todos os títulos e subtítulos a serem brancos */
     h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
       color: var(--text-main) !important;
     }
 
-    /* Garantir que títulos de cards (injetados pelo template) fiquem brancos */
     .card-title, .card-subtitle {
       color: var(--text-main) !important;
     }
 
-    /* Garantir que o texto padrão dos cards não seja escuro */
     .card-text {
-      color: #e2e8f0 !important;
+      color: #e2e8f0 !important; /* Texto dos depoimentos um pouco mais claro */
     }
 
-    /* Correção específica para o cabeçalho de seção */
+    /* CORREÇÃO ESPECÍFICA PARA NOMES DE DEPOENTES */
+    /* O Bootstrap usa .text-muted ou blockquote-footer para nomes */
+    .card .text-muted, 
+    .card .blockquote-footer,
+    .card footer,
+    .card .author,
+    .card .client-name,
+    .card small {
+      color: var(--text-main) !important;
+      opacity: 1 !important;
+      font-weight: 600;
+    }
+
     .section-header {
       color: var(--text-main) !important;
     }
 
-    /* Parágrafos e textos secundários */
     p, .lead, span, div {
       color: var(--text-sec);
     }
 
-    /* Links dentro de textos precisam de cor visível */
     a {
       color: var(--primary-color);
       text-decoration: none;
@@ -73,7 +80,7 @@
       text-decoration: underline;
     }
 
-    /* --- FIM DA CORREÇÃO DE VISIBILIDADE --- */
+    /* --- COMPONENT STYLES --- */
 
     .navbar-universal {
       background: rgba(2, 4, 10, 0.85);
@@ -174,16 +181,11 @@
       display: none !important;
     }
 
-    /* Overrides para garantir contraste em componentes do Bootstrap */
     .bg-dark {
       background-color: #0f1525 !important;
       border-color: var(--border) !important;
     }
     
-    .text-muted {
-      color: var(--text-sec) !important;
-    }
-
     @media (max-width: 768px) {
       .btn-universal { width: 100%; }
       .display-4 { font-size: 2rem; }
