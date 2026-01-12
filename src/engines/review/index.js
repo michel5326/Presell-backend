@@ -26,7 +26,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-/* ---------- BUILDERS (SEM LÓGICA) ---------- */
+/* ---------- BUILDERS (SEM LÓGICA / SEM PARSING) ---------- */
 
 function renderFormulaComponents(list) {
   if (!Array.isArray(list) || !list.length) return null;
@@ -92,7 +92,7 @@ async function generate({
   affiliateUrl,
   attempt,
   theme,
-  trackingScript, // 👈 novo campo (opcional)
+  trackingScript, // 👈 VEM DO FRONT
 }) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
@@ -127,7 +127,7 @@ async function generate({
     PRODUCT_IMAGE: image,
     CURRENT_YEAR: String(now.getFullYear()),
 
-    // 🔹 TRACKING — PASS THROUGH
+    // 🔒 TRACKER (GLOBAL / OPCIONAL)
     TRACKING_SCRIPT: safe(trackingScript),
   };
 
