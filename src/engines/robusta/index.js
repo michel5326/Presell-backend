@@ -21,8 +21,10 @@ async function generate({
   affiliateUrl,
   attempt,
   theme,
-  trackingScript, // ✅ RECEBE DO FRONT
+  trackingScript,
+  productImageUrl, // ✅ NOVO (opcional)
 }) {
+
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
   /* 1) IA — ROBUSTA */
@@ -34,7 +36,10 @@ async function generate({
   const copy = normalizeCopyKeys(rawCopy);
 
   /* 2) IMAGEM */
-  const image = await resolveProductImage(productUrl, attempt);
+  const image =
+  safe(productImageUrl) ||
+  await resolveProductImage(productUrl, attempt);
+
   const now = new Date();
 
   /* 3) VIEW — CONTRATO FIRME */

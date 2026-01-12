@@ -4,13 +4,15 @@ const robustaEngine = require('../engines/robusta');
 async function generatePresellData(req, res) {
   try {
     const {
-      type,
-      productUrl,
-      affiliateUrl,
-      attempt = 0,
-      theme,
-      trackingScript, // ✅ PASS-THROUGH DO FRONT
-    } = req.body;
+  type,
+  productUrl,
+  affiliateUrl,
+  attempt = 0,
+  theme,
+  trackingScript, // ✅ PASS-THROUGH DO FRONT
+  productImageUrl, // ✅ NOVO (opcional)
+} = req.body;
+
 
     if (!type || !productUrl || !affiliateUrl) {
       return res.status(400).json({

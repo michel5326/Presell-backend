@@ -92,8 +92,10 @@ async function generate({
   affiliateUrl,
   attempt,
   theme,
-  trackingScript, // 👈 VEM DO FRONT
+  trackingScript,
+  productImageUrl, // ✅ NOVO (opcional)
 }) {
+
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
   const rawCopy = await aiService.generateCopy({
@@ -102,7 +104,9 @@ async function generate({
   });
 
   const copy = normalizeCopyKeys(rawCopy);
-  const image = await resolveProductImage(productUrl, attempt);
+  const image =
+  safe(productImageUrl) ||
+  await resolveProductImage(productUrl, attempt);
   const now = new Date();
 
   const view = {
