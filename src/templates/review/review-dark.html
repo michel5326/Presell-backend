@@ -38,39 +38,32 @@
 
     /* --- VISIBILITY FIXES --- */
     
+    /* Títulos e Subtítulos Brancos */
     h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
       color: var(--text-main) !important;
+    }
+
+    /* Textos dos Cards (Citações, Descrições) em cinza visível */
+    .card-text, .card .text-muted, .card .blockquote-footer {
+      color: var(--text-sec) !important; 
+      opacity: 1 !important;
+    }
+
+    /* CORREÇÃO FINAL: Forçar nomes (tag <strong>) dentro dos cards a ficarem BRANCOS */
+    .card strong, .card b, .card-universal strong, .card-universal b {
+      color: var(--text-main) !important;
+      font-weight: 700;
     }
 
     .card-title, .card-subtitle {
       color: var(--text-main) !important;
     }
 
-    .card-text {
-      color: #e2e8f0 !important; /* Texto dos depoimentos um pouco mais claro */
-    }
-
-    /* CORREÇÃO ESPECÍFICA PARA NOMES DE DEPOENTES */
-    /* O Bootstrap usa .text-muted ou blockquote-footer para nomes */
-    .card .text-muted, 
-    .card .blockquote-footer,
-    .card footer,
-    .card .author,
-    .card .client-name,
-    .card small {
-      color: var(--text-main) !important;
-      opacity: 1 !important;
-      font-weight: 600;
-    }
-
     .section-header {
       color: var(--text-main) !important;
     }
 
-    p, .lead, span, div {
-      color: var(--text-sec);
-    }
-
+    /* Links */
     a {
       color: var(--primary-color);
       text-decoration: none;
