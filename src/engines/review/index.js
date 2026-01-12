@@ -87,7 +87,13 @@ function renderTestimonials(list) {
 
 /* ---------- MAIN ---------- */
 
-async function generate({ productUrl, affiliateUrl, attempt, theme }) {
+async function generate({
+  productUrl,
+  affiliateUrl,
+  attempt,
+  theme,
+  trackingScript, // 👈 novo campo (opcional)
+}) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
   const rawCopy = await aiService.generateCopy({
@@ -120,6 +126,9 @@ async function generate({ productUrl, affiliateUrl, attempt, theme }) {
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
     CURRENT_YEAR: String(now.getFullYear()),
+
+    // 🔹 TRACKING — PASS THROUGH
+    TRACKING_SCRIPT: safe(trackingScript),
   };
 
   const templatePath =
