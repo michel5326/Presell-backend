@@ -9,6 +9,7 @@ async function generatePresellData(req, res) {
       affiliateUrl,
       attempt = 0,
       theme,
+      trackingScript, // ✅ PASS-THROUGH DO FRONT
     } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
@@ -25,6 +26,7 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
+        trackingScript, // ✅ REPASSADO
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
@@ -32,6 +34,7 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
+        trackingScript, // ✅ REPASSADO
       });
     } else {
       return res.status(400).json({
@@ -45,6 +48,7 @@ async function generatePresellData(req, res) {
     console.log('[COPY FROM AI]', result?.copy);
     console.log('[IMAGE]', result?.image ? 'OK' : 'EMPTY');
     console.log('[HTML LENGTH]', result?.html?.length || 0);
+    console.log('[TRACKING_SCRIPT]', trackingScript ? 'PRESENT' : 'EMPTY');
     console.log('================================================');
 
     return res.json(result);
