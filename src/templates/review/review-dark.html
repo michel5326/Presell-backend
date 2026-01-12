@@ -23,7 +23,7 @@
       --secondary-color: #00b0ff;
       --accent-glow: rgba(0, 230, 118, 0.2);
       
-      /* Fundo com Gradiente (Deep Space) */
+      /* Fundo com Gradiente */
       --bg-body: #02040a;
       --bg-gradient: radial-gradient(circle at 50% 0%, #1a233e 0%, #02040a 60%);
       
@@ -34,7 +34,6 @@
       /* Texto */
       --text-main: #f8fafc;
       --text-sec: #94a3b8;
-      --text-muted-dark: #64748b;
       
       --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
       --radius: 16px;
@@ -47,10 +46,9 @@
       background-attachment: fixed;
       color: var(--text-main);
       line-height: 1.7;
-      min-height: 100vh;
     }
 
-    /* --- CORREÇÃO DE VISIBILIDADE (Preservada) --- */
+    /* --- CORREÇÃO DE VISIBILIDADE --- */
     
     main, main p, main span, main div, main .lead, main .small, 
     main .text-muted, main .blockquote-footer, main ul, main li, main .card-body {
@@ -88,7 +86,6 @@
 
     /* --- DESIGN UPGRADES (PREMIUM) --- */
 
-    /* Navbar */
     .navbar-universal {
       background: rgba(2, 4, 10, 0.8);
       backdrop-filter: blur(16px);
@@ -109,7 +106,7 @@
       color: #000;
       font-weight: 700;
       padding: 12px 32px;
-      border-radius: 50px; /* Mais arredondado */
+      border-radius: 50px;
       border: none;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -253,7 +250,7 @@
 <section class="row align-items-center gy-5 mb-5 auto-hide-section" style="min-height: 80vh;">
   <div class="col-lg-6 order-lg-1 order-2">
     <span class="badge rounded-pill text-bg-success mb-3 px-3 py-2" style="background: rgba(0, 230, 118, 0.15) !important; color: var(--primary-color) !important; border: 1px solid rgba(0, 230, 118, 0.3); font-weight: 600;">
-      <i class="fas fa-bolt me-2"></i>TOP RATED 2024
+      <i class="fas fa-bolt me-2"></i>TOP RATED
     </span>
     <h1 class="display-3 fw-bold mb-4 lh-sm" style="background: -webkit-linear-gradient(#fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
       {{HEADLINE}}
