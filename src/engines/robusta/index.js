@@ -36,9 +36,12 @@ async function generate({
   const copy = normalizeCopyKeys(rawCopy);
 
   /* 2) IMAGEM */
-  const image =
-  safe(productImageUrl) ||
-  await resolveProductImage(productUrl, attempt);
+  const image = await resolveProductImage(
+  productUrl,
+  attempt,
+  safe(productImageUrl)
+);
+
 
   const now = new Date();
 
