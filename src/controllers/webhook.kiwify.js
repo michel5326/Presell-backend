@@ -4,34 +4,48 @@ async function kiwifyWebhook(req, res) {
   try {
     const body = req.body;
 
-    /* =========================
-       1. VALIDAR EVENTO
-    ========================= */
     const eventType = body?.order?.webhook_event_type;
+    const email = body?.order?.Customer?.email;
+
+    if (!eventType || !email) {
+      return res.status(400).json({ error: "invalid_payload" });
+    }
+
+    /* =========================
+       REEMBOLSO
+    ========================= */
+    if (eventType === "order_refunded") {
+      await supabaseAdmin
+        .from("user_access")
+        .update({
+          access_until: new Date().toISOString(),
+        })
+        .eq("email", email);
+
+      console.log("ACCESS REVOKED (REFUND):", email);
+
+      return res.status(200).json({ ok: true, refunded: true });
+    }
+
+    /* =========================
+       EVENTO NÃO SUPORTADO
+    ========================= */
     if (eventType !== "order_approved") {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
     /* =========================
-       2. PEGAR EMAIL
-    ========================= */
-    const email = body?.order?.Customer?.email;
-    if (!email) {
-      return res.status(400).json({ error: "email_missing" });
-    }
-
-    /* =========================
-       3. CRIAR OU REAPROVEITAR USUÁRIO
+       CRIAR / REAPROVEITAR USUÁRIO
     ========================= */
     await supabaseAdmin.auth.admin
       .createUser({
         email,
         email_confirm: true,
       })
-      .catch(() => {}); // idempotente
+      .catch(() => {});
 
     /* =========================
-       4. DEFINIR ACESSO (6 MESES)
+       ACESSO DE 6 MESES
     ========================= */
     const accessUntil = new Date();
     accessUntil.setMonth(accessUntil.getMonth() + 6);
@@ -47,7 +61,7 @@ async function kiwifyWebhook(req, res) {
       );
 
     /* =========================
-       5. GERAR LINK DE ACESSO
+       GERAR LINK DE ACESSO
     ========================= */
     const { data, error } =
       await supabaseAdmin.auth.admin.generateLink({
@@ -60,9 +74,6 @@ async function kiwifyWebhook(req, res) {
 
     if (error) throw error;
 
-    /* =========================
-       6. LOG (TEMPORÁRIO)
-    ========================= */
     console.log(
       "KIWIFY CLIENT ACCESS LINK:",
       data.properties.action_link
