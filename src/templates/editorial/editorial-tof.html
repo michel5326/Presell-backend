@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{META_DESCRIPTION}}">
+  <title>{{PAGE_TITLE}}</title>
+
+  <!-- Fontes Editoriais (Jornal) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+ {{#TRACKING_SCRIPT}}
+ {{TRACKING_SCRIPT}}
+ {{/TRACKING_SCRIPT}}
+
+  <style>
+    :root {
+      /* Paleta de Cores Editoriais (Alta Autoridade) */
+      --bg-paper: #fdfbf7; /* Cor de papel levemente amarelada */
+      --text-ink: #1a1a1a; /* Tinta preta suave */
+      --text-meta: #6b7280; /* Cinza para metadados */
+      --primary-editorial: #0f4c75; /* Azul Profundo (Editorial) */
+      --accent-border: #e5e7eb;
+    }
+
+    body {
+      font-family: 'Merriweather', serif; /* Fonte de Jornal */
+      background-color: #e5e5e5;
+      color: var(--text-ink);
+      line-height: 1.8;
+      font-size: 18px;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* --- CONTAINER DO PAPEL --- */
+    .paper-wrapper {
+      max-width: 800px;
+      margin: 40px auto;
+      background-color: var(--bg-paper);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 40px 60px;
+      position: relative;
+    }
+
+    /* --- HEADER EDITORIAL --- */
+    .editorial-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 4px double #000;
+    }
+
+    .brand-name {
+      font-family: 'Inter', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 14px;
+      color: var(--text-meta);
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .article-date {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-meta);
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    /* --- TIPOGRAFIA --- */
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      line-height: 1.1;
+      margin: 0 0 10px 0; /* Margem reduzida para subir a subheadline */
+      color: #000;
+      font-weight: 900;
+    }
+
+    /* NOVO: Subheadline Estilo Jornal */
+    .headline-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.4rem;
+      color: #444;
+      font-style: italic;
+      margin-bottom: 25px;
+      font-weight: 400;
+    }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: #000;
+      border-left: 3px solid var(--primary-editorial);
+      padding-left: 15px;
+    }
+
+    h3 {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-ink);
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    /* --- DROP CAP --- */
+    .drop-cap::first-letter {
+      font-family: 'Playfair Display', serif;
+      font-size: 4.5rem;
+      float: left;
+      line-height: 0.8;
+      margin-right: 12px;
+      margin-top: 5px;
+      font-weight: 900;
+      color: var(--primary-editorial);
+    }
+
+    /* --- MICRO CTA (Link Textual) --- */
+    .micro-cta-wrapper {
+      margin: 30px 0;
+      padding: 20px 0;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    .micro-cta-text {
+      font-size: 0.95em;
+      color: var(--primary-editorial);
+    }
+
+    .micro-cta-link {
+      color: #000;
+      text-decoration: underline;
+      font-weight: 700;
+      background-color: rgba(15, 76, 117, 0.05);
+      padding: 2px 6px;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .micro-cta-link:hover {
+      background-color: rgba(15, 76, 117, 0.1);
+    }
+
+    /* --- IMAGEM SUTIL --- */
+    .editorial-figure {
+      margin: 30px 0;
+      width: 100%;
+      text-align: center;
+      border-bottom: 1px solid var(--accent-border);
+      padding-bottom: 20px;
+    }
+    
+    .editorial-img {
+      max-width: 90%;
+      height: auto;
+      max-height: 450px; /* Limite controlado */
+      border-radius: 2px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      filter: grayscale(30%) contrast(1.05); /* Efeito de jornal */
+      object-fit: contain;
+      background-color: #f0f0f0;
+    }
+
+    .img-caption {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-meta);
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    /* --- BLOCOS DE CONTEÚDO --- */
+    .content-box {
+      background-color: rgba(15, 76, 117, 0.03);
+      border-left: 2px solid var(--primary-editorial);
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* --- LISTAS --- */
+    ul.styled-list {
+      list-style: none;
+      padding: 0;
+    }
+    ul.styled-list li {
+      position: relative;
+      padding-left: 25px;
+      margin-bottom: 12px;
+    }
+    ul.styled-list li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--primary-editorial);
+      font-weight: bold;
+      font-size: 1.2em;
+      line-height: 1;
+    }
+
+    /* --- CTA EDITORIAL (Soft) --- */
+    .cta-text-link {
+      color: var(--primary-editorial);
+      text-decoration: underline;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .cta-text-link:hover {
+      opacity: 0.8;
+    }
+
+    .cta-wrapper-final {
+      margin-top: 50px;
+      text-align: center;
+      padding: 30px;
+      background: #f3f4f6;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+    }
+
+    .btn-editorial {
+      display: inline-block;
+      background-color: #000;
+      color: #fff;
+      padding: 14px 32px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-editorial:hover {
+      background-color: #333;
+      transform: translateY(-2px);
+    }
+
+    /* --- FOOTER E DISCLAIMER --- */
+    .editorial-footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--accent-border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-meta);
+    }
+
+    .editorial-footer a {
+      color: var(--primary-editorial);
+    }
+
+    .legal-disclaimer {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9fafb;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #64748b;
+      font-style: italic;
+    }
+
+    /* --- MODO LÓGICO --- */
+    .mode-top-funnel .mid-funnel-content {
+      display: none;
+    }
+    .mode-mid-funnel .tof-only-content {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .paper-wrapper { margin: 0; padding: 25px; box-shadow: none; }
+      h1 { font-size: 2.2rem; }
+      h2 { font-size: 1.5rem; }
+      body { font-size: 16px; }
+      .editorial-img { max-width: 100%; max-height: 350px; }
+    }
+  </style>
+</head>
+<!-- MODO LÓGICO: Mude para 'mode-mid-funnel' para MEIO/OFERTA -->
+<body class="mode-top-funnel"> 
+
+  <div class="paper-wrapper">
+    
+    <!-- HEADER -->
+    <header class="editorial-header">
+      <div class="brand-name">{{SITE_BRAND}}</div>
+      <div class="article-date">{{UPDATED_DATE}}</div>
+      
+      <!-- AJUSTE: HEADLINE + SUBHEADLINE (Tensão + Gap) -->
+      <h1>{{HEADLINE}}</h1>
+      <p class="headline-sub">{{SUBHEADLINE}}</p>
+    </header>
+
+    <!-- IMAGEM DE CONTEXTO (EDITORIAL) -->
+    <figure class="editorial-figure">
+      {{#EDITORIAL_IMAGE}}
+      <img src="{{EDITORIAL_IMAGE}}" alt="Editorial Context" class="editorial-img">
+      <figcaption class="img-caption">Figure: Context related to the subject matter.</figcaption>
+      {{/EDITORIAL_IMAGE}}
+    </figure>
+
+    <!-- INTRODUÇÃO -->
+    <article>
+      <p class="drop-cap">
+        {{INTRO}}
+      </p>
+
+      <!-- O PROBLEMA -->
+      <section>
+        <h2>{{PRIMARY_PROBLEM_TITLE}}</h2>
+        <p>{{PRIMARY_PROBLEM_TEXT}}</p>
+      </section>
+
+      <!-- NOVO: MICRO CTA PÓS-PROBLEMA (Ritmo + Curiosidade) -->
+      <div class="micro-cta-wrapper tof-only-content">
+        <p class="micro-cta-text">
+          Researchers highlight a specific interaction regarding <a href="{{AFFILIATE_LINK}}" class="micro-cta-link">internal body regulation</a>.
+        </p>
+        <p class="micro-cta-text">
+          This interaction is often overlooked in standard treatments.
+        </p>
+      </div>
+
+      <!-- CURIOSIDADE BOX (TOF ONLY) -->
+      <div class="content-box tof-only-content">
+        <h3 style="margin-top:0;">Understanding Mechanism</h3>
+        <p>
+          Recent observations suggest that the body's ability to manage energy is linked to <a href="{{AFFILIATE_LINK}}" class="cta-text-link">{{MECHANISM_TITLE}}</a>.
+        </p>
+        <p>
+          <a href="{{AFFILIATE_LINK}}" class="cta-text-link">See the full breakdown in the short presentation below.</a>
+        </p>
+      </div>
+
+      <!-- CONTEÚDO MEIO DE FUNIL (ESCONDIDO NO TOF) -->
+      <div class="mid-funnel-content">
+        
+        <!-- FÓRMULA -->
+        <section>
+          <h2>Understanding the Formula</h2>
+          <p>{{FORMULA_TEXT}}</p>
+          <figure class="editorial-figure" style="border-top: 1px solid var(--accent-border); border-bottom: none;">
+            {{#INGREDIENT_IMAGES}}
+            <img src="{{INGREDIENT_IMAGES}}" alt="Ingredients Visual" class="editorial-img" style="filter: none;">
+            <figcaption class="img-caption">Key ingredient interactions.</figcaption>
+            {{/INGREDIENT_IMAGES}}
+          </figure>
+        </section>
+
+        <!-- QUEM DEVE USAR -->
+        <section>
+          <h2>Who Should Use</h2>
+          <div style="background: rgba(0,0,0,0.03); padding:20px; border-radius:4px;">
+            <p><strong>Target Demographic:</strong></p>
+            <p>{{WHO_SHOULD_1}}</p>
+            <p>{{WHO_SHOULD_2}}</p>
+            <p>{{WHO_SHOULD_3}}</p>
+          </div>
+        </section>
+
+        <!-- PRECAUÇÕES -->
+        <section>
+          <h2>Important Considerations</h2>
+          <p style="color:#444;"><strong>{{WHO_SHOULD_NOT_TITLE}}</strong></p>
+          <ul class="styled-list">
+            <li>{{WHO_NOT_1}}</li>
+            <li>{{WHO_NOT_2}}</li>
+            <li>{{WHO_NOT_3}}</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- CTA FINAL -->
+      <div class="cta-wrapper-final">
+        <h3>Complete Your Research</h3>
+        <p style="font-size:15px; margin-bottom:20px;">
+          <span class="tof-only-content">For a visual explanation of how this mechanism works, access the short presentation.</span>
+          <span class="mid-funnel-content">If you wish to visit the official product page for more details or to verify stock availability, you can do so via the link below.</span>
+        </p>
+        <a href="{{AFFILIATE_LINK}}" class="btn-editorial">
+          <span class="tof-only-content">Watch Explanation &rarr;</span>
+          <span class="mid-funnel-content">Visit Official Site &rarr;</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- DISCLAIMER FOOTER (Confiança + Blindagem) -->
+    <footer class="editorial-footer">
+      <p>{{DISCLAIMER_TEXT}}</p>
+      <br>
+      <p>&copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.</p>
+      
+      <!-- NOVO: Disclaimer Editorial Padrão -->
+      <div class="legal-disclaimer">
+        This content is for informational purposes only and does not constitute medical or professional advice. Always consult a healthcare professional regarding any health concerns.
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>
