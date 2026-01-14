@@ -1,45 +1,89 @@
-if (type === "review") {
-  if (!productUrl) throw new Error("productUrl is required");
-  if (!/^https?:\/\//i.test(productUrl)) {
-    throw new Error("Invalid productUrl (must be absolute URL)");
+const { callDeepSeekJSON } = require("./deepseek.service");
+
+const reviewPrompt = require("./prompts/review.prompt");
+const robustaPrompt = require("./prompts/robusta.prompt");
+const editorialPrompt = require("./prompts/editorial.prompt");
+const editorialScientificPrompt = require("./prompts/editorial-scientific.prompt");
+
+/**
+ * Gera copy via IA de forma determinística
+ */
+async function generateCopy({ type, productUrl, problem, adPhrase }) {
+  if (!type) {
+    throw new Error("AI type is required");
   }
 
-  systemPrompt = reviewPrompt;
-  userPrompt = `Product URL: ${productUrl}`;
+  let systemPrompt;
+  let userPrompt;
 
-} else if (type === "robusta") {
-  if (!productUrl) throw new Error("productUrl is required");
-  if (!/^https?:\/\//i.test(productUrl)) {
-    throw new Error("Invalid productUrl (must be absolute URL)");
-  }
+  /* =========================
+     REVIEW
+  ========================= */
+  if (type === "review") {
+    if (!productUrl) throw new Error("productUrl is required");
+    if (!/^https?:\/\//i.test(productUrl)) {
+      throw new Error("Invalid productUrl (must be absolute URL)");
+    }
 
-  systemPrompt = robustaPrompt;
-  userPrompt = `Product URL: ${productUrl}`;
+    systemPrompt = reviewPrompt;
+    userPrompt = `Product URL: ${productUrl}`;
 
-} else if (type === "editorial") {
-  if (!problem) throw new Error("problem is required for editorial");
+  /* =========================
+     ROBUSTA
+  ========================= */
+  } else if (type === "robusta") {
+    if (!productUrl) throw new Error("productUrl is required");
+    if (!/^https?:\/\//i.test(productUrl)) {
+      throw new Error("Invalid productUrl (must be absolute URL)");
+    }
 
-  systemPrompt = editorialPrompt;
+    systemPrompt = robustaPrompt;
+    userPrompt = `Product URL: ${productUrl}`;
 
-  userPrompt = `
+  /* =========================
+     EDITORIAL (TOF)
+  ========================= */
+  } else if (type === "editorial") {
+    if (!problem) throw new Error("problem is required for editorial");
+
+    systemPrompt = editorialPrompt;
+
+    userPrompt = `
 Problem:
 ${problem}
 
 ${adPhrase ? `Primary ad phrase:\n${adPhrase}` : ""}
-  `.trim();
+    `.trim();
 
-} else if (type === "editorial_scientific") {
-  if (!problem) throw new Error("problem is required for scientific editorial");
+  /* =========================
+     EDITORIAL SCIENTIFIC
+  ========================= */
+  } else if (type === "editorial_scientific") {
+    if (!problem) {
+      throw new Error("problem is required for scientific editorial");
+    }
 
-  systemPrompt = editorialScientificPrompt;
+    systemPrompt = editorialScientificPrompt;
 
-  userPrompt = `
+    userPrompt = `
 Problem:
 ${problem}
 
 ${adPhrase ? `Primary ad phrase:\n${adPhrase}` : ""}
-  `.trim();
+    `.trim();
 
-} else {
-  throw new Error(`Unknown AI type: ${type}`);
+  } else {
+    throw new Error(`Unknown AI type: ${type}`);
+  }
+
+  console.log("[AI] generating copy (NO RETRY MODE)", type);
+
+  return callDeepSeekJSON({
+    systemPrompt,
+    userPrompt,
+  });
 }
+
+module.exports = {
+  generateCopy,
+};
