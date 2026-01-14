@@ -4,25 +4,51 @@ async function kiwifyWebhook(req, res) {
   try {
     const body = req.body;
 
-    // 1. validar evento correto
+    /* =========================
+       1. VALIDAR EVENTO
+    ========================= */
     const eventType = body?.order?.webhook_event_type;
     if (eventType !== "order_approved") {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    // 2. pegar email corretamente
+    /* =========================
+       2. PEGAR EMAIL
+    ========================= */
     const email = body?.order?.Customer?.email;
     if (!email) {
       return res.status(400).json({ error: "email_missing" });
     }
 
-    // 3. criar ou reaproveitar usuário
-    await supabaseAdmin.auth.admin.createUser({
-      email,
-      email_confirm: true,
-    }).catch(() => {}); // ignora se já existir
+    /* =========================
+       3. CRIAR OU REAPROVEITAR USUÁRIO
+    ========================= */
+    await supabaseAdmin.auth.admin
+      .createUser({
+        email,
+        email_confirm: true,
+      })
+      .catch(() => {}); // idempotente
 
-    // 4. gerar link de acesso (recovery)
+    /* =========================
+       4. DEFINIR ACESSO (6 MESES)
+    ========================= */
+    const accessUntil = new Date();
+    accessUntil.setMonth(accessUntil.getMonth() + 6);
+
+    await supabaseAdmin
+      .from("user_access")
+      .upsert(
+        {
+          email,
+          access_until: accessUntil.toISOString(),
+        },
+        { onConflict: "email" }
+      );
+
+    /* =========================
+       5. GERAR LINK DE ACESSO
+    ========================= */
     const { data, error } =
       await supabaseAdmin.auth.admin.generateLink({
         type: "recovery",
@@ -34,12 +60,17 @@ async function kiwifyWebhook(req, res) {
 
     if (error) throw error;
 
-    // 5. (por enquanto) só logar o link
-    console.log("LINK PARA O CLIENTE:", data.properties.action_link);
+    /* =========================
+       6. LOG (TEMPORÁRIO)
+    ========================= */
+    console.log(
+      "KIWIFY CLIENT ACCESS LINK:",
+      data.properties.action_link
+    );
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("Webhook error:", err.message);
+    console.error("KIWIFY WEBHOOK ERROR:", err.message);
     return res.status(500).json({ error: "webhook_failed" });
   }
 }
