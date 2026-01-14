@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{META_DESCRIPTION}}">
+  <title>{{PAGE_TITLE}}</title>
+
+  <!-- Fontes Acadêmicas/Científicas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+
+ {{#TRACKING_SCRIPT}}
+ {{TRACKING_SCRIPT}}
+ {{/TRACKING_SCRIPT}}
+
+  <style>
+    :root {
+      /* Paleta Científica (Clean & Professional) */
+      --bg-paper: #ffffff;
+      --text-ink: #1f2937;
+      --text-muted: #64748b;
+      --primary-science: #0f4c81; /* Azul Profundo Neutro */
+      --border-light: #e2e8f0;
+      --font-body: 'Merriweather', serif;
+      --font-ui: 'Inter', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: #f3f4f6; /* Fundo neutro */
+      color: var(--text-ink);
+      line-height: 1.8;
+      font-size: 18px;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* --- PAPER WRAPPER (AJUSTE 1: 980px) --- */
+    .paper-wrapper {
+      width: 100%;
+      max-width: 980px; /* Ajuste solicitado: Menos portal, mais journal */
+      margin: 0 auto;
+      background-color: var(--bg-paper);
+      padding: 60px 80px;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.06); /* Sombra mais suave */
+      position: relative;
+    }
+
+    /* --- CABEÇALHO --- */
+    .editorial-header {
+      text-align: center;
+      margin-bottom: 50px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #000; /* Linha simples e forte */
+    }
+
+    .journal-meta {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .article-date {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    /* --- TIPOGRAFIA --- */
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem; /* Titulo levemente menor */
+      line-height: 1.15;
+      margin: 0 0 20px 0;
+      color: #000;
+      font-weight: 700; /* Peso reduzido, menos drama */
+    }
+
+    .headline-sub {
+      font-family: var(--font-ui);
+      font-size: 1.3rem;
+      color: #555;
+      font-style: italic;
+      margin-bottom: 30px;
+      font-weight: 400;
+    }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: #000;
+      border-left: 2px solid var(--primary-science); /* Borda mais fina */
+      padding-left: 12px;
+    }
+
+    h3 {
+      font-family: var(--font-ui);
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-ink);
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 5px;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      color: #374151;
+    }
+
+    strong {
+      font-weight: 700;
+      color: #111;
+    }
+
+    /* --- AJUSTE 2: DROP CAP SUTIL (Menos Drama) --- */
+    .drop-cap::first-letter {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem; /* Reduzido de 5rem */
+      float: left;
+      line-height: 0.85;
+      margin-right: 10px; /* Reduzido de 12px */
+      margin-top: 5px;
+      font-weight: 700; /* Peso reduzido de 900 */
+      color: var(--primary-science);
+      opacity: 0.8; /* Leve transparência para ser menos agressivo */
+    }
+
+    /* --- IMAGEM --- */
+    .editorial-figure {
+      margin: 40px 0;
+      width: 100%;
+      text-align: center;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 30px;
+    }
+    
+    .editorial-img {
+      max-width: 90%;
+      height: auto;
+      max-height: 500px;
+      border-radius: 2px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Sombra mais leve */
+      object-fit: contain;
+    }
+
+    .img-caption {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 15px;
+      font-style: italic;
+    }
+
+    /* --- BOXES --- */
+    .content-box {
+      background-color: #f8fafc;
+      border-left: 3px solid var(--primary-science);
+      padding: 25px;
+      margin: 30px 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .micro-cta-wrapper {
+      margin: 40px 0;
+      padding: 25px 0;
+      border-top: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+      text-align: center;
+      background-color: #fff;
+    }
+
+    .micro-cta-text {
+      font-size: 15px;
+      color: var(--text-ink);
+    }
+
+    .micro-cta-link {
+      color: var(--primary-science);
+      text-decoration: underline;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .micro-cta-link:hover {
+      color: #0b386e;
+    }
+
+    /* --- LISTAS --- */
+    ul.styled-list {
+      list-style: none;
+      padding: 0;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    ul.styled-list li {
+      position: relative;
+      padding-left: 25px;
+      margin-bottom: 15px;
+    }
+    ul.styled-list li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--primary-science);
+      font-weight: bold;
+      font-size: 1.2em;
+      line-height: 1;
+    }
+
+    /* --- CTA FINAL --- */
+    .cta-wrapper-final {
+      margin-top: 60px;
+      text-align: center;
+      padding: 40px;
+      background: #f1f5f9;
+      border-top: 2px solid #000;
+      border-bottom: 2px solid #000;
+    }
+
+    .btn-editorial {
+      display: inline-block;
+      background-color: #000;
+      color: #fff;
+      padding: 16px 40px;
+      font-family: var(--font-ui);
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    .btn-editorial:hover {
+      background-color: #333;
+    }
+
+    /* --- FOOTER --- */
+    .editorial-footer {
+      margin-top: 80px;
+      padding-top: 30px;
+      border-top: 1px solid var(--border-light);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .legal-disclaimer {
+      margin-top: 30px;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+      font-size: 12px;
+      color: #64748b;
+      font-style: italic;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* --- MODO LÓGICO --- */
+    .mode-top-funnel .mid-funnel-content { display: none; }
+    .mode-mid-funnel .tof-only-content { display: none; }
+
+    /* --- AJUSTE 3: MOBILE LEFT ALIGNMENT --- */
+    @media (max-width: 768px) {
+      .paper-wrapper { 
+        padding: 30px; 
+        width: 100%;
+        margin: 0;
+        box-shadow: none;
+      }
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+      body { font-size: 16px; }
+      .editorial-img { max-height: 400px; }
+      ul.styled-list { max-width: 100%; }
+      
+      /* Ajuste Crítico: Força alinhamento à esquerda no mobile */
+      p { text-align: left; }
+      .headline-sub { text-align: left; }
+    }
+  </style>
+</head>
+<!-- MODO LÓGICO: 'mode-top-funnel' para TOF / 'mode-mid-funnel' para VENDA -->
+<body class="mode-top-funnel"> 
+
+  <div class="paper-wrapper">
+    
+    <!-- HEADER (AJUSTE 4: META GENÉRICA) -->
+    <header class="editorial-header">
+      <div class="journal-meta">
+        <!-- Fallback para "Research Brief" se a variável estiver vazia -->
+        {{SITE_BRAND}} <span style="font-weight:400; color:#6b7280;">| Research Brief</span>
+      </div>
+      <div class="article-date">{{UPDATED_DATE}}</div>
+      
+      <h1>{{HEADLINE}}</h1>
+      <p class="headline-sub">{{SUBHEADLINE}}</p>
+    </header>
+
+    <!-- IMAGEM DE CONTEXTO -->
+    <figure class="editorial-figure">
+      {{#EDITORIAL_IMAGE}}
+      <img src="{{EDITORIAL_IMAGE}}" alt="Visual Context" class="editorial-img">
+      <figcaption class="img-caption">Figure 1. Representation of biological context.</figcaption>
+      {{/EDITORIAL_IMAGE}}
+    </figure>
+
+    <!-- INTRODUÇÃO -->
+    <article>
+      <p class="drop-cap">
+        {{INTRO}}
+      </p>
+
+      <!-- O PROBLEMA -->
+      <section>
+        <h2>{{PRIMARY_PROBLEM_TITLE}}</h2>
+        <p>{{PRIMARY_PROBLEM_TEXT}}</p>
+      </section>
+
+      <!-- MICRO CTA PÓS-PROBLEMA -->
+      <div class="micro-cta-wrapper tof-only-content">
+        <p class="micro-cta-text">
+          Recent observations highlight a key factor related to <a href="{{AFFILIATE_LINK}}" class="micro-cta-link">{{MECHANISM_TITLE}}</a>.
+        </p>
+      </div>
+
+      <!-- CURIOSIDADE BOX (TOF ONLY) -->
+      <div class="content-box tof-only-content">
+        <h3 style="margin-top:0; color:#000; border:none; padding:0;">Mechanism of Action</h3>
+        <p style="margin-top:15px;">
+          Research suggests that specific natural responses within the body are crucial for maintaining balance.
+        </p>
+      </div>
+
+      <!-- CONTEÚDO MEIO DE FUNIL (ESCONDIDO NO TOF) -->
+      <div class="mid-funnel-content">
+        
+        <!-- FÓRMULA -->
+        <section>
+          <h2>Formula Analysis</h2>
+          <p>{{FORMULA_TEXT}}</p>
+          <figure class="editorial-figure" style="border-top: 1px solid var(--border-light); border-bottom: none;">
+            {{#INGREDIENT_IMAGES}}
+            <img src="{{INGREDIENT_IMAGES}}" alt="Ingredients Visual" class="editorial-img" style="max-height: 400px;">
+            <figcaption class="img-caption">Component breakdown.</figcaption>
+            {{/INGREDIENT_IMAGES}}
+          </figure>
+        </section>
+
+        <!-- QUEM DEVE USAR -->
+        <section>
+          <h2>Demographic Indications</h2>
+          <div style="background: #f9fafb; padding:25px; border: 1px solid #e5e7eb; margin-top: 20px;">
+            <p><strong>Indications:</strong></p>
+            <p>{{WHO_SHOULD_1}}</p>
+            <p>{{WHO_SHOULD_2}}</p>
+            <p>{{WHO_SHOULD_3}}</p>
+          </div>
+        </section>
+
+        <!-- PRECAUÇÕES -->
+        <section>
+          <h2>Considerations</h2>
+          <p style="color:#444;"><strong>{{WHO_SHOULD_NOT_TITLE}}</strong></p>
+          <ul class="styled-list">
+            <li>{{WHO_NOT_1}}</li>
+            <li>{{WHO_NOT_2}}</li>
+            <li>{{WHO_NOT_3}}</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- CTA FINAL -->
+      <div class="cta-wrapper-final">
+        <h3>Conclusion</h3>
+        <p style="font-size:16px; margin-bottom:25px; max-width: 900px; margin: 0 auto;">
+          <span class="tof-only-content">For a detailed visual explanation of mechanisms discussed, access the research presentation.</span>
+          <span class="mid-funnel-content">For product details and verification, access the information page.</span>
+        </p>
+        
+        <a href="{{AFFILIATE_LINK}}" class="btn-editorial">
+          <span class="tof-only-content">Watch Presentation &rarr;</span>
+          <span class="mid-funnel-content">Visit Information Page &rarr;</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- DISCLAIMER FOOTER -->
+    <footer class="editorial-footer">
+      <p>{{DISCLAIMER_TEXT}}</p>
+      <br>
+      <p>&copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.</p>
+      
+      <div class="legal-disclaimer">
+        This content is for informational purposes only and does not constitute medical, financial, or professional advice. Always consult qualified professionals regarding any health concerns.
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>
