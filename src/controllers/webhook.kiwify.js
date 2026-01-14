@@ -2,47 +2,44 @@ const { supabaseAdmin } = require("../services/supabase");
 
 async function kiwifyWebhook(req, res) {
   try {
-    /* =========================
-       AUTH DO WEBHOOK
-    ========================= */
-    const token = req.headers["x-webhook-token"];
-    if (token !== process.env.KIWIFY_INTEGRATION_TOKEN_2026) {
-      return res.status(403).json({ error: "invalid_webhook" });
-    }
-
     const body = req.body;
 
-    /* =========================
-       EVENTO VÁLIDO
-    ========================= */
-    if (body?.webhook_event_type !== "order_approved") {
+    // 1. validar evento correto
+    const eventType = body?.order?.webhook_event_type;
+    if (eventType !== "order_approved") {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    const email = body?.Customer?.email;
+    // 2. pegar email corretamente
+    const email = body?.order?.Customer?.email;
     if (!email) {
       return res.status(400).json({ error: "email_missing" });
     }
 
-    /* =========================
-       ACESSO (IDEMPOTENTE)
-    ========================= */
-    const accessUntil = new Date();
-    accessUntil.setMonth(accessUntil.getMonth() + 6);
+    // 3. criar ou reaproveitar usuário
+    await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+    }).catch(() => {}); // ignora se já existir
 
-    await supabaseAdmin
-      .from("user_access")
-      .upsert(
-        {
-          email,
-          access_until: accessUntil.toISOString(),
+    // 4. gerar link de acesso (recovery)
+    const { data, error } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: {
+          redirectTo: "https://clickpage.vercel.app/login",
         },
-        { onConflict: "email" }
-      );
+      });
+
+    if (error) throw error;
+
+    // 5. (por enquanto) só logar o link
+    console.log("LINK PARA O CLIENTE:", data.properties.action_link);
 
     return res.status(200).json({ ok: true });
-  } catch (e) {
-    console.error("Webhook error:", e.message);
+  } catch (err) {
+    console.error("Webhook error:", err.message);
     return res.status(500).json({ error: "webhook_failed" });
   }
 }
