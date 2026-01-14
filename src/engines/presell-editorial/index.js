@@ -22,11 +22,22 @@ async function generate({
   problem,
   adPhrase,
   trackingScript,
+  style, // 'editorial' | 'scientific'
 }) {
 
-  // 🔒 IA: copy editorial TOF
+  /* =========================
+     1️⃣ DEFINE TIPO DE IA
+  ========================= */
+  const aiType =
+    style === 'scientific'
+      ? 'editorial_scientific'
+      : 'editorial';
+
+  /* =========================
+     2️⃣ GERA COPY VIA IA
+  ========================= */
   const rawCopy = await aiService.generateCopy({
-    type: 'editorial',
+    type: aiType,
     problem,
     adPhrase,
   });
@@ -34,13 +45,20 @@ async function generate({
   const copy = normalizeCopyKeys(rawCopy);
   const now = new Date();
 
+  /* =========================
+     3️⃣ VIEW DO TEMPLATE
+  ========================= */
   const view = {
     LANG: 'en',
 
     PAGE_TITLE: safe(copy.HEADLINE),
     META_DESCRIPTION: safe(copy.SUBHEADLINE),
 
-    SITE_BRAND: 'Editorial Report',
+    SITE_BRAND:
+      style === 'scientific'
+        ? 'Research Brief'
+        : 'Editorial Report',
+
     UPDATED_DATE: now.toLocaleDateString('en-US'),
 
     HEADLINE: safe(copy.HEADLINE),
@@ -57,11 +75,16 @@ async function generate({
 
     CURRENT_YEAR: String(now.getFullYear()),
 
-    // 🔒 TRACKER (PASS-THROUGH)
     TRACKING_SCRIPT: safe(trackingScript),
   };
 
-  const templatePath = 'editorial/editorial-tof.html';
+  /* =========================
+     4️⃣ TEMPLATE DINÂMICO
+  ========================= */
+  const templatePath =
+    style === 'scientific'
+      ? 'editorial/editorial-scientific.html'
+      : 'editorial/editorial-tof.html';
 
   const html = renderTemplate(templatePath, view);
 

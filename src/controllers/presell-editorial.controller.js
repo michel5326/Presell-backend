@@ -5,28 +5,28 @@ async function generateEditorialPresell(req, res) {
     const {
       affiliateUrl,
       problem,
-      adPhrase,         // opcional (Google Ads match)
-      trackingScript,   // pass-through
+      adPhrase,
+      style,          // 'editorial' | 'scientific'
+      trackingScript,
     } = req.body;
 
-    // 🔒 Validação mínima e objetiva
+    // 🔒 Validação mínima
     if (!affiliateUrl || !problem) {
       return res.status(400).json({
         error: 'Missing required fields',
       });
     }
 
-    // 🔧 Chamada da engine editorial (TOF)
     const result = await presellEditorialEngine.generate({
       affiliateUrl,
       problem,
       adPhrase,
+      style,
       trackingScript,
     });
 
-    // 🔍 DEBUG LIMPO (mesmo padrão do projeto)
     console.log('============= PRESELL EDITORIAL DEBUG =============');
-    console.log('[ROUTE]', '/presell/editorial');
+    console.log('[STYLE]', style || 'editorial');
     console.log('[PROBLEM]', problem);
     console.log('[AD PHRASE]', adPhrase || 'EMPTY');
     console.log('[HTML LENGTH]', result?.html?.length || 0);

@@ -1,57 +1,45 @@
-const { callDeepSeekJSON } = require("./deepseek.service");
+if (type === "review") {
+  if (!productUrl) throw new Error("productUrl is required");
+  if (!/^https?:\/\//i.test(productUrl)) {
+    throw new Error("Invalid productUrl (must be absolute URL)");
+  }
 
-const reviewPrompt = require("./prompts/review.prompt");
-const robustaPrompt = require("./prompts/robusta.prompt");
-const editorialPrompt = require("./prompts/editorial.prompt");
+  systemPrompt = reviewPrompt;
+  userPrompt = `Product URL: ${productUrl}`;
 
-async function generateCopy({ type, productUrl, problem, adPhrase }) {
-  if (!type) throw new Error("AI type is required");
+} else if (type === "robusta") {
+  if (!productUrl) throw new Error("productUrl is required");
+  if (!/^https?:\/\//i.test(productUrl)) {
+    throw new Error("Invalid productUrl (must be absolute URL)");
+  }
 
-  let systemPrompt;
-  let userPrompt;
+  systemPrompt = robustaPrompt;
+  userPrompt = `Product URL: ${productUrl}`;
 
-  if (type === "review") {
-    if (!productUrl) throw new Error("productUrl is required");
-    if (!/^https?:\/\//i.test(productUrl)) {
-      throw new Error("Invalid productUrl (must be absolute URL)");
-    }
+} else if (type === "editorial") {
+  if (!problem) throw new Error("problem is required for editorial");
 
-    systemPrompt = reviewPrompt;
-    userPrompt = `Product URL: ${productUrl}`;
+  systemPrompt = editorialPrompt;
 
-  } else if (type === "robusta") {
-    if (!productUrl) throw new Error("productUrl is required");
-    if (!/^https?:\/\//i.test(productUrl)) {
-      throw new Error("Invalid productUrl (must be absolute URL)");
-    }
-
-    systemPrompt = robustaPrompt;
-    userPrompt = `Product URL: ${productUrl}`;
-
-  } else if (type === "editorial") {
-    if (!problem) throw new Error("problem is required for editorial");
-
-    systemPrompt = editorialPrompt;
-
-    userPrompt = `
+  userPrompt = `
 Problem:
 ${problem}
 
 ${adPhrase ? `Primary ad phrase:\n${adPhrase}` : ""}
-    `.trim();
+  `.trim();
 
-  } else {
-    throw new Error(`Unknown AI type: ${type}`);
-  }
+} else if (type === "editorial_scientific") {
+  if (!problem) throw new Error("problem is required for scientific editorial");
 
-  console.log("[AI] generating copy (NO RETRY MODE)", type);
+  systemPrompt = editorialScientificPrompt;
 
-  return callDeepSeekJSON({
-    systemPrompt,
-    userPrompt,
-  });
+  userPrompt = `
+Problem:
+${problem}
+
+${adPhrase ? `Primary ad phrase:\n${adPhrase}` : ""}
+  `.trim();
+
+} else {
+  throw new Error(`Unknown AI type: ${type}`);
 }
-
-module.exports = {
-  generateCopy,
-};
