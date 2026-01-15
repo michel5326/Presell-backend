@@ -9,23 +9,35 @@ async function inviteUser(req, res) {
     }
 
     // 1) verifica se o usuário tem acesso válido
-    const { data: access } = await supabaseAdmin
+    const { data: access, error: accessError } = await supabaseAdmin
       .from("user_access")
       .select("access_until")
       .eq("email", email)
       .single();
 
-    if (!access || new Date(access.access_until) < new Date()) {
+    if (accessError || !access || new Date(access.access_until) < new Date()) {
       return res.status(403).json({ error: "access_denied" });
     }
 
-    // 2) envia o invite (Supabase envia o email)
-    const { error } =
+    // 2) tenta enviar invite
+    const { error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         redirectTo: "https://clickpage.vercel.app/login",
       });
 
-    if (error) throw error;
+    // 3) se o usuário já existir, envia link de recovery (criar senha)
+    if (inviteError) {
+      const { error: recoveryError } =
+        await supabaseAdmin.auth.admin.generateLink({
+          type: "recovery",
+          email,
+          options: {
+            redirectTo: "https://clickpage.vercel.app/login",
+          },
+        });
+
+      if (recoveryError) throw recoveryError;
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
