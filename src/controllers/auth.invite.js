@@ -18,6 +18,13 @@ async function inviteUser(req, res) {
       .eq("email", email)
       .single();
 
+    // LOG DEFINITIVO
+    console.log("ACCESS_CHECK", {
+      email,
+      access,
+      accessError,
+    });
+
     if (accessError || !access || new Date(access.access_until) < new Date()) {
       return res.status(403).json({ error: "access_denied" });
     }
@@ -30,7 +37,6 @@ async function inviteUser(req, res) {
         redirectTo,
       });
 
-    // se o invite funcionou, o usuário foi criado e o email foi enviado
     if (!inviteError) {
       return res.status(200).json({ ok: true });
     }
