@@ -2,7 +2,10 @@ const { supabaseAdmin } = require("../services/supabase");
 
 async function inviteUser(req, res) {
   try {
-    const { email } = req.body;
+    // NORMALIZAÇÃO OBRIGATÓRIA
+    const email = String(req.body.email || "")
+      .trim()
+      .toLowerCase();
 
     if (!email) {
       return res.status(400).json({ error: "email_required" });
@@ -27,7 +30,7 @@ async function inviteUser(req, res) {
         redirectTo,
       });
 
-    // 👉 se o invite funcionou, o usuário foi criado e o email foi enviado
+    // se o invite funcionou, o usuário foi criado e o email foi enviado
     if (!inviteError) {
       return res.status(200).json({ ok: true });
     }
