@@ -4,11 +4,28 @@ async function kiwifyWebhook(req, res) {
   try {
     const body = req.body;
 
-    const eventType = body?.order?.webhook_event_type;
-    const email = body?.order?.Customer?.email;
+    /* =========================
+       TOLERÂNCIA DE PAYLOAD
+       (teste + real)
+    ========================= */
+    const eventType =
+      body?.order?.webhook_event_type ||
+      body?.webhook_event_type;
 
-    if (!eventType || !email) {
-      return res.status(400).json({ error: "invalid_payload" });
+    const email =
+      body?.order?.Customer?.email ||
+      body?.Customer?.email ||
+      body?.email;
+
+    if (!eventType) {
+      return res.status(400).json({ error: "event_missing" });
+    }
+
+    // se for teste sem email, não quebra
+    if (!email) {
+      console.log("KIWIFY WEBHOOK SEM EMAIL (TESTE):");
+      console.log(JSON.stringify(body, null, 2));
+      return res.status(200).json({ ok: true, test: true });
     }
 
     /* =========================
@@ -23,7 +40,6 @@ async function kiwifyWebhook(req, res) {
         .eq("email", email);
 
       console.log("ACCESS REVOKED (REFUND):", email);
-
       return res.status(200).json({ ok: true, refunded: true });
     }
 
