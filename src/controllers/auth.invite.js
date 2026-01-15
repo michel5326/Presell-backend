@@ -8,7 +8,7 @@ async function inviteUser(req, res) {
       return res.status(400).json({ error: "email_required" });
     }
 
-    // 1) verifica se o usuário tem acesso válido
+    // 1) verifica acesso
     const { data: access, error: accessError } = await supabaseAdmin
       .from("user_access")
       .select("access_until")
@@ -19,13 +19,13 @@ async function inviteUser(req, res) {
       return res.status(403).json({ error: "access_denied" });
     }
 
-    // 2) tenta enviar invite
+    // 2) tenta invite (cria usuário se não existir)
     const { error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         redirectTo: "https://clickpage.vercel.app/login",
       });
 
-    // 3) se o usuário já existir, envia recovery
+    // 3) se invite falhar, tenta recovery
     if (inviteError) {
       const { error: recoveryError } =
         await supabaseAdmin.auth.admin.generateLink({
@@ -36,19 +36,16 @@ async function inviteUser(req, res) {
           },
         });
 
-      if (recoveryError) throw recoveryError;
+      // 404 = usuário ainda não existe → ok
+      if (recoveryError && recoveryError.status !== 404) {
+        throw recoveryError;
+      }
     }
 
+    // 4) sempre sucesso se chegou até aqui
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("INVITE ERROR FULL:", {
-      message: err && err.message,
-      status: err && err.status,
-      error: err && err.error,
-      details: err && err.details,
-      raw: err,
-    });
-
+    console.error("INVITE ERROR:", err);
     return res.status(500).json({ error: "invite_failed" });
   }
 }
