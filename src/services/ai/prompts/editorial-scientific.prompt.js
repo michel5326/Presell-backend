@@ -30,7 +30,7 @@ Hard match requirement (Google Ads relevance):
 - Use the same key terms without adding promises or guarantees.
 
 Content rules:
-- Clearly describe observable patterns related to the given problem
+- Clearly describe observable, real-world patterns related to the given problem
 - Explain how age-related changes can contribute to the issue
 - Explain why common approaches often provide limited improvement, in factual terms
 - Introduce ONE biological or physiological mechanism at a high level
@@ -39,6 +39,18 @@ Content rules:
   - Do NOT claim treatment, prevention, or results
   - Do NOT mention any product or solution
 
+Depth and length requirements:
+- The output must be a medium-length scientific brief
+- Expand each section with sufficient context to avoid superficial explanations
+- Do NOT end sections prematurely
+- The total output should typically range between 250 and 320 words
+
+Section depth rules:
+- Intro: provide context and relevance, not just a definition of the problem
+- Primary problem section: explain observable patterns and their functional impact
+- Mechanism section: name the mechanism and explain its role at a high level,
+  without fully explaining how it works or how it can be influenced
+
 Depth control:
 - Do NOT fully explain or resolve the mechanism
 - Leave the explanation intentionally incomplete
@@ -46,7 +58,7 @@ Depth control:
 
 Structure rules:
 - Organize the content into clear sections
-- Each paragraph: 2–4 sentences
+- Each paragraph should contain 2–4 sentences
 - Use straightforward, non-emotional transitions
 - Objective curiosity framing is allowed
   (e.g. "Recent observations highlight a recurring pattern.")
