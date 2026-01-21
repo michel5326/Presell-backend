@@ -32,9 +32,7 @@ Hard match requirement (Google Ads relevance):
 CONTENT DEPTH REQUIREMENTS (CRITICAL):
 
 The output MUST feel like a complete research brief, not a summary.
-
 Each major section must contain MULTIPLE paragraphs.
-Do NOT compress ideas into a single paragraph.
 
 Paragraph rules:
 - Each paragraph must contain 2–4 sentences
@@ -56,16 +54,17 @@ PRIMARY PROBLEM SECTION:
 - Explain why common approaches often provide limited improvement
 - Use factual, non-judgmental language
 
-MECHANISM SECTION:
+MECHANISM SECTION (CRITICAL):
 - Name ONE mechanism
-- 2–3 paragraphs (80–120 words total)
+- EXACTLY 2 paragraphs (70–100 words total)
 - The mechanism must be described at a high-level, system-based abstraction
   (e.g. regulation efficiency, adaptive capacity, resource allocation, signal responsiveness)
 - Avoid niche-specific biological, technical, or domain-specific terms unless strictly required by the problem input
-- Explain its general role at a high level
+- Explain its general role and why it becomes less efficient over time
 - Do NOT explain how it works in detail
 - Do NOT explain how it can be influenced
 - Leave the explanation intentionally incomplete
+- This section should increase curiosity, not resolve it
 
 DEPTH CONTROL:
 - Do NOT resolve the mechanism
