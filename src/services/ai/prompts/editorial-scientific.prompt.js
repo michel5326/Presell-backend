@@ -18,7 +18,7 @@ Tone and style requirements:
 
 Audience:
 - Adults over 40
-- Analytical readers researching age-related health or functional topics
+- Analytical readers researching age-related health, performance, or functional topics
 
 Inputs:
 1) Problem (required)
@@ -57,8 +57,11 @@ PRIMARY PROBLEM SECTION:
 - Use factual, non-judgmental language
 
 MECHANISM SECTION:
-- Name ONE biological or physiological mechanism
+- Name ONE mechanism
 - 2–3 paragraphs (80–120 words total)
+- The mechanism must be described at a high-level, system-based abstraction
+  (e.g. regulation efficiency, adaptive capacity, resource allocation, signal responsiveness)
+- Avoid niche-specific biological, technical, or domain-specific terms unless strictly required by the problem input
 - Explain its general role at a high level
 - Do NOT explain how it works in detail
 - Do NOT explain how it can be influenced
