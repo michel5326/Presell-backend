@@ -42,12 +42,13 @@ async function caktoWebhook(req, res) {
     await supabaseAdmin.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: "https://clickpage.vercel.app/login",
+        emailRedirectTo: "https://clickpage.vercel.app/reset-password",
       },
     });
 
     return res.status(200).json({ ok: true });
   } catch (err) {
+    console.error("CAKTO WEBHOOK ERROR:", err);
     return res.status(500).json({ error: "webhook_failed" });
   }
 }
