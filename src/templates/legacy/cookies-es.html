@@ -57,6 +57,7 @@ html,body{
   pointer-events:none;
   transition:.4s ease;
   z-index:1000;
+  padding: 20px; /* Adiciona padding geral para mobile */
 }
 
 #cookie-popup.show{
@@ -76,6 +77,7 @@ html,body{
   transform:scale(.95);
   transition:.3s ease;
   position:relative;
+  overflow: hidden; /* CORREÇÃO 1: Linha não sai do quadrado */
 }
 
 #cookie-popup.show .popup{transform:scale(1)}
@@ -121,6 +123,37 @@ p{
   text-decoration:none;
   min-width:140px;
   transition:.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ESTILOS DO LOADING SPINNER */
+.spinner{
+  display: none; /* Escondido por padrão */
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+/* Mostra o spinner quando a classe .loading está no botão */
+.btn.loading .spinner{
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Estilo específico para spinner no botão Cerrar (Cinza) */
+.btn-close.loading .spinner {
+  border-color: rgba(55, 65, 81, 0.2); /* Borda cinza clara */
+  border-top-color: #374151; /* Topo cinza escuro */
 }
 
 .btn-accept{
@@ -143,6 +176,14 @@ p{
   background:#e5e7eb;
 }
 
+/* Estado geral de loading (aplica a qualquer botão com a classe) */
+.btn.loading{
+  opacity: 0.9;
+  cursor: wait; 
+  transform: none;
+  box-shadow: none;
+}
+
 .footer{
   border-top:1px solid #e5e7eb;
   padding-top:16px;
@@ -150,12 +191,33 @@ p{
   color:#9ca3af;
 }
 
+/* AJUSTE 2: RESPONSIVIDADE MOBILE MELHORADA */
 @media(max-width:600px){
   .popup{
-    padding:28px 20px;
+    padding:24px 20px;
+    margin: 0 10px; /* Cria espaço nas laterais */
+    width: auto;
   }
+
+  h2{
+    font-size:22px;
+    margin-bottom:12px;
+  }
+
+  p{
+    font-size:14px;
+    margin-bottom:24px;
+  }
+
   .buttons{
     flex-direction:column;
+    gap:12px;
+  }
+
+  .btn{
+    width:100%;
+    padding:12px 20px;
+    font-size:15px;
   }
 }
 </style>
@@ -174,8 +236,14 @@ p{
     </p>
 
     <div class="buttons">
-      <button class="btn btn-accept" id="acceptBtn">Permitir</button>
-      <button class="btn btn-close" id="closeBtn">Cerrar</button>
+      <button class="btn btn-accept" id="acceptBtn">
+        <span class="spinner"></span>
+        <span class="btn-text">Permitir</span>
+      </button>
+      <button class="btn btn-close" id="closeBtn">
+        <span class="spinner"></span>
+        <span class="btn-text">Cerrar</span>
+      </button>
     </div>
 
     <div class="footer">Tu privacidad es importante para nosotros</div>
@@ -186,22 +254,75 @@ p{
 const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
 let redirected = false;
 
-function go(){
-  if(redirected) return;
-  redirected = true;
+// Elementos do DOM
+const popupEl = document.getElementById('cookie-popup');
+const acceptBtn = document.getElementById('acceptBtn');
+const closeBtn = document.getElementById('closeBtn');
+const allButtons = document.querySelectorAll('.btn');
 
-  if(typeof window.runTrackerRedirect === "function"){
-    window.runTrackerRedirect(AFFILIATE_LINK);
-  }else{
-    window.location.href = AFFILIATE_LINK;
-  }
+// Função para resetar o estado de ambos os botões
+function resetState() {
+    redirected = false;
+    
+    allButtons.forEach(btn => {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+        
+        // Reseta o texto original baseado na classe
+        const textSpan = btn.querySelector('.btn-text');
+        if(btn.classList.contains('btn-accept')) textSpan.textContent = "Permitir";
+        if(btn.classList.contains('btn-close')) textSpan.textContent = "Cerrar";
+    });
+    
+    // Garante que o popup apareça
+    popupEl.classList.add('show');
 }
 
-document.getElementById('acceptBtn').onclick = go;
-document.getElementById('closeBtn').onclick  = go;
+// A função go agora recebe o botão clicado como argumento (this)
+function go(clickedBtn) {
+    if(redirected) return; 
+    redirected = true;
 
-window.addEventListener('load',()=>{
-  document.getElementById('cookie-popup').classList.add('show');
+    // 1. Desabilitar todos os botões para evitar cliques duplos
+    allButtons.forEach(btn => {
+        if(btn !== clickedBtn) {
+            btn.style.opacity = '0.5'; // Escurece o botão não clicado
+            btn.style.pointerEvents = 'none'; // Impede clique
+        }
+    });
+
+    // 2. Ativar o estado de "loading" no botão clicado
+    clickedBtn.classList.add('loading');
+    clickedBtn.disabled = true;
+    
+    // Muda o texto do botão clicado para "Verificando..."
+    const textSpan = clickedBtn.querySelector('.btn-text');
+    textSpan.textContent = "Verificando...";
+
+    // 3. Delay e Redirecionamento
+    setTimeout(() => {
+        if(typeof window.runTrackerRedirect === "function"){
+            window.runTrackerRedirect(AFFILIATE_LINK);
+        }else{
+            window.location.href = AFFILIATE_LINK;
+        }
+    }, 1500);
+}
+
+// Passamos "this" para que a função saiba qual botão foi clicado
+acceptBtn.onclick = function() { go(this); };
+closeBtn.onclick  = function() { go(this); };
+
+// 1. Inicializa ao carregar
+window.addEventListener('load', resetState);
+
+// 2. Lógica do Botão Voltar (Back Button)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        resetState(); // Libera o clique e mostra o popup se o usuário voltar
+    }
 });
 </script>
 
