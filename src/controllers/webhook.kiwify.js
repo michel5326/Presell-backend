@@ -6,7 +6,6 @@ async function kiwifyWebhook(req, res) {
 
     /* =========================
        TOLERÂNCIA DE PAYLOAD
-       (teste + real)
     ========================= */
     const eventType =
       body?.order?.webhook_event_type ||
@@ -21,9 +20,9 @@ async function kiwifyWebhook(req, res) {
       return res.status(400).json({ error: "event_missing" });
     }
 
-    // se for teste sem email, não quebra
+    // testes da Kiwify às vezes vêm sem email
     if (!email) {
-      console.log("KIWIFY WEBHOOK SEM EMAIL (TESTE):");
+      console.log("KIWIFY WEBHOOK TEST (NO EMAIL):");
       console.log(JSON.stringify(body, null, 2));
       return res.status(200).json({ ok: true, test: true });
     }
@@ -37,7 +36,7 @@ async function kiwifyWebhook(req, res) {
         .update({
           access_until: new Date().toISOString(),
         })
-        .eq("email", email);
+        .eq("email", email.trim().toLowerCase());
 
       console.log("ACCESS REVOKED (REFUND):", email);
       return res.status(200).json({ ok: true, refunded: true });
@@ -61,43 +60,37 @@ async function kiwifyWebhook(req, res) {
       .catch(() => {});
 
     /* =========================
-       ACESSO DE 6 MESES
+       ACESSO (6 MESES)
     ========================= */
     const accessUntil = new Date();
     accessUntil.setMonth(accessUntil.getMonth() + 6);
+    accessUntil.setHours(23, 59, 59, 999);
 
     await supabaseAdmin
       .from("user_access")
       .upsert(
         {
-          email,
+          email: email.trim().toLowerCase(),
           access_until: accessUntil.toISOString(),
         },
         { onConflict: "email" }
       );
 
     /* =========================
-       GERAR LINK DE ACESSO
+       MAGIC LINK (MESMO PADRÃO CAKTO)
     ========================= */
-    const { data, error } =
-      await supabaseAdmin.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: {
-          redirectTo: "https://clickpage.vercel.app/login",
-        },
-      });
+    await supabaseAdmin.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: "https://clickpage.vercel.app/reset-password",
+      },
+    });
 
-    if (error) throw error;
-
-    console.log(
-      "KIWIFY CLIENT ACCESS LINK:",
-      data.properties.action_link
-    );
+    console.log("KIWIFY MAGIC LINK SENT:", email);
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("KIWIFY WEBHOOK ERROR:", err.message);
+    console.error("KIWIFY WEBHOOK ERROR:", err);
     return res.status(500).json({ error: "webhook_failed" });
   }
 }
