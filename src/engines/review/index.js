@@ -1,6 +1,7 @@
 const aiService = require('../../services/ai');
 const { resolveProductImage } = require('../product-images');
 const { renderTemplate } = require('../../templates/renderTemplate.service');
+const { findYoutubeVideo } = require('../../services/youtube.service'); // ✅ VÍDEO
 
 /* ---------- HELPERS ---------- */
 
@@ -93,25 +94,38 @@ async function generate({
   attempt,
   theme,
   trackingScript,
-  productImageUrl, // ✅ NOVO (opcional)
+  productImageUrl,
+  template, // ✅ CONTROLADO PELO FRONT
 }) {
 
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
+  /* ---------- IA COPY ---------- */
   const rawCopy = await aiService.generateCopy({
     type: 'review',
     productUrl,
   });
 
   const copy = normalizeCopyKeys(rawCopy);
+
+  /* ---------- IMAGEM ---------- */
   const image = await resolveProductImage(
-  productUrl,
-  attempt,
-  safe(productImageUrl)
-);
+    productUrl,
+    attempt,
+    safe(productImageUrl)
+  );
+
+  /* ---------- VÍDEO (OPCIONAL / AUTOMÁTICO) ---------- */
+  let youtubeVideoId = null;
+
+  if (template === 'review-video') {
+    const query = `${copy.HEADLINE || ''} review`;
+    youtubeVideoId = await findYoutubeVideo(query);
+  }
 
   const now = new Date();
 
+  /* ---------- VIEW ---------- */
   const view = {
     PAGE_TITLE: safe(copy.HEADLINE) || 'Product Review',
     META_DESCRIPTION: safe(copy.SUBHEADLINE),
@@ -132,17 +146,27 @@ async function generate({
 
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
+
+    YOUTUBE_VIDEO_ID: youtubeVideoId, // ✅ INJETADO AQUI
+
     CURRENT_YEAR: String(now.getFullYear()),
 
-    // 🔒 TRACKER (GLOBAL / OPCIONAL)
     TRACKING_SCRIPT: safe(trackingScript),
   };
 
-  const templatePath =
-    resolvedTheme === 'light'
-      ? 'review/review-light.html'
-      : 'review/review-dark.html';
+  /* ---------- TEMPLATE (LEGACY + NOVO) ---------- */
+  let templatePath;
 
+  if (template === 'review-video') {
+    templatePath = 'review/review-video.html';
+  } else {
+    templatePath =
+      resolvedTheme === 'light'
+        ? 'review/review-light.html'
+        : 'review/review-dark.html';
+  }
+
+  /* ---------- RENDER ---------- */
   const html = renderTemplate(templatePath, view);
 
   return { copy, image, html, theme: resolvedTheme, templatePath };
