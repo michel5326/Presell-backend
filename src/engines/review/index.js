@@ -172,13 +172,13 @@ async function generate({
   /* ---------- RENDER ---------- */
   const html = renderTemplate(templatePath, view);
 
-  return {
-    copy,
-    image,
-    html,
-    theme: resolvedTheme, // mantém compatibilidade com front antigo
-    templatePath,
-  };
+ return {
+  copy,
+  image,
+  html,
+  theme: template === 'review-video' ? 'light' : resolvedTheme,
+  templatePath,
+};
 }
 
 module.exports = { generate };
