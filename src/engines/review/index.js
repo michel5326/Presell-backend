@@ -1,7 +1,7 @@
 const aiService = require('../../services/ai');
 const { resolveProductImage } = require('../product-images');
 const { renderTemplate } = require('../../templates/renderTemplate.service');
-const { findYoutubeVideo } = require('../../services/youtube.service'); // ✅ VÍDEO
+const { findYoutubeVideo } = require('../../services/youtube.service');
 
 /* ---------- HELPERS ---------- */
 
@@ -27,7 +27,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-/* ---------- BUILDERS (SEM LÓGICA / SEM PARSING) ---------- */
+/* ---------- BUILDERS ---------- */
 
 function renderFormulaComponents(list) {
   if (!Array.isArray(list) || !list.length) return null;
@@ -95,9 +95,11 @@ async function generate({
   theme,
   trackingScript,
   productImageUrl,
-  template, // ✅ CONTROLADO PELO FRONT
+  template, // vindo do front (review-video)
 }) {
 
+  /* ---------- THEME LEGACY ---------- */
+  // Mantém exatamente o comportamento antigo
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
   /* ---------- IA COPY ---------- */
@@ -115,11 +117,11 @@ async function generate({
     safe(productImageUrl)
   );
 
-  /* ---------- VÍDEO (OPCIONAL / AUTOMÁTICO) ---------- */
+  /* ---------- VÍDEO (SÓ SE TEMPLATE FOR VIDEO) ---------- */
   let youtubeVideoId = null;
 
   if (template === 'review-video') {
-    const query = `${copy.HEADLINE || ''} review`;
+    const query = `${copy.HEADLINE || productUrl} review`;
     youtubeVideoId = await findYoutubeVideo(query);
   }
 
@@ -147,19 +149,20 @@ async function generate({
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
 
-    YOUTUBE_VIDEO_ID: youtubeVideoId, // ✅ INJETADO AQUI
+    YOUTUBE_VIDEO_ID: youtubeVideoId,
 
     CURRENT_YEAR: String(now.getFullYear()),
-
     TRACKING_SCRIPT: safe(trackingScript),
   };
 
-  /* ---------- TEMPLATE (LEGACY + NOVO) ---------- */
+  /* ---------- TEMPLATE SELECTION ---------- */
   let templatePath;
 
   if (template === 'review-video') {
+    // 👉 vídeo manda no layout, ignora theme legacy
     templatePath = 'review/review-video.html';
   } else {
+    // 👉 legacy puro
     templatePath =
       resolvedTheme === 'light'
         ? 'review/review-light.html'
@@ -169,7 +172,13 @@ async function generate({
   /* ---------- RENDER ---------- */
   const html = renderTemplate(templatePath, view);
 
-  return { copy, image, html, theme: resolvedTheme, templatePath };
+  return {
+    copy,
+    image,
+    html,
+    theme: resolvedTheme, // mantém compatibilidade com front antigo
+    templatePath,
+  };
 }
 
 module.exports = { generate };
