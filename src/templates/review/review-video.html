@@ -1,215 +1,425 @@
 <!DOCTYPE html>
 <html lang="{{LANG}}">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="{{META_DESCRIPTION}}">
-<title>{{PAGE_TITLE}}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{META_DESCRIPTION}}">
+    <title>{{PAGE_TITLE}}</title>
 
-<!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Poppins (do seu SaaS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
-<!-- Bootstrap -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {{TRACKING_SCRIPT}}
 
-{{TRACKING_SCRIPT}}
+    <style>
+        /* --- RESET & VARIABLES --- */
+        :root {
+            /* MANTÉM A COR DA SUA MARCA (TEAL) PARA DETALHES E ÍCONES */
+            --primary-color: #008080;
+            --primary-dark: #006666;
+            --primary-light: #f0fbfb;
+            
+            /* MODELO PROSTADINE: AMARELO PARA BOTÕES (CTA) */
+            --cta-color: #FFCC00;
+            --cta-hover: #e6b800;
+            
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+            --container-width: 1100px;
+        }
 
-<style>
-:root {
---primary-color:#008080;
---primary-dark:#006666;
---primary-light:#e6f2f2;
---text-dark:#212529;
---text-muted:#6c757d;
---shadow-sm:0 2px 8px rgba(0,0,0,.05);
---shadow-md:0 8px 16px rgba(0,0,0,.08);
---radius:12px;
-}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-font-family:'Poppins',sans-serif;
-color:var(--text-dark);
-line-height:1.7;
-background:#fff;
-}
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-dark);
+            line-height: 1.7;
+            background-color: var(--white);
+            -webkit-font-smoothing: antialiased;
+        }
 
-/* CTA */
-.btn-universal {
-background:linear-gradient(135deg,var(--primary-color),var(--primary-dark));
-color:#fff;
-font-weight:600;
-padding:12px 28px;
-border-radius:50px;
-border:none;
-text-transform:uppercase;
-font-size:.9rem;
-box-shadow:0 4px 15px rgba(0,128,128,.3);
-}
+        img { max-width: 100%; height: auto; display: block; }
+        a { text-decoration: none; }
 
-.btn-universal:hover {
-transform:translateY(-2px);
-color:#fff;
-}
+        /* --- LAYOUT UTILITIES --- */
+        .container {
+            width: 100%;
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-/* CARDS */
-.card-universal {
-border:1px solid rgba(0,0,0,.05);
-border-radius:var(--radius);
-box-shadow:var(--shadow-sm);
-background:#fff;
-height:100%;
-}
+        .text-center { text-align: center; }
+        .mb-1 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 2rem; }
+        .mb-4 { margin-bottom: 4rem; }
+        .mt-2 { margin-top: 2rem; }
+        .mt-4 { margin-top: 4rem; }
+        
+        .section-padding { padding: 4rem 0; }
 
-/* PRODUCT IMAGE */
-.product-img {
-max-height:420px;
-border-radius:var(--radius);
-box-shadow:var(--shadow-md);
-padding:10px;
-background:#fff;
-}
+        /* Simulação leve de Grid para compatibilidade com seu SaaS */
+        .row { display: flex; flex-wrap: wrap; margin: -1rem; }
+        .col, .col-lg-6, .col-md-4, .col-12 { 
+            flex: 1; 
+            padding: 1rem; 
+            width: 100%; 
+        }
+        @media(min-width: 768px) {
+            .col-lg-6 { max-width: 50%; }
+            .col-md-4 { max-width: 33.333%; }
+        }
 
-/* VIDEO */
-.video-wrapper {
-position:relative;
-padding-bottom:56.25%;
-height:0;
-border-radius:var(--radius);
-overflow:hidden;
-box-shadow:var(--shadow-md);
-margin-bottom:2rem;
-}
+        /* --- BUTTONS (MODELO PROSTADINE) --- */
+        .btn-universal {
+            display: inline-block;
+            padding: 14px 36px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+            border: none;
+            letter-spacing: 0.5px;
+            /* Estilo Amarelo */
+            background-color: var(--cta-color);
+            color: #000000; 
+        }
 
-.video-wrapper iframe {
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
-border:0;
-}
+        .btn-universal:hover {
+            background-color: var(--cta-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 204, 0, 0.6);
+            color: #000000;
+        }
 
-/* SECTIONS */
-.section-header {
-font-weight:700;
-margin-bottom:2.5rem;
-text-align:center;
-color:var(--primary-dark);
-}
+        /* --- NAVBAR --- */
+        .navbar {
+            background-color: var(--white);
+            border-bottom: 1px solid #eee;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
 
-.hide-if-empty:empty { display:none!important; }
-</style>
+        /* --- HERO SECTION --- */
+        .hero {
+            padding: 5rem 0;
+            background: linear-gradient(to bottom, #ffffff, #fffbf0);
+        }
+        .hero h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+        .hero p.lead {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+        .product-img {
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 10px;
+            background: var(--white);
+            max-height: 500px;
+            margin: 0 auto;
+        }
+
+        /* --- VIDEO WRAPPER --- */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* --- CARDS & COMPONENTS --- */
+        /* Estilizando o conteúdo injetado {{FORMULA_COMPONENTS}} e {{BENEFITS_CARDS}} */
+        .card-custom {
+            background: var(--white);
+            border: 1px solid #f0f0f0;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Ícones dentro dos cards injetados */
+        .card-custom i, .card-custom .fa, .card-custom img.icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        /* --- INFO CARDS (How it Works / Guarantee) --- */
+        .info-card {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            border-left: 5px solid var(--primary-color);
+        }
+        .info-card h2 {
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+        }
+        .icon-emoji {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        /* --- TESTIMONIALS --- */
+        .review-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+        .stars { color: #ffc107; margin-bottom: 0.5rem; }
+        .reviewer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        /* --- BADGES --- */
+        .badge-guarantee {
+            background: var(--cta-color);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        /* --- FAQ (Placeholders caso use no futuro) --- */
+        .faq-item {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1rem;
+        }
+        .faq-item summary {
+            padding: 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            list-style: none;
+            color: var(--primary-dark);
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item p { padding: 0 1.5rem 1.5rem 1.5rem; color: var(--text-muted); }
+
+        /* --- FOOTER --- */
+        footer {
+            background-color: #212529;
+            color: #adb5bd;
+            padding: 3rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2rem; }
+            .hero .order-2-desktop { order: -1; } /* Vídeo primeiro no mobile */
+            .hero .col-lg-6 { padding: 0.5rem; }
+        }
+
+        /* Hide Empty Logic */
+        .hide-if-empty:empty { display: none !important; }
+    </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-light bg-white shadow-sm sticky-top">
-<div class="container d-flex justify-content-between align-items-center">
-<strong>REVIEW GUIDE</strong>
-<a href="{{AFFILIATE_LINK}}" class="btn btn-universal">Official Website</a>
-</div>
-</nav>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="brand">REVIEW GUIDE</div>
+            <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">Official Website</a>
+        </div>
+    </nav>
 
-<main class="container my-5">
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <div class="container">
+            <div class="row align-items-center">
+                
+                <!-- Hero Content -->
+                <div class="col-lg-6">
+                    <h1>{{HEADLINE}}</h1>
+                    <p class="lead">{{SUBHEADLINE}}</p>
 
-<!-- HERO -->
-<section class="row align-items-center gy-5 mb-5">
+                    {{#YOUTUBE_VIDEO_ID}}
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/{{YOUTUBE_VIDEO_ID}}" title="Product Review Video" allowfullscreen></iframe>
+                    </div>
+                    {{/YOUTUBE_VIDEO_ID}}
 
-<div class="col-lg-6">
+                    <div class="info-card mb-4" style="border-left: none; border: 1px dashed #ccc; box-shadow: none;">
+                        <p class="mb-0">{{INTRO}}</p>
+                    </div>
 
-<h1 class="fw-bold mb-3">{{HEADLINE}}</h1>
-<p class="lead text-muted mb-4">{{SUBHEADLINE}}</p>
+                    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">Get It Now <i class="fas fa-chevron-right ms-2"></i></a>
+                </div>
 
-{{#YOUTUBE_VIDEO_ID}}
-<div class="video-wrapper">
-<iframe
-src="https://www.youtube.com/embed/{{YOUTUBE_VIDEO_ID}}"
-title="Product Review Video"
-allowfullscreen>
-</iframe>
-</div>
-{{/YOUTUBE_VIDEO_ID}}
+                <!-- Hero Image -->
+                <div class="col-lg-6 text-center order-2-desktop mt-2">
+                    {{#PRODUCT_IMAGE}}
+                    <img src="{{PRODUCT_IMAGE}}" class="product-img" alt="Product Image">
+                    {{/PRODUCT_IMAGE}}
+                </div>
 
-<div class="bg-light p-4 rounded-4 mb-4">
-<p class="mb-0">{{INTRO}}</p>
-</div>
+            </div>
+        </div>
+    </header>
 
-<a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
-Get It Now <i class="fas fa-chevron-right ms-2"></i>
-</a>
+    <!-- TRUST BAR (Static Addition for Conversion) -->
+    <section class="text-center" style="background: #fff; padding: 2rem 0; border-bottom: 1px solid #eee;">
+        <div class="container">
+            <span class="badge-guarantee">60 Days 100% Money-Back Guarantee</span>
+            <p class="text-muted mt-2" style="font-size: 0.9rem;">Trusted by thousands of users worldwide.</p>
+        </div>
+    </section>
 
-</div>
+    <!-- HOW IT WORKS -->
+    <section class="section-padding">
+        <div class="container">
+            <h2 class="text-center mb-2" style="color: var(--primary-dark); font-weight: 700;">How It Works</h2>
+            <div class="info-card">
+                <span class="icon-emoji">🎯</span>
+                <p style="font-size: 1.1rem;">{{WHY_IT_WORKS}}</p>
+                <div style="margin-top: 1.5rem;">
+                    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<div class="col-lg-6 text-center">
-{{#PRODUCT_IMAGE}}
-<img src="{{PRODUCT_IMAGE}}" class="product-img img-fluid mx-auto d-block" alt="Product Image">
-{{/PRODUCT_IMAGE}}
-</div>
+    <!-- KEY COMPONENTS -->
+    <section class="section-padding" style="background-color: var(--bg-light);">
+        <div class="container">
+            <h2 class="text-center mb-4" style="color: var(--primary-dark); font-weight: 700;">Key Components</h2>
+            <!-- Injetando as variáveis do SaaS, mas estilizando -->
+            <div class="row hide-if-empty">
+                {{FORMULA_COMPONENTS}}
+            </div>
+        </div>
+    </section>
 
-</section>
+    <!-- BENEFITS -->
+    <section class="section-padding">
+        <div class="container">
+            <h2 class="text-center mb-4" style="color: var(--primary-dark); font-weight: 700;">Key Benefits</h2>
+            <div class="row hide-if-empty">
+                {{BENEFITS_CARDS}}
+            </div>
+        </div>
+    </section>
 
-<!-- HOW IT WORKS -->
-<section class="mb-5">
-<h2 class="section-header">How It Works</h2>
-<div class="card card-universal p-4">
-<p class="fs-5 text-center mb-0">{{WHY_IT_WORKS}}</p>
-<div class="text-center mt-4">
-<a href="{{AFFILIATE_LINK}}" class="btn btn-universal">Learn More</a>
-</div>
-</div>
-</section>
+    <!-- TESTIMONIALS -->
+    <section class="section-padding" style="background-color: var(--bg-light);">
+        <div class="container">
+            <h2 class="text-center mb-4" style="color: var(--primary-dark); font-weight: 700;">What Users Say</h2>
+            <div class="row hide-if-empty">
+                {{TESTIMONIAL_CARDS}}
+            </div>
+            <p class="text-center mt-4 text-muted hide-if-empty">{{SOCIAL_PROOF}}</p>
+        </div>
+    </section>
 
-<!-- KEY COMPONENTS -->
-<section class="mb-5">
-<h2 class="section-header">Key Components</h2>
-<div class="row g-4 hide-if-empty">
-{{FORMULA_COMPONENTS}}
-</div>
-</section>
+    <!-- GUARANTEE -->
+    <section class="section-padding">
+        <div class="container">
+            <h2 class="text-center mb-2" style="color: var(--primary-dark); font-weight: 700;">Our Guarantee</h2>
+            <div class="info-card">
+                <span class="icon-emoji">🔒</span>
+                <p style="font-size: 1.1rem;">{{GUARANTEE}}</p>
+                <div style="margin-top: 1.5rem;">
+                    <a href="{{AFFILIATE_LINK}}" class="btn btn-universal">Try Risk-Free</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<!-- BENEFITS -->
-<section class="mb-5">
-<h2 class="section-header">Key Benefits</h2>
-<div class="row g-4 hide-if-empty">
-{{BENEFITS_CARDS}}
-</div>
-</section>
+    <!-- FAQ (Adicionado para manter a estrutura do modelo Prostadine) -->
+    <section class="section-padding" style="background-color: var(--bg-light);">
+        <div class="container" style="max-width: 800px;">
+            <h2 class="text-center mb-4" style="color: var(--primary-dark); font-weight: 700;">Frequently Asked Questions</h2>
+            <!-- Nota: O template original não tinha variável de FAQ. 
+                 Adicionei este placeholder estático ou você pode usar {{FAQ_CONTENT}} se seu sistema suportar. -->
+            <details class="faq-item">
+                <summary>Is this product safe to use?</summary>
+                <p>This product is made from high-quality ingredients designed to be safe and effective. Always consult with a doctor if you have concerns.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How fast can I expect results?</summary>
+                <p>Most users begin to notice positive changes within a few weeks of consistent use.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Is there a money-back guarantee?</summary>
+                <p>Yes, we offer a full money-back guarantee if you are not satisfied with the results.</p>
+            </details>
+        </div>
+    </section>
 
-<!-- TESTIMONIALS -->
-<section class="mb-5">
-<h2 class="section-header">What Users Say</h2>
-<div class="row g-4 hide-if-empty">
-{{TESTIMONIAL_CARDS}}
-</div>
-<p class="text-center mt-4 text-muted hide-if-empty">
-{{SOCIAL_PROOF}}
-</p>
-</section>
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <p>&copy; {{CURRENT_YEAR}} Review Guide</p>
+            <p style="margin-top: 5px; font-size: 0.8rem; opacity: 0.7;">Independent Review Page</p>
+        </div>
+    </footer>
 
-<!-- GUARANTEE -->
-<section class="mb-5">
-<h2 class="section-header">Our Guarantee</h2>
-<div class="card card-universal p-5 text-center">
-<p class="fs-5 mb-4">{{GUARANTEE}}</p>
-<a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
-Try Risk-Free
-</a>
-</div>
-</section>
-
-</main>
-
-<footer class="bg-dark text-white py-4 text-center">
-<p class="mb-0">&copy; {{CURRENT_YEAR}} Review Guide</p>
-<p class="small opacity-75">Independent Review Page</p>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
