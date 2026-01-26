@@ -97,9 +97,6 @@ async function generate({
   productImageUrl,
   template, // vindo do front (review-video)
 }) {
-
-  /* ---------- THEME LEGACY ---------- */
-  // Mantém exatamente o comportamento antigo
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
 
   /* ---------- IA COPY ---------- */
@@ -117,12 +114,16 @@ async function generate({
     safe(productImageUrl)
   );
 
-  /* ---------- VÍDEO (SÓ SE TEMPLATE FOR VIDEO) ---------- */
+  /* ---------- VÍDEO (OPCIONAL) ---------- */
   let youtubeVideoId = null;
-
   if (template === 'review-video') {
-    const query = `${copy.HEADLINE || productUrl} review`;
-    youtubeVideoId = await findYoutubeVideo(query);
+    try {
+      const query = `${copy.HEADLINE || productUrl} review`;
+      youtubeVideoId = await findYoutubeVideo(query);
+      console.log('[YOUTUBE]', youtubeVideoId || 'NOT FOUND');
+    } catch (e) {
+      console.warn('[YOUTUBE ERROR]', e.message);
+    }
   }
 
   const now = new Date();
@@ -148,7 +149,6 @@ async function generate({
 
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
-
     YOUTUBE_VIDEO_ID: youtubeVideoId,
 
     CURRENT_YEAR: String(now.getFullYear()),
@@ -157,12 +157,9 @@ async function generate({
 
   /* ---------- TEMPLATE SELECTION ---------- */
   let templatePath;
-
   if (template === 'review-video') {
-    // 👉 vídeo manda no layout, ignora theme legacy
     templatePath = 'review/review-video.html';
   } else {
-    // 👉 legacy puro
     templatePath =
       resolvedTheme === 'light'
         ? 'review/review-light.html'
@@ -172,13 +169,18 @@ async function generate({
   /* ---------- RENDER ---------- */
   const html = renderTemplate(templatePath, view);
 
- return {
-  copy,
-  image,
-  html,
-  theme: template === 'review-video' ? 'light' : resolvedTheme,
-  templatePath,
-};
+  console.log('================ TEMPLATE DEBUG ================');
+  console.log('[SELECTED TEMPLATE]', templatePath);
+  console.log('[HTML LENGTH]', html?.length || 0);
+  console.log('================================================');
+
+  return {
+    copy,
+    image,
+    html,
+    theme: template === 'review-video' ? 'light' : resolvedTheme,
+    templatePath,
+  };
 }
 
 module.exports = { generate };
