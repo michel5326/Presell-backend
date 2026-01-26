@@ -9,8 +9,9 @@ async function generatePresellData(req, res) {
       affiliateUrl,
       attempt = 0,
       theme,
-      trackingScript,   // pass-through
-      productImageUrl,  // ✅ imagem manual opcional
+      template,          // ✅ AGORA LIDO
+      trackingScript,
+      productImageUrl,
     } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
@@ -27,8 +28,9 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
+        template,        // ✅ AGORA REPASSADO
         trackingScript,
-        productImageUrl, // ✅ REPASSADO
+        productImageUrl,
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
@@ -37,7 +39,7 @@ async function generatePresellData(req, res) {
         attempt,
         theme,
         trackingScript,
-        productImageUrl, // ✅ MANTÉM CONTRATO IGUAL
+        productImageUrl,
       });
     } else {
       return res.status(400).json({
@@ -45,9 +47,9 @@ async function generatePresellData(req, res) {
       });
     }
 
-    // 🔍 DEBUG LIMPO E ÚTIL
     console.log('================ PRESSELL DEBUG ================');
     console.log('[TYPE]', type);
+    console.log('[TEMPLATE]', template || 'LEGACY'); // 👈 útil
     console.log('[IMAGE SOURCE]', productImageUrl ? 'FRONT' : 'AUTO');
     console.log('[IMAGE FINAL]', result?.image || 'EMPTY');
     console.log('[HTML LENGTH]', result?.html?.length || 0);
