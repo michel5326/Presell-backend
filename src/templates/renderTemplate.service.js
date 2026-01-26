@@ -4,11 +4,10 @@ const path = require('path');
 /**
  * Mini renderer compatível com:
  * - {{KEY}}  (case-insensitive)
- * - {{#KEY}} ... {{/KEY}}  (renderiza bloco se KEY for truthy)
- * - array em seção => repete bloco
+ * - {{#KEY}} ... {{/KEY}}
+ * - arrays em seções
  *
- * Não usa libs externas.
- * Determinístico.
+ * Determinístico, sem libs externas.
  */
 
 function normKey(k) {
@@ -24,9 +23,8 @@ function getValue(data, key) {
   const found = Object.keys(data).find(
     (k) => String(k).toLowerCase() === wanted
   );
-  if (found) return data[found];
 
-  return undefined;
+  return found ? data[found] : undefined;
 }
 
 function renderSections(template, data) {
@@ -66,8 +64,7 @@ function renderVars(template, data) {
     if (key.startsWith('#') || key.startsWith('/')) return `{{${rawKey}}}`;
 
     const v = getValue(data, key);
-    if (v === undefined || v === null) return '';
-    return String(v);
+    return v === undefined || v === null ? '' : String(v);
   });
 }
 
@@ -101,22 +98,21 @@ function renderTemplate(arg1, arg2) {
 
   if (!templatePath) return '';
 
-  // ✅ BASE ROBUSTA (root do projeto)
-  const templatesDir = path.join(process.cwd(), 'src', 'templates');
+  // ✅ BASE ABSOLUTA E GARANTIDA
+  // este arquivo está em: src/templates/renderTemplate.service.js
+  const templatesDir = path.resolve(__dirname);
 
   const absPath = path.isAbsolute(templatePath)
     ? templatePath
     : path.join(templatesDir, templatePath);
 
-  let html = '';
   try {
-    html = fs.readFileSync(absPath, 'utf8');
+    const html = fs.readFileSync(absPath, 'utf8');
+    return renderTemplateString(html, data);
   } catch (e) {
     console.error('[renderTemplate] read fail:', absPath);
     return '';
   }
-
-  return renderTemplateString(html, data);
 }
 
 module.exports = {
