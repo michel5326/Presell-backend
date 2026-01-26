@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{LANG}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -118,7 +118,6 @@
             background: #000;
         }
 
-        /* A capa da imagem (Thumbnail) */
         .video-cover {
             position: absolute;
             top: 0;
@@ -127,13 +126,12 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            pointer-events: none; /* Bloqueia clique na imagem */
+            pointer-events: none;
             z-index: 2;
         }
 
-        /* O Botão de Play */
         .play-btn-circle {
-            pointer-events: auto; /* Libera clique APENAS aqui */
+            pointer-events: auto;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -272,6 +270,26 @@
 
         .bg-gray { background-color: var(--bg-section); }
 
+        /* --- 9. ESTRELAS PADRONIZADAS (NOVO) --- */
+        .testimonial-stars {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            color: transparent;
+        }
+
+        .testimonial-stars i {
+            font-size: 1.25rem;
+            color: #FFCC00; /* Amarelo do CTA */
+            filter: drop-shadow(0 2px 3px rgba(255, 204, 0, 0.4));
+            transition: transform 0.2s;
+        }
+
+        .testimonial-stars i:hover {
+            transform: scale(1.2);
+        }
+
         /* Mobile */
         @media (max-width: 768px) {
             .hero-title { font-size: 2rem; }
@@ -280,6 +298,8 @@
             .card-universal.text-center { text-align: center; }
         }
     </style>
+
+    {{TRACKING_SCRIPT}}
 </head>
 <body>
 
@@ -419,30 +439,27 @@
     </footer>
 
     <!-- SCRIPT DE VÍDEO (Click-to-Play) -->
+    {{#YOUTUBE_VIDEO_ID}}
     <script>
         function loadVideo() {
-            // 1. Pega o ID do vídeo da variável do SaaS
             var videoId = "{{YOUTUBE_VIDEO_ID}}"; 
             
-            // 2. Cria o iframe com autoplay
             var iframe = '<iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&controls=1" ' +
                         'title="Product Review" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' +
                         'allowfullscreen style="width:100%; height:100%; border:none;"></iframe>';
             
-            // 3. Injeta no placeholder
             document.getElementById('video-placeholder').innerHTML = iframe;
             
-            // 4. Oculta a capa e o botão
             document.getElementById('video-thumb').style.opacity = '0';
             var btn = document.querySelector('.play-btn-circle');
             btn.style.opacity = '0';
             btn.style.pointerEvents = 'none';
         }
 
-        // Define a imagem de fundo da capa automaticamente
         document.getElementById('video-thumb').style.backgroundImage = 
             "url('https://img.youtube.com/vi/{{YOUTUBE_VIDEO_ID}}/maxresdefault.jpg')";
     </script>
+    {{/YOUTUBE_VIDEO_ID}}
 
 </body>
 </html>
