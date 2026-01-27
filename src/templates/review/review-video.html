@@ -14,7 +14,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Bootstrap CSS (Essencial para o Grid injetado) -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
@@ -106,7 +106,7 @@
             margin-bottom: 2rem;
         }
 
-        /* --- VÍDEO COM BLOQUEIO DE CLIQUE --- */
+        /* --- VÍDEO COM BLOQUEIO TOTAL --- */
         .video-wrapper-fixed {
             position: relative;
             padding-bottom: 56.25%; /* 16:9 */
@@ -126,12 +126,13 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            pointer-events: none;
-            z-index: 2;
+            pointer-events: none; /* Bloqueia clique na capa */
+            cursor: default; /* Cursor seta, indicando não é clicável */
+            z-index: 20; /* Alto para garantir que fique acima */
         }
 
         .play-btn-circle {
-            pointer-events: auto;
+            pointer-events: auto; /* Libera clique APENAS aqui */
             position: absolute;
             top: 50%;
             left: 50%;
@@ -146,7 +147,7 @@
             cursor: pointer;
             box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.3), 0 10px 20px rgba(0,0,0,0.2);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 10;
+            z-index: 30; /* Mais alto que a capa */
         }
 
         .play-btn-circle:hover {
@@ -165,7 +166,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
+            z-index: 10;
+            /* ESCUDO EXTRA: Bloqueia cliques que passarem por baixo */
+            pointer-events: none;
         }
 
         /* --- IMAGEM DO PRODUTO --- */
@@ -200,7 +203,6 @@
             border-color: var(--brand-light);
         }
 
-        /* Ícones */
         .card-universal i {
             color: var(--brand-primary);
             font-size: 2rem;
@@ -270,7 +272,7 @@
 
         .bg-gray { background-color: var(--bg-section); }
 
-        /* --- 9. ESTRELAS PADRONIZADAS (NOVO) --- */
+        /* --- 9. ESTRELAS --- */
         .testimonial-stars {
             display: flex;
             justify-content: center;
@@ -281,7 +283,7 @@
 
         .testimonial-stars i {
             font-size: 1.25rem;
-            color: #FFCC00; /* Amarelo do CTA */
+            color: #FFCC00;
             filter: drop-shadow(0 2px 3px rgba(255, 204, 0, 0.4));
             transition: transform 0.2s;
         }
@@ -298,8 +300,6 @@
             .card-universal.text-center { text-align: center; }
         }
     </style>
-
-    {{TRACKING_SCRIPT}}
 </head>
 <body>
 
@@ -438,24 +438,27 @@
         </div>
     </footer>
 
-    <!-- SCRIPT DE VÍDEO (Click-to-Play) -->
+    <!-- SCRIPT DE VÍDEO (Click-to-Play + Protection) -->
     {{#YOUTUBE_VIDEO_ID}}
     <script>
         function loadVideo() {
-            var videoId = "{{YOUTUBE_VIDEO_ID}}"; 
+            var videoId = "{{YOUTUBE_VIDEO_ID}}";
             
-            var iframe = '<iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&controls=1" ' +
+            // URL COM modestbranding=1 (Esconde o logo do YouTube que redireciona)
+            var iframe = '<iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&controls=1&modestbranding=1" ' +
                         'title="Product Review" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' +
                         'allowfullscreen style="width:100%; height:100%; border:none;"></iframe>';
             
             document.getElementById('video-placeholder').innerHTML = iframe;
             
+            // Oculta a capa e o botão
             document.getElementById('video-thumb').style.opacity = '0';
             var btn = document.querySelector('.play-btn-circle');
             btn.style.opacity = '0';
             btn.style.pointerEvents = 'none';
         }
 
+        // Define a imagem de fundo da capa automaticamente
         document.getElementById('video-thumb').style.backgroundImage = 
             "url('https://img.youtube.com/vi/{{YOUTUBE_VIDEO_ID}}/maxresdefault.jpg')";
     </script>
