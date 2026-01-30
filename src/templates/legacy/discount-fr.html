@@ -211,15 +211,15 @@ html,body{
         <div class="price-section">
           <div class="price-row">
             <span class="price-label">Prix original :</span>
-            <span class="original-price">$<span id="anchor">0</span></span>
+            <span class="original-price"><span id="anchor">0</span> €</span>
           </div>
           <div class="price-row">
             <span class="price-label">Votre prix :</span>
-            <span class="final-price">$<span id="price">0</span></span>
+            <span class="final-price"><span id="price">0</span> €</span>
           </div>
           <div class="price-row">
             <span class="price-label">Par unité :</span>
-            <span class="unit-price">$<span id="unit">0.00</span></span>
+            <span class="unit-price"><span id="unit">0,00</span> €</span>
           </div>
         </div>
 
@@ -263,9 +263,13 @@ document.addEventListener('DOMContentLoaded', () => {
   overlay.classList.add('show');
 });
 
+// Atualiza os textos. Assumindo que os preços principais são inteiros comuns (ex: 97, 49)
+// Se vierem com decimais do backend, mantém o padrão do backend, mas o unit price será formatado.
 anchorEl.textContent = ANCHOR_PRICE;
 priceEl.textContent  = YOUR_PRICE;
-unitEl.textContent   = YOUR_PRICE ? (YOUR_PRICE / 6).toFixed(2) : '0.00';
+
+// Formata para Francês (vírgula para decimais)
+unitEl.textContent   = YOUR_PRICE ? (YOUR_PRICE / 6).toFixed(2).replace('.', ',') : '0,00';
 
 function redirectSafe(){
   if(clicked) return;
