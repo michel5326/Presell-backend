@@ -20,10 +20,7 @@
 
 <style>
   :root {
-      /* 
-         VARIÁVEIS DINÂMICAS
-         Se o backend enviar vazio, os fallbacks abaixo (no restante do CSS) entram em ação.
-      */
+      /* VARIÁVEIS DINÂMICAS */
       --primary-color: {{PRIMARY_COLOR}};
       --secondary-color: {{SECONDARY_COLOR}};
       
@@ -70,7 +67,14 @@
     a { text-decoration: none; transition: all 0.3s ease; }
     p { margin-bottom: 1rem; }
 
-    /* --- BACKGROUND FX (COM FALLBACK SEGURO) --- */
+    /* --- AUTO-CLEANUP: ESCONDE ELEMENTOS VAZIOS --- */
+    /* Se o backend não preencher, o elemento some automaticamente */
+    h2:empty, h3:empty, h4:empty, p:empty, 
+    .tech-specs-visual:empty, .bonus-section:empty {
+        display: none !important;
+    }
+
+    /* --- BACKGROUND FX (COM FALLBACK) --- */
     .bg-glow {
       position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
       background: radial-gradient(circle, var(--primary-color, #00e676) 0%, transparent 70%);
@@ -93,7 +97,6 @@
     }
 
     .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; color: var(--text-main) !important; }
-    /* Fallback Garantido: Se a cor falhar, fica Verde */
     .dot { width: 8px; height: 8px; background: var(--primary-color, #00e676); border-radius: 50%; box-shadow: 0 0 10px var(--primary-color, #00e676); }
     
     .header-info {
@@ -168,10 +171,9 @@
     }
     .hero-img:hover { transform: scale(1.02); border-color: var(--primary-color, #00e676); }
 
-    /* --- BUTTONS (CRITICAL FIX) --- */
+    /* --- BUTTONS --- */
     .btn {
       display: inline-block; width: 100%; padding: 18px; border-radius: 50px;
-      /* Usando cor primária com fallback. Se falhar, cria gradiente seguro Verde -> Preto */
       background: linear-gradient(135deg, var(--primary-color, #00e676), #000); 
       color: #fff; font-weight: 800; font-size: 16px;
       text-align: center; border: none; cursor: pointer; position: relative; overflow: hidden;
@@ -200,7 +202,6 @@
       display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
     }
 
-    /* --- CONTENT BLOCKS --- */
     .content-block { margin-bottom: 60px; }
     
     .section-title {
@@ -329,6 +330,24 @@
 </head>
 <body>
 
+  <!-- FIXA AS CORES NO CARREGAMENTO DA PÁGINA -->
+  <script>
+    (function() {
+      const root = document.documentElement;
+      // Lê as cores atuais (o que o backend injetou)
+      let pColor = getComputedStyle(root).getPropertyValue('--primary-color').trim();
+      let sColor = getComputedStyle(root).getPropertyValue('--secondary-color').trim();
+      
+      // Se a cor estiver vazia, força o padrão Verde e Azul
+      if (!pColor || pColor === '') {
+        root.style.setProperty('--primary-color', '#00e676');
+      }
+      if (!sColor || sColor === '') {
+        root.style.setProperty('--secondary-color', '#00b0ff');
+      }
+    })();
+  </script>
+
   <div class="bg-glow"></div>
   <div class="bg-glow-2"></div>
 
@@ -401,7 +420,7 @@
         </ul>
       </div>
 
-      <!-- SEÇÃO DINÂMICA: Pode ser Formula, Specs ou Highlights -->
+      <!-- SEÇÃO DINÂMICA (Ingredients/Specs) -->
       <div class="content-block">
         <h2 class="section-title">{{SECTION_4_TITLE}}</h2>
         <div class="tech-specs-visual">
