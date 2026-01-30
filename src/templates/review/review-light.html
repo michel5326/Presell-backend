@@ -22,7 +22,8 @@
 <style>
 :root {
     /* --- CORE DYNAMIC COLORS --- */
-    --primary-color: {{PRIMARY_COLOR|#008080}}; /* Teal Padrão - Equilibrado para Review */
+    /* Fallback Teal caso o backend não envie cor */
+    --primary-color: {{PRIMARY_COLOR|#008080}}; 
     --secondary-color: {{SECONDARY_COLOR|#2c3e50}};
     --primary-dark: #006666;
     --primary-light: #e6f2f2;
@@ -51,7 +52,7 @@ body {
     display: none !important;
 }
 
-/* Esconde a coluna inteira se o conteúdo dela for vazio */
+/* Esconde a coluna inteira se TODOS os filhos forem vazios */
 .col-hide-if-empty:not(:has(*:not(:empty))) {
     display: none !important;
 }
@@ -184,7 +185,6 @@ body {
     font-weight: 700;
     margin-bottom: 1rem;
     color: var(--text-dark);
-    font-size: 1.1rem;
 }
 
 .card-text {
@@ -213,7 +213,6 @@ body {
     width: auto;
     border-radius: var(--radius);
     box-shadow: var(--shadow-lg);
-    /* Remove padding padrão do Bootstrap img-fluid se necessário */
     padding: 10px; 
     background: #fff;
 }
@@ -231,7 +230,7 @@ body {
     background: #f8f9fa;
     border: 2px dashed var(--primary-color);
     border-radius: var(--radius);
-    padding: 4rem;
+    padding: 4rem 2rem;
     text-align: center;
 }
 
@@ -248,14 +247,16 @@ body {
     text-decoration: none;
     transition: 0.3s;
 }
-.footer-links a:hover { color: #fff; text-decoration: underline; }
+.footer-links a:hover { 
+    color: #fff; 
+    text-decoration: underline; 
+}
 
 /* --- RESPONSIVE --- */
 @media(max-width: 991px){
     .section-header { font-size: 1.8rem; margin-bottom: 2rem; }
     .btn-universal { width: 100%; }
     .hero-title { font-size: 2rem; text-align: center; }
-    .hero-badges { justify-content: center; }
 }
 @media(max-width: 576px){
     .section-header { font-size: 1.5rem; margin-bottom: 2rem; }
@@ -264,7 +265,7 @@ body {
 </style>
 
 <script>
-    // Color Fallback for Universal Theme
+    // Color Fallback para Universal Review Theme
     (function() {
       const root = document.documentElement;
       let pColor = getComputedStyle(root).getPropertyValue('--primary-color').trim();
@@ -297,7 +298,7 @@ body {
 <!-- HERO SECTION -->
 <section class="row align-items-center gy-5 mb-5">
     <div class="col-lg-6">
-        <!-- Dynamic Headline -->
+        <!-- Badge -->
         <div class="mb-3">
             <span class="hero-badge">{{DECISION_STAGE_LINE|Editor's Choice}}</span>
         </div>
@@ -493,7 +494,7 @@ body {
             </div>
         </div>
         <div class="text-center mt-3 opacity-50 small">
-            <p class="mb-0">{{DISCLAIMER_TEXT}}</p>
+            <p>{{DISCLAIMER_TEXT}}</p>
             <p class="mb-0 mt-2">Disclaimer: This is an independent review page.</p>
         </div>
     </div>
