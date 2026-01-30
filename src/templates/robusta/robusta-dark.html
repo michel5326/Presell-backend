@@ -13,17 +13,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
-  <!-- Font Awesome (Adicionei para ícones visuais se precisar) -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 {{TRACKING_SCRIPT}}
 
+<!-- ESTILO DINÂMICO: Opcional para o backend injetar cores customizadas por produto -->
 <style>
-  /* --- CORE PREMIUM VARIABLES --- */
   :root {
-      /* Cores */
-      --primary-color: #00e676;
-      --secondary-color: #00b0ff;
+      /* Cores Padrão (Podem ser sobrescritas pelo backend via style inline no body ou head) */
+      --primary-color: {{PRIMARY_COLOR|#00e676}};
+      --secondary-color: {{SECONDARY_COLOR|#00b0ff}};
       --bg-body: #02040a;
       --bg-gradient: radial-gradient(circle at 50% 0%, #1a233e 0%, #02040a 60%);
       --glass-bg: rgba(15, 21, 37, 0.75);
@@ -33,7 +33,7 @@
       
       /* FX */
       --shadow-glow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      --neon-glow: 0 0 20px rgba(0, 230, 118, 0.4);
+      --neon-glow: 0 0 20px rgba(0, 230, 118, 0.4); /* Ajuste dinâmico via JS se precisar */
       --radius: 16px;
     }
 
@@ -43,14 +43,13 @@
       font-family: 'Inter', sans-serif;
       background-color: var(--bg-body);
       background-image: var(--bg-gradient);
-      background-attachment: fixed; /* Fundo fixo ao rolar */
+      background-attachment: fixed;
       color: var(--text-main);
       line-height: 1.6;
       overflow-x: hidden;
     }
 
     /* --- NUCLEAR VISIBILITY FIX --- */
-    /* Força todos os textos a serem visíveis */
     main, main p, main span, main div, main li, 
     main .text-muted, main .alert, 
     .feature-card, .feature-card p, 
@@ -74,13 +73,13 @@
     /* --- BACKGROUND FX --- */
     .bg-glow {
       position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
-      background: radial-gradient(circle, rgba(0, 230, 118, 0.08) 0%, transparent 70%);
-      z-index: -1; pointer-events: none;
+      background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%); /* Usando cor primária */
+      opacity: 0.08; z-index: -1; pointer-events: none;
     }
     .bg-glow-2 {
       position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
-      background: radial-gradient(circle, rgba(0, 176, 255, 0.08) 0%, transparent 70%);
-      z-index: -1; pointer-events: none;
+      background: radial-gradient(circle, var(--secondary-color) 0%, transparent 70%); /* Usando cor secundária */
+      opacity: 0.08; z-index: -1; pointer-events: none;
     }
 
     /* --- HEADER --- */
@@ -147,7 +146,7 @@
       font-size: 16px; color: var(--text-sec); margin-bottom: 32px; font-weight: 500; border-left: 3px solid var(--primary-color); padding-left: 20px; background: rgba(0,230,118,0.05); padding: 16px; border-radius: 0 8px 8px 0;
     }
 
-    /* Image Styling (AJUSTE DE TAMANHO) */
+    /* Image Styling */
     .hero-img-wrapper::before {
       content: ''; position: absolute; inset: -15px;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); filter: blur(80px); opacity: 0.2; z-index: -1;
@@ -156,8 +155,8 @@
 
     .hero-img {
       width: 100%;
-      max-width: 500px;      /* Limite de largura */
-      max-height: 600px;     /* Limite de altura para não ficar gigante */
+      max-width: 500px;
+      max-height: 600px;
       height: auto;
       width: auto;
       object-fit: contain;
@@ -170,12 +169,13 @@
     }
     .hero-img:hover { transform: scale(1.02); border-color: var(--primary-color); }
 
-    /* --- BUTTONS (PREMIUM STYLE) --- */
+    /* --- BUTTONS --- */
     .btn {
       display: inline-block; width: 100%; padding: 18px; border-radius: 50px;
-      background: linear-gradient(135deg, var(--primary-color), #00c853); color: #000; font-weight: 800; font-size: 16px;
+      background: linear-gradient(135deg, var(--primary-color), #00c853); /* Fallback green */
+      color: #000; font-weight: 800; font-size: 16px;
       text-align: center; border: none; cursor: pointer; position: relative; overflow: hidden;
-      box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+      box-shadow: 0 0 20px var(--primary-color); /* Dynamic shadow */
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       text-transform: uppercase; letter-spacing: 1px;
     }
@@ -188,7 +188,7 @@
     
     .btn:hover { 
       transform: translateY(-3px); 
-      box-shadow: 0 10px 30px rgba(0, 230, 118, 0.6); 
+      box-shadow: 0 10px 30px var(--primary-color); 
       color: #000 !important;
     }
     .btn:hover::before { opacity: 1; }
@@ -209,7 +209,7 @@
     }
     .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--glass-border), transparent); }
 
-    /* --- CARDS (GLASSMORPHISM) --- */
+    /* --- CARDS --- */
     .grid-3 {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;
     }
@@ -250,11 +250,10 @@
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       position: relative; overflow: hidden;
     }
-    /* Glow effect para offer box */
     .offer-box::after {
       content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: radial-gradient(circle, rgba(0, 230, 118, 0.1), transparent 60%);
-      pointer-events: none; z-index: 0;
+      background: radial-gradient(circle, var(--primary-color) 0%, transparent 60%); /* Dynamic */
+      opacity: 0.1; pointer-events: none; z-index: 0;
     }
     .offer-box > * { position: relative; z-index: 1; }
 
@@ -281,17 +280,8 @@
       margin-top: 30px; padding: 24px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);
     }
 
-    /* --- GUARANTEE --- */
-    .guarantee-seal {
-      display: block; max-width: 180px; margin: 20px auto 0;
-      border-radius: 12px; background: rgba(0,0,0,0.3);
-      padding: 12px; border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-    }
-    .guarantee-seal[src=""] { display: none; }
-
-    /* --- INGREDIENTS --- */
-    .ingredients-visual {
+    /* --- TECH SPECS / INGREDIENTS --- */
+    .tech-specs-visual {
       padding: 24px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius);
       display: flex; flex-direction: column; align-items: center;
     }
@@ -359,7 +349,7 @@
   <!-- HERO SECTION -->
   <section class="hero">
     
-    <!-- PART 1: Rótulo e Headline -->
+    <!-- PART 1: Label & Headline -->
     <div class="hero-part-top">
       <span class="hero-label">
         {{DECISION_STAGE_LINE}}
@@ -368,12 +358,12 @@
       <h1>{{HEADLINE_MAIN}}</h1>
     </div>
 
-    <!-- PART 2: Imagem -->
+    <!-- PART 2: Image -->
     <div class="hero-img-wrapper">
       <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
     </div>
 
-    <!-- PART 3: Subheadline, Texto e Botão -->
+    <!-- PART 3: Subheadline, Text & Button -->
     <div class="hero-part-bottom">
       <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
       
@@ -438,22 +428,23 @@
         </ul>
       </div>
 
-      <!-- SECTION: INGREDIENTS -->
+      <!-- SECTION: DYNAMIC CONTENT (INGREDIENTS OR TECH SPECS) -->
+      <!-- Alteração Crítica: Agora o titulo é dinâmico, pode ser "Fórmula" ou "Especificações" -->
       <div class="content-block">
-        <h2 class="section-title">Proprietary Formula</h2>
+        <h2 class="section-title">{{SECTION_4_TITLE}}</h2>
         
-        <div class="ingredients-visual">
-          {{INGREDIENT_IMAGES}}
+        <div class="tech-specs-visual">
+          {{SECTION_4_IMAGES_OR_CONTENT}}
         </div>
 
         <p style="color:var(--text-sec); font-size:16px; max-width:800px; margin-top:24px;">
-          {{FORMULA_TEXT}}
+          {{SECTION_4_TEXT}}
         </p>
       </div>
 
-      <!-- NOVO BLOCO: CTA ESTRATÉGICO -->
+      <!-- MID-PAGE CTA -->
       <div class="content-block" style="text-align: center; padding: 20px 0;">
-         <h3 style="margin-bottom: 16px; color: #fff !important;">Ready to secure your order?</h3>
+         <h3 style="margin-bottom: 16px; color: #fff !important;">{{MID_PAGE_CTA_TITLE}}</h3>
          <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 400px; margin: 0 auto;">
            {{CTA_BUTTON_TEXT}} &rarr;
          </a>
@@ -478,7 +469,7 @@
         </div>
       </div>
 
-      <!-- SECTION: WHO SHOULD NOT (WARNINGS) -->
+      <!-- SECTION: WARNINGS -->
       <div class="content-block">
         <h2 class="section-title">{{WHO_SHOULD_NOT_TITLE}}</h2>
         <div class="alert danger">
@@ -498,7 +489,7 @@
         </div>
       </div>
 
-      <!-- SEÇÃO DE DEPOIMENTOS (TEXTO) -->
+      <!-- TESTIMONIALS -->
       <div class="content-block" style="margin-top:24px;">
         <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
 
@@ -511,10 +502,9 @@
         </div>
       </div>
 
-      <!-- MOBILE ONLY WRAPPER: SIDEBAR + BONUS -->
+      <!-- MOBILE SIDEBAR -->
       <div class="mobile-sidebar-group">
         
-        <!-- SIDEBAR BOX (COPIA PARA MOBILE) -->
         <div class="offer-box">
           <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
           <div class="offer-title">{{HEADLINE_MAIN}}</div>
@@ -556,7 +546,7 @@
 
     </main>
 
-    <!-- SIDEBAR (DESKTOP ONLY) -->
+    <!-- SIDEBAR (DESKTOP) -->
     <aside>
       <div class="offer-box">
         <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
@@ -585,7 +575,7 @@
 
   </div>
 
-  <!-- PROFESSIONAL FOOTER -->
+  <!-- FOOTER -->
   <footer>
     <div class="footer-content">
       
@@ -617,7 +607,6 @@
       if(clicked) return;
       clicked = true;
 
-      // Visual feedback
       const btns = document.querySelectorAll('.btn');
       btns.forEach(btn => btn.innerHTML = 'Redirecting...');
 
@@ -628,7 +617,6 @@
       }
     }
 
-    /* RESET AO VOLTAR NO NAVEGADOR */
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) {
         clicked = false;
@@ -639,7 +627,6 @@
       }
     });
 
-    /* REMOVER IMAGENS DUPLICADAS NA SEÇÃO DE BÔNUS */
     document.addEventListener("DOMContentLoaded", () => {
       const bonusGrids = document.querySelectorAll('.bonus-section .image-grid');
       
@@ -649,7 +636,6 @@
 
         images.forEach(img => {
           const url = img.src;
-          
           if (seenUrls.has(url)) {
             img.style.display = 'none';
           } else {
