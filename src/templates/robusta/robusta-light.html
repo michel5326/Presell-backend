@@ -17,19 +17,19 @@
 
   <style>
     :root {
-      /* --- CORE COLORS (LIGHT THEME) --- */
+      /* --- CORE COLORS (DYNAMIC + LIGHT THEME FALLBACKS) --- */
+      --primary-color: {{PRIMARY_COLOR}};
+      --secondary-color: {{SECONDARY_COLOR}};
+      
       --bg-body: #F8FAFC;       /* Slate 50 - Fundo principal claro */
       --bg-card: #FFFFFF;      /* Branco puro - Cartões */
       --bg-card-hover: #F1F5F9;/* Slate 100 - Hover sutil */
-      --primary: #10B981;      /* Emerald 500 - Verde SaaS */
-      --primary-dim: rgba(16, 185, 129, 0.1); 
-      --accent: #3B82F6;       /* Blue 500 - Tech Blue padrão */
+      
       --text-main: #0F172A;    /* Slate 900 - Texto principal escuro */
       --text-sec: #64748B;     /* Slate 500 - Texto secundário */
       --border: rgba(15, 23, 42, 0.08); /* Borda cinza muito sutil */
       
       /* --- GRADIENTS & FX --- */
-      --gradient-main: linear-gradient(135deg, #10B981 0%, #3B82F6 100%);
       --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
       --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.15);
       --radius: 16px;
@@ -50,15 +50,22 @@
     a { text-decoration: none; transition: all 0.3s ease; }
     p { margin-bottom: 1rem; }
 
+    /* --- AUTO-CLEANUP: ESCONDE ELEMENTOS VAZIOS --- */
+    h2:empty, h3:empty, h4:empty, p:empty, 
+    .ingredients-visual:empty, .bonus-section:empty, 
+    .guarantee-seal[src=""] {
+        display: none !important;
+    }
+
     /* --- BACKGROUND FX --- */
     .bg-glow {
       position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
-      background: radial-gradient(circle, var(--primary-dim) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%); /* Cor primária dinâmica com fallback */
       z-index: -1; pointer-events: none;
     }
     .bg-glow-2 {
       position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); /* Cor secundária dinâmica */
       z-index: -1; pointer-events: none;
     }
 
@@ -73,15 +80,17 @@
     }
 
     .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; color: var(--text-main); }
-    .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
+    .dot { width: 8px; height: 8px; background: var(--primary-color, #10B981); border-radius: 50%; box-shadow: 0 0 10px var(--primary-color, #10B981); }
     
     .header-info {
       display: flex; align-items: center; gap: 10px;
     }
 
     .updated-pill {
-      font-size: 11px; color: var(--text-sec); display: none; 
+      font-size: 11px; color: var(--text-sec); /* Removido display:none para mostrar se tiver data */
     }
+    
+    .header-info a { color: var(--primary-color, #10B981); font-weight: 600; }
 
     /* --- HERO SECTION --- */
     .hero {
@@ -111,11 +120,11 @@
       line-height: 1.1;
       margin-bottom: 0;
       font-weight: 800;
-      color: var(--text-main); /* Garante cor escura */
+      color: var(--text-main);
     }
 
     .hero-label {
-      color: var(--primary); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;
+      color: var(--primary-color, #10B981); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;
     }
 
     .hero-sub {
@@ -123,13 +132,13 @@
     }
     
     .positioning-text {
-      font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary); padding-left: 16px;
+      font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary-color, #10B981); padding-left: 16px;
     }
 
     /* Image Styling */
     .hero-img-wrapper::before {
       content: ''; position: absolute; inset: -10px;
-      background: var(--gradient-main); filter: blur(80px); opacity: 0.15; z-index: -1; /* Opacidade reduzida para modo claro */
+      background: linear-gradient(135deg, var(--primary-color, #10B981), var(--secondary-color, #3B82F6)); filter: blur(80px); opacity: 0.15; z-index: -1;
       border-radius: 50%;
     }
 
@@ -142,22 +151,19 @@
       border-radius: 24px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Sombra escura realista */
       border: 1px solid var(--border);
-      transform: none; /* Imagem Reta */
       transition: 0.3s;
       background: #fff;
     }
-    .hero-img:hover { transform: scale(1.02); } /* Hover mantém apenas o leve zoom */
+    .hero-img:hover { transform: scale(1.02); }
 
     /* --- MAIN LAYOUT --- */
     .container {
       max-width: 1200px; margin: 0 auto; padding: 40px 24px;
-      display: grid; grid-template-columns:1.5fr 1fr; gap: 40px;
+      display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
     }
 
     /* --- CONTENT BLOCKS --- */
     .content-block { margin-bottom: 60px; }
-    
-    /* Center align helper for the new CTA */
     .cta-center { text-align: center; padding: 20px 0; }
 
     .section-title {
@@ -176,46 +182,38 @@
       transition: 0.3s;
       box-shadow: var(--shadow-card); /* Sombra sutil para separar do fundo cinza */
     }
-    .feature-card:hover { transform: translateY(-5px); border-color: var(--primary); background: var(--bg-card-hover); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    .feature-card:hover { transform: translateY(-5px); border-color: var(--primary-color, #10B981); background: var(--bg-card-hover); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
 
     .feature-card p { font-size: 15px; color: var(--text-sec); margin: 0; line-height: 1.6; }
 
     .icon-box {
       width: 40px; height: 40px; background: rgba(16, 185, 129, 0.1); /* Fundo verde bem claro */
       border-radius: 10px;
-      display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary-color, #10B981);
     }
 
     /* --- LIST STYLES --- */
-    ul.styled-list {
-      list-style: none;
-    }
+    ul.styled-list { list-style: none; }
     ul.styled-list li {
-      position: relative;
-      padding-left: 28px;
-      margin-bottom: 16px;
-      color: var(--text-sec);
+      position: relative; padding-left: 28px; margin-bottom: 16px; color: var(--text-sec);
     }
     ul.styled-list li::before {
-      content: '→';
-      position: absolute; left: 0; top: 2px;
-      color: var(--primary); font-weight: 800;
+      content: '✓'; position: absolute; left: 0; top: 2px;
+      color: var(--primary-color, #10B981); font-weight: 800; font-size: 18px;
     }
 
     /* --- STICKY SIDEBAR --- */
-    aside {
-      position: sticky; top: 100px; height: fit-content;
-    }
+    aside { position: sticky; top: 100px; height: fit-content; }
 
     .offer-box {
       background: var(--bg-card); /* Branco */
-      border:1px solid var(--border); border-radius: 20px;
+      border: 1px solid var(--border); border-radius: 20px;
       padding: 30px; text-align: center;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     .offer-badge {
-      background: var(--primary); color: #000; font-weight: 800; font-size: 12px;
+      background: var(--primary-color, #10B981); color: #000; font-weight: 800; font-size: 12px;
       padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 16px;
       text-transform: uppercase; letter-spacing: 1px;
     }
@@ -226,7 +224,7 @@
     /* --- BUTTONS --- */
     .btn {
       display: inline-block; width: 100%; padding: 18px; border-radius: 12px;
-      background: var(--gradient-main); color: #fff; font-weight: 700; font-size: 16px;
+      background: linear-gradient(135deg, var(--primary-color, #10B981), var(--secondary-color, #3B82F6)); color: #fff; font-weight: 700; font-size: 16px;
       text-align: center; border: none; cursor: pointer; position: relative; overflow: hidden;
       box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
       transition: all 0.3s ease;
@@ -251,150 +249,76 @@
 
     /* --- GUARANTEE SEAL STYLE --- */
     .guarantee-seal {
-      display: block;
-      max-width: 180px;
-      margin: 20px auto 0;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.05); /* Cinza claro */
-      padding: 12px;
-      border: 1px solid rgba(0,0,0,0.1);
+      display: block; max-width: 180px; margin: 20px auto 0;
+      border-radius: 12px; background: rgba(0, 0, 0, 0.05); /* Cinza claro */
+      padding: 12px; border: 1px solid rgba(0,0,0,0.1);
       box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
-    .guarantee-seal[src=""] { display: none; }
 
     /* --- INGREDIENTS VISUAL CONTAINER --- */
     .ingredients-visual {
-      padding: 24px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      box-shadow: var(--shadow-card);
+      padding: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      display: flex; flex-direction: column; align-items: center;
+      width: 100%; box-shadow: var(--shadow-card);
     }
-
     .image-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      width: 100%;
-      max-width: 800px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%; max-width: 800px;
     }
-
     .image-grid img {
-      width: 100%;
-      height: auto;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: #fff;
-      transition: 0.3s;
+      width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border);
+      background: #fff; transition: 0.3s;
     }
-    .image-grid img:hover {
-      border-color: var(--primary);
-      transform: scale(1.02);
-      box-shadow: var(--shadow-card);
-    }
+    .image-grid img:hover { border-color: var(--primary-color, #10B981); transform: scale(1.02); box-shadow: var(--shadow-card); }
 
     /* --- PROFESSIONAL FOOTER --- */
     footer {
-      border-top: 1px solid var(--border);
-      background: #fff; 
-      padding: 60px 20px;
-      margin-top: 80px;
-      font-family: 'Inter', sans-serif;
+      border-top: 1px solid var(--border); background: #fff; padding: 60px 20px; margin-top: 80px; font-family: 'Inter', sans-serif;
     }
-
-    .footer-content {
-      max-width: 800px; margin: 0 auto; text-align: center;
-    }
-
-    .footer-brand {
-      font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 16px;
-      display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: -0.5px;
-    }
-
-    .footer-dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 8px var(--primary); }
-
-    .footer-links {
-      margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px;
-    }
-
+    .footer-content { max-width: 800px; margin: 0 auto; text-align: center; }
+    .footer-brand { font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: -0.5px; }
+    .footer-dot { width: 6px; height: 6px; background: var(--primary-color, #10B981); border-radius: 50%; box-shadow: 0 0 8px var(--primary-color, #10B981); }
+    .footer-links { margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px; }
     .footer-links a { color: var(--text-sec); text-decoration: none; transition: 0.3s ease; }
-    .footer-links a:hover { color: var(--primary); }
-
+    .footer-links a:hover { color: var(--primary-color, #10B981); }
     .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; opacity: 0.8; }
 
-    /* =========================================
-       RESPONSIVIDADE - MOBILE FIRST OPTIMIZATIONS
-       ORDEM CRÍTICA: Regras globais antes, Media Queries depois
-       ========================================= */
-
-    /* 1. Regras Globais (Desktop Default) */
-    .mobile-sidebar-group {
-      display: none; /* Esconde o wrapper mobile no Desktop */
-    }
-
-    /* 2. Tablet & Mobile Landscape */
+    /* RESPONSIVE */
     @media (max-width: 900px) {
-      .hero {
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-        padding-top: 30px;
-      }
-      
+      .hero { display: flex; flex-direction: column; text-align: center; padding-top: 30px; }
       .hero-img { margin: 20px 0; transform: none; max-width: 300px; }
-      .positioning-text { border-left: none; border-top: 2px solid var(--primary); padding-left: 0; padding-top: 16px; }
-      
+      .positioning-text { border-left: none; border-top: 2px solid var(--primary-color, #10B981); padding-left: 0; padding-top: 16px; }
       .container { grid-template-columns: 1fr; }
-      
-      /* A sidebar original é ocultada no mobile */
       aside { display: none; }
-      
-      /* O grupo Mobile (Sidebar + Bonus) é exibido */
       .mobile-sidebar-group { display: block; margin-bottom: 40px; }
-
       .footer-links { flex-direction: column; gap: 12px; }
     }
-
-    /* 3. Mobile Portrait (Ajustes finos para celulares pequenos) */
     @media (max-width: 600px) {
-      /* Hero & Typography */
       .hero { padding: 30px 16px; } 
       h1 { font-size: 32px !important; line-height: 1.15 !important; } 
-      .hero-part-top, .hero-part-bottom { width: 100%; }
-      .hero-label { font-size: 11px; margin-bottom: 8px; }
-
-      /* Botões Full Width */
-      .btn { width: 100% !important; }
-      .hero .btn { padding: 16px 24px !important; font-size: 18px; }
-
-      /* Grids Empilhados */
       .grid-3 { grid-template-columns: 1fr !important; }
-      
-      /* Header Compacto */
       .logo { font-size: 16px; }
-      .header-info a { font-size: 13px; }
-      
-      /* Seção de Posicionamento */
-      .positioning-text { font-size: 15px; text-align: left; border-top: 2px solid var(--primary); border-left: none; }
-
-      /* =========================================
-         AJUSTE: BONUS LADO A LADO NO MOBILE
-         ========================================= */
-      .mobile-sidebar-group .bonus-section .image-grid {
-        grid-template-columns: 1fr 1fr !important; /* Força 2 colunas */
-      }
-      .mobile-sidebar-group .bonus-section .image-grid img {
-        aspect-ratio: 1 / 1.2; 
-        object-fit: cover;
-      }
+      .mobile-sidebar-group .bonus-section .image-grid { grid-template-columns: 1fr 1fr !important; }
     }
   </style>
 </head>
 <body>
+
+  <!-- FIXA AS CORES NO CARREGAMENTO DA PÁGINA (Light Theme Defaults) -->
+  <script>
+    (function() {
+      const root = document.documentElement;
+      let pColor = getComputedStyle(root).getPropertyValue('--primary-color').trim();
+      let sColor = getComputedStyle(root).getPropertyValue('--secondary-color').trim();
+      
+      // Se a cor estiver vazia, força o padrão Verde Esmeralda e Azul Tech
+      if (!pColor || pColor === '') {
+        root.style.setProperty('--primary-color', '#10B981'); /* Verde SaaS */
+      }
+      if (!sColor || sColor === '') {
+        root.style.setProperty('--secondary-color', '#3B82F6'); /* Azul Tech */
+      }
+    })();
+  </script>
 
   <div class="bg-glow"></div>
   <div class="bg-glow-2"></div>
@@ -406,7 +330,7 @@
     </div>
     <div class="header-info">
       <span class="updated-pill">Updated: {{UPDATED_DATE}}</span>
-      <a href="javascript:void(0)" onclick="doRedirect()" style="font-size:14px; font-weight:600; color:var(--primary);">
+      <a href="javascript:void(0)" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}} &rarr;
       </a>
     </div>
@@ -414,84 +338,57 @@
 
   <!-- HERO SECTION -->
   <section class="hero">
-    
-    <!-- PART 1: Rótulo e Headline -->
     <div class="hero-part-top">
-      <span class="hero-label">
-        {{DECISION_STAGE_LINE}}
-      </span>
-
+      <span class="hero-label">{{DECISION_STAGE_LINE}}</span>
       <h1>{{HEADLINE_MAIN}}</h1>
     </div>
 
-    <!-- PART 2: Imagem -->
     <div class="hero-img-wrapper">
       <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
     </div>
 
-    <!-- PART 3: Subheadline, Texto e Botão -->
     <div class="hero-part-bottom">
       <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
-      
       <div class="positioning-text">
         {{POSITIONING_STATEMENT}}
       </div>
-
       <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}}
       </a>
     </div>
-
   </section>
 
   <div class="container">
-
-    <!-- MAIN CONTENT -->
     <main>
-
-      <!-- SECTION: THE PROBLEM -->
       <div class="content-block">
         <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
         <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
       </div>
 
-      <!-- SECTION: WHY DIFFERENT (CARDS) -->
       <div class="content-block">
         <h2 class="section-title">{{WHY_DIFFERENT_TITLE}}</h2>
         <div class="grid-3">
-
           <div class="feature-card">
             <div class="icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
-              </svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
             </div>
             <p>{{WHY_DIFFERENT_1}}</p>
           </div>
-
           <div class="feature-card">
             <div class="icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-              </svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
             </div>
             <p>{{WHY_DIFFERENT_2}}</p>
           </div>
-
           <div class="feature-card">
             <div class="icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </div>
             <p>{{WHY_DIFFERENT_3}}</p>
           </div>
-
         </div>
       </div>
 
-      <!-- SECTION: HOW IT WORKS -->
       <div class="content-block">
         <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
         <ul class="styled-list">
@@ -501,49 +398,33 @@
         </ul>
       </div>
 
-      <!-- SECTION: INGREDIENTS -->
       <div class="content-block">
         <h2 class="section-title">Proprietary Formula</h2>
-        
         <div class="ingredients-visual">
           {{INGREDIENT_IMAGES}}
         </div>
-
         <p style="color:var(--text-sec); font-size:16px; max-width:800px; margin-top:24px;">
           {{FORMULA_TEXT}}
         </p>
       </div>
 
-      <!-- ========================================= -->
-      <!-- NOVO BLOCO: CTA ESTRATÉGICO (Após Ingredients) -->
-      <!-- ========================================= -->
       <div class="content-block cta-center">
-         <h3 style="margin-bottom: 16px;">Ready to secure your order?</h3>
+         <h3 style="margin-bottom: 16px; color: var(--text-main);">Ready to secure your order?</h3>
          <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 400px;">
            {{CTA_BUTTON_TEXT}} &rarr;
          </a>
-         <p style="font-size: 13px; color: var(--text-sec); margin-top: 10px;">
-           Secure checkout • Official Stock
-         </p>
+         <p style="font-size: 13px; color: var(--text-sec); margin-top: 10px;">Secure checkout • Official Stock</p>
       </div>
 
-      <!-- SECTION: TARGET AUDIENCE -->
       <div class="content-block">
         <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
         <div class="grid-3">
-          <div class="feature-card" style="padding:16px;">
-            <p>{{WHO_SHOULD_1}}</p>
-          </div>
-          <div class="feature-card" style="padding:16px;">
-            <p>{{WHO_SHOULD_2}}</p>
-          </div>
-          <div class="feature-card" style="padding:16px;">
-            <p>{{WHO_SHOULD_3}}</p>
-          </div>
+          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_1}}</p></div>
+          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_2}}</p></div>
+          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_3}}</p></div>
         </div>
       </div>
 
-      <!-- SECTION: WHO SHOULD NOT (WARNINGS) -->
       <div class="content-block">
         <h2 class="section-title">{{WHO_SHOULD_NOT_TITLE}}</h2>
         <div class="alert danger">
@@ -555,61 +436,41 @@
         </div>
       </div>
 
-      <!-- SCAM ALERT -->
       <div class="content-block">
         <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
-        <div class="alert warn">
-          {{SCAM_ALERT_TEXT}}
-        </div>
+        <div class="alert warn">{{SCAM_ALERT_TEXT}}</div>
       </div>
 
-      <!-- SEÇÃO DE DEPOIMENTOS (TEXTO) -->
       <div class="content-block" style="margin-top:24px;">
         <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
-
         <div class="alert info" style="font-size:14px;">
           {{TESTIMONIAL_NOTICE_TEXT}}
           <br><br>
-          <a href="javascript:void(0)" onclick="doRedirect()" style="color:var(--primary); font-weight:600;">
+          <a href="javascript:void(0)" onclick="doRedirect()" style="color:var(--primary-color, #10B981); font-weight:600;">
             {{TESTIMONIAL_CTA_TEXT}} →
           </a>
         </div>
       </div>
 
-      <!-- ========================================= -->
-      <!-- MOBILE ONLY WRAPPER: SIDEBAR + BONUS -->
-      <!-- Posicionado AQUI para ficar ACIMA da Garantia -->
-      <!-- ========================================= -->
       <div class="mobile-sidebar-group">
-        
-        <!-- SIDEBAR BOX (COPIA PARA MOBILE) -->
         <div class="offer-box">
           <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
           <div class="offer-title">{{HEADLINE_MAIN}}</div>
           <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
-
           <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
               <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.1);" loading="lazy">
           </div>
-
           <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
-
           <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
-            <span>🔒 Secure Checkout</span>
-            <span>•</span>
-            <span>Official Site</span>
+            <span>🔒 Secure Checkout</span><span>•</span><span>Official Site</span>
           </div>
         </div>
-
-        <!-- BONUS SECTION (MOBILE, AGRUPADO ABAIXO DA SIDEBAR) -->
         <div class="bonus-section">
           <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
           {{BONUS_IMAGES}}
         </div>
-
       </div>
 
-      <!-- GUARANTEE (FICA POR ÚLTIMO NO MOBILE E NO DESK) -->
       <div class="content-block">
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
@@ -618,62 +479,41 @@
         </div>
       </div>
 
-      <p style="font-size:11px; color:#64748B; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
-        {{DISCLAIMER_TEXT}}
-      </p>
-
+      <p style="font-size:11px; color:#64748B; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">{{DISCLAIMER_TEXT}}</p>
     </main>
 
-    <!-- SIDEBAR (DESKTOP ONLY) -->
     <aside>
       <div class="offer-box">
         <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
         <div class="offer-title">{{HEADLINE_MAIN}}</div>
         <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
-
         <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
             <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.1);" loading="lazy">
         </div>
-
         <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
-
         <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
-          <span>🔒 Secure Checkout</span>
-          <span>•</span>
-          <span>Official Site</span>
+          <span>🔒 Secure Checkout</span><span>•</span><span>Official Site</span>
         </div>
       </div>
-
-      <!-- Bonus Section (DESKTOP) -->
       <div class="bonus-section">
         <h4 style="margin-bottom:12px; font-size:15px;">🎁 {{BONUS_TITLE}}</h4>
         {{BONUS_IMAGES}}
       </div>
     </aside>
-
   </div>
 
-  <!-- PROFESSIONAL FOOTER -->
   <footer>
     <div class="footer-content">
-      
       <div class="footer-brand">
         <span class="footer-dot"></span> {{SITE_BRAND}}
       </div>
-
       <div class="footer-links">
         <a href="{{PRIVACY_URL}}">Privacy Policy</a>
         <a href="{{TERMS_URL}}">Terms of Service</a>
         <a href="{{CONTACT_URL}}">Contact Us</a>
       </div>
-
-      <div class="footer-disclaimer">
-        {{FOOTER_DISCLAIMER}}
-      </div>
-      
-      <div style="margin-top: 20px; color: #94A3B8; font-size: 11px;">
-        &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.
-      </div>
+      <div class="footer-disclaimer">{{FOOTER_DISCLAIMER}}</div>
+      <div style="margin-top: 20px; color: #94A3B8; font-size: 11px;">&copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.</div>
     </div>
   </footer>
 
@@ -684,11 +524,8 @@
     function doRedirect(){
       if(clicked) return;
       clicked = true;
-
-      // Opcional: Adicionar classe visual de loading ao botão clicado
       const btns = document.querySelectorAll('.btn');
-      btns.forEach(btn => btn.innerHTML = 'Redirecionando...');
-
+      btns.forEach(btn => btn.innerHTML = 'Redirecting...');
       if(typeof window.runTrackerRedirect === "function"){
         window.runTrackerRedirect(AFFILIATE_LINK);
       }else{
@@ -696,45 +533,26 @@
       }
     }
 
-    /* =================================================================
-       CORREÇÃO: RESET AO VOLTAR NO NAVEGADOR (BACK BUTTON)
-       ================================================================= */
     window.addEventListener('pageshow', (event) => {
-      // Se a página foi restaurada do cache (ex: botão voltar no celular)
       if (event.persisted) {
-        // Reseta a variável de controle
         clicked = false;
-        
-        // Restaura o texto original dos botões
         const btns = document.querySelectorAll('.btn');
-        btns.forEach(btn => {
-          btn.innerHTML = '{{CTA_BUTTON_TEXT}}';
-        });
+        btns.forEach(btn => { btn.innerHTML = '{{CTA_BUTTON_TEXT}}'; });
       }
     });
 
-    /* =================================================================
-       REMOVER IMAGENS DUPLICADAS NA SEÇÃO DE BÔNUS (Mobile e Desktop)
-       ================================================================= */
     document.addEventListener("DOMContentLoaded", () => {
       const bonusGrids = document.querySelectorAll('.bonus-section .image-grid');
-      
       bonusGrids.forEach(bonusSection => {
         const images = bonusSection.querySelectorAll('img');
         const seenUrls = new Set();
-
         images.forEach(img => {
           const url = img.src;
-          
-          if (seenUrls.has(url)) {
-            img.style.display = 'none';
-          } else {
-            seenUrls.add(url);
-          }
+          if (seenUrls.has(url)) { img.style.display = 'none'; } 
+          else { seenUrls.add(url); }
         });
       });
     });
   </script>
-
 </body>
 </html>
