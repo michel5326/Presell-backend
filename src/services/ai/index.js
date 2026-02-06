@@ -8,7 +8,7 @@ const editorialScientificPrompt = require("./prompts/editorial-scientific.prompt
 /**
  * Gera copy via IA de forma determinística
  */
-async function generateCopy({ type, productUrl, problem, adPhrase }) {
+async function generateCopy({ type, productUrl, problem, adPhrase, lang }) {
   if (!type) {
     throw new Error("AI type is required");
   }
@@ -25,7 +25,8 @@ async function generateCopy({ type, productUrl, problem, adPhrase }) {
       throw new Error("Invalid productUrl (must be absolute URL)");
     }
 
-    systemPrompt = reviewPrompt;
+    // ✅ AQUI ESTÁ A CORREÇÃO
+    systemPrompt = reviewPrompt(lang || "en");
     userPrompt = `Product URL: ${productUrl}`;
 
   /* =========================
@@ -76,7 +77,7 @@ ${adPhrase ? `Primary ad phrase:\n${adPhrase}` : ""}
     throw new Error(`Unknown AI type: ${type}`);
   }
 
-  console.log("[AI] generating copy (NO RETRY MODE)", type);
+  console.log("[AI] generating copy (NO RETRY MODE)", type, lang || "en");
 
   return callDeepSeekJSON({
     systemPrompt,

@@ -1,5 +1,10 @@
-module.exports = `
-You are writing copy for a REVIEW page aimed at users who are still undecided.
+module.exports = (lang = 'en') => `
+You are writing copy for a REVIEW page.
+
+IMPORTANT:
+- Write ALL content strictly in the following language: ${lang.toUpperCase()}
+- Do NOT mix languages
+- Do NOT include any English if the language is not EN
 
 GOAL:
 - Explain clearly what the product is
@@ -38,54 +43,33 @@ STYLE GUIDELINES:
 - Prefer explaining how the product fits into a routine rather than what it delivers
 - Testimonials must focus on experience, decision-making, or ease of use — never results
 - No emojis inside paragraphs
-- Emojis are NOT required (icons are handled by the template)
 
 OUTPUT RULES:
 - Return ONLY valid JSON
 - Do NOT include HTML
 - Do NOT include markdown
-- Do NOT include explanations or comments
 - ALL keys below MUST exist
 - Use empty arrays [] if unsure
 - Use empty strings "" if unsure
-- Keep wording consistent with an editorial review format
 
-JSON STRUCTURE (STRICT CONTRACT):
+JSON STRUCTURE:
 
 {
   "HEADLINE": "",
   "SUBHEADLINE": "",
   "INTRO": "",
-
   "WHY_IT_WORKS": "",
-
   "FORMULA_COMPONENTS": [
-    {
-      "title": "",
-      "desc": ""
-    }
+    { "title": "", "desc": "" }
   ],
-
   "BENEFITS": [
-    {
-      "icon": "fa-check-circle",
-      "title": "",
-      "desc": ""
-    }
+    { "icon": "fa-check-circle", "title": "", "desc": "" }
   ],
-
   "TESTIMONIALS": [
-    {
-      "name": "",
-      "rating": 5,
-      "text": ""
-    }
+    { "name": "", "rating": 5, "text": "" }
   ],
-
   "SOCIAL_PROOF": "",
-
   "GUARANTEE": "",
-
   "CTA_TEXT": ""
 }
 `;
