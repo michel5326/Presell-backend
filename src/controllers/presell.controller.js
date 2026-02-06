@@ -9,9 +9,10 @@ async function generatePresellData(req, res) {
       affiliateUrl,
       attempt = 0,
       theme,
-      template,          // ✅ AGORA LIDO
+      template,
       trackingScript,
       productImageUrl,
+      lang, // ✅ AGORA LIDO
     } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
@@ -28,9 +29,10 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
-        template,        // ✅ AGORA REPASSADO
+        template,
         trackingScript,
         productImageUrl,
+        lang, // ✅ AGORA REPASSADO
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
@@ -40,6 +42,7 @@ async function generatePresellData(req, res) {
         theme,
         trackingScript,
         productImageUrl,
+        // ❌ lang não entra aqui (por enquanto)
       });
     } else {
       return res.status(400).json({
@@ -49,7 +52,8 @@ async function generatePresellData(req, res) {
 
     console.log('================ PRESSELL DEBUG ================');
     console.log('[TYPE]', type);
-    console.log('[TEMPLATE]', template || 'LEGACY'); // 👈 útil
+    console.log('[LANG]', lang || 'en'); // 👈 DEBUG ÚTIL
+    console.log('[TEMPLATE]', template || 'LEGACY');
     console.log('[IMAGE SOURCE]', productImageUrl ? 'FRONT' : 'AUTO');
     console.log('[IMAGE FINAL]', result?.image || 'EMPTY');
     console.log('[HTML LENGTH]', result?.html?.length || 0);
