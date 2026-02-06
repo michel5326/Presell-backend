@@ -112,6 +112,7 @@ async function generate({
   const rawCopy = await aiService.generateCopy({
     type: 'review',
     productUrl,
+    lang: resolvedLang, // ✅ FIX DEFINITIVO
   });
 
   const copy = normalizeCopyKeys(rawCopy);
