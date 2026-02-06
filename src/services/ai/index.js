@@ -25,7 +25,6 @@ async function generateCopy({ type, productUrl, problem, adPhrase, lang }) {
       throw new Error("Invalid productUrl (must be absolute URL)");
     }
 
-    // ✅ AQUI ESTÁ A CORREÇÃO
     systemPrompt = reviewPrompt(lang || "en");
     userPrompt = `Product URL: ${productUrl}`;
 
@@ -72,6 +71,24 @@ ${problem}
 
 ${adPhrase ? `Primary ad phrase:\n${adPhrase}` : ""}
     `.trim();
+
+  /* =========================
+     GOOGLE ADS SEARCH (NOVO)
+  ========================= */
+  } else if (type === "google_ads_search") {
+    if (!adPhrase) {
+      throw new Error("adPhrase (prompt) is required for google ads search");
+    }
+
+    systemPrompt = `
+You are a Google Ads Search expert.
+Follow Google Ads policies strictly.
+Generate ONLY valid JSON.
+Do not explain anything.
+Do not include markdown.
+    `.trim();
+
+    userPrompt = adPhrase;
 
   } else {
     throw new Error(`Unknown AI type: ${type}`);
