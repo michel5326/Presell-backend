@@ -2,6 +2,8 @@ const aiService = require('../../services/ai');
 const { resolveProductImage } = require('../product-images');
 const { renderTemplate } = require('../../templates/renderTemplate.service');
 const { findYoutubeVideo } = require('../../services/youtube.service');
+const fs = require('fs');
+const path = require('path');
 
 /* ---------- HELPERS ---------- */
 
@@ -25,6 +27,11 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function templateExists(relativePath) {
+  const fullPath = path.join(__dirname, '../../templates', relativePath);
+  return fs.existsSync(fullPath);
 }
 
 /* ---------- BUILDERS ---------- */
@@ -95,9 +102,11 @@ async function generate({
   theme,
   trackingScript,
   productImageUrl,
-  template, // vindo do front (review-video)
+  template,
+  lang = 'en',
 }) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
+  const resolvedLang = ['pt', 'es', 'fr'].includes(lang) ? lang : 'en';
 
   /* ---------- IA COPY ---------- */
   const rawCopy = await aiService.generateCopy({
@@ -114,16 +123,13 @@ async function generate({
     safe(productImageUrl)
   );
 
-  /* ---------- VÍDEO (OPCIONAL) ---------- */
+  /* ---------- VÍDEO ---------- */
   let youtubeVideoId = null;
   if (template === 'review-video') {
     try {
       const query = `${copy.HEADLINE || productUrl} review`;
       youtubeVideoId = await findYoutubeVideo(query);
-      console.log('[YOUTUBE]', youtubeVideoId || 'NOT FOUND');
-    } catch (e) {
-      console.warn('[YOUTUBE ERROR]', e.message);
-    }
+    } catch {}
   }
 
   const now = new Date();
@@ -132,12 +138,11 @@ async function generate({
   const view = {
     PAGE_TITLE: safe(copy.HEADLINE) || 'Product Review',
     META_DESCRIPTION: safe(copy.SUBHEADLINE),
-    LANG: 'en',
+    LANG: resolvedLang,
 
     HEADLINE: safe(copy.HEADLINE),
     SUBHEADLINE: safe(copy.SUBHEADLINE),
     INTRO: safe(copy.INTRO),
-
     WHY_IT_WORKS: safe(copy.WHY_IT_WORKS),
 
     FORMULA_COMPONENTS: renderFormulaComponents(copy.FORMULA_COMPONENTS),
@@ -150,29 +155,26 @@ async function generate({
     AFFILIATE_LINK: affiliateUrl,
     PRODUCT_IMAGE: image,
     YOUTUBE_VIDEO_ID: youtubeVideoId,
-
     CURRENT_YEAR: String(now.getFullYear()),
     TRACKING_SCRIPT: safe(trackingScript),
   };
 
   /* ---------- TEMPLATE SELECTION ---------- */
   let templatePath;
+
   if (template === 'review-video') {
     templatePath = 'review/review-video.html';
   } else {
-    templatePath =
-      resolvedTheme === 'light'
-        ? 'review/review-light.html'
-        : 'review/review-dark.html';
+    const baseName = `review-${resolvedTheme}`;
+    const localized = `review/${baseName}-${resolvedLang}.html`;
+    const fallback = `review/${baseName}.html`;
+
+    templatePath = templateExists(localized) ? localized : fallback;
   }
 
-  /* ---------- RENDER ---------- */
   const html = renderTemplate(templatePath, view);
 
-  console.log('================ TEMPLATE DEBUG ================');
-  console.log('[SELECTED TEMPLATE]', templatePath);
-  console.log('[HTML LENGTH]', html?.length || 0);
-  console.log('================================================');
+  console.log('[REVIEW TEMPLATE]', templatePath);
 
   return {
     copy,
@@ -180,6 +182,7 @@ async function generate({
     html,
     theme: template === 'review-video' ? 'light' : resolvedTheme,
     templatePath,
+    lang: resolvedLang,
   };
 }
 
