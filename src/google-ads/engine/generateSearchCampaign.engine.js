@@ -7,48 +7,37 @@ const ajv = new Ajv({ allErrors: true });
 
 function normalizeBaseUrl(url) {
   if (!url) return null;
-  if (!/^https?:\/\//i.test(url)) {
-    return `https://${url}`;
-  }
+  if (!/^https?:\/\//i.test(url)) return `https://${url}`;
   return url;
 }
 
 function clampText(text, max) {
-  if (!text || typeof text !== 'string') return text;
+  if (!text || typeof text !== 'string') return '';
   if (text.length <= max) return text;
-  const sliced = text.slice(0, max);
-  return sliced.replace(/\s+\S*$/, '').trim();
+  return text.slice(0, max).replace(/\s+\S*$/, '').trim();
 }
 
 function normalizeStructuredSnippet(snippet) {
-  if (!snippet) return null;
-
-  if (typeof snippet === 'string') {
-    return snippet.trim();
-  }
-
-  if (typeof snippet === 'object') {
+  if (typeof snippet === 'string') return snippet.trim();
+  if (snippet && typeof snippet === 'object') {
     const header = snippet.header || snippet.title;
     const values = Array.isArray(snippet.values)
       ? snippet.values.join(', ')
       : snippet.items?.join(', ');
-
-    if (header && values) {
-      return `${header}: ${values}`;
-    }
+    if (header && values) return `${header}: ${values}`;
   }
-
   return null;
 }
 
-async function generateSearchCampaign({
-  keyword,
-  language,
-  baseUrl
-}) {
-  if (!keyword) {
-    throw new Error('Keyword is required');
-  }
+// 🔒 garante tamanho mínimo SEM inventar copy
+function padArray(arr, min, filler = '') {
+  const out = Array.isArray(arr) ? [...arr] : [];
+  while (out.length < min) out.push(filler);
+  return out;
+}
+
+async function generateSearchCampaign({ keyword, language, baseUrl }) {
+  if (!keyword) throw new Error('Keyword is required');
 
   const normalizedUrl = normalizeBaseUrl(baseUrl);
 
@@ -73,30 +62,46 @@ async function generateSearchCampaign({
     throw new Error('AI response is not valid JSON');
   }
 
-  if (Array.isArray(parsed.headlines)) {
-    parsed.headlines = parsed.headlines.map(h => clampText(h, 30));
+  // ========= HEADLINES =========
+  parsed.headlines = padArray(parsed.headlines, 15)
+    .slice(0, 15)
+    .map(h => clampText(h, 30));
+
+  // ========= DESCRIPTIONS =========
+  parsed.descriptions = padArray(parsed.descriptions, 4)
+    .slice(0, 4)
+    .map(d => clampText(d, 90));
+
+  // ========= CALLOUTS =========
+  parsed.callouts = padArray(parsed.callouts, 4)
+    .slice(0, 4)
+    .map(c => clampText(c, 25));
+
+  // ========= SITELINKS =========
+  if (normalizedUrl) {
+    const base = [
+      'Official Information',
+      'Reviews & Feedback',
+      'Product Details',
+      'Usage Guide'
+    ];
+
+    parsed.sitelinks = padArray(parsed.sitelinks, 4)
+      .slice(0, 4)
+      .map((sl, i) => ({
+        title: clampText(sl?.title || base[i], 25),
+        url: `${normalizedUrl}?sl=${i + 1}`
+      }));
+  } else {
+    parsed.sitelinks = [];
   }
 
-  if (Array.isArray(parsed.descriptions)) {
-    parsed.descriptions = parsed.descriptions.map(d => clampText(d, 90));
-  }
-
-  if (Array.isArray(parsed.callouts)) {
-    parsed.callouts = parsed.callouts.map(c => clampText(c, 25));
-  }
-
-  if (Array.isArray(parsed.sitelinks) && normalizedUrl) {
-    parsed.sitelinks = parsed.sitelinks.map((sl, index) => ({
-      title: clampText(sl.title, 25),
-      url: `${normalizedUrl}?sl=${index + 1}`
-    }));
-  }
-
-  if (Array.isArray(parsed.structured_snippets)) {
-    parsed.structured_snippets = parsed.structured_snippets
-      .map(normalizeStructuredSnippet)
-      .filter(Boolean);
-  }
+  // ========= STRUCTURED SNIPPETS =========
+  parsed.structured_snippets = Array.isArray(parsed.structured_snippets)
+    ? parsed.structured_snippets
+        .map(normalizeStructuredSnippet)
+        .filter(Boolean)
+    : [];
 
   const validate = ajv.compile(schema);
   if (!validate(parsed)) {
