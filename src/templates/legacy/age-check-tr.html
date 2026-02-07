@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr-TR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Yaş Doğrulaması</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Preload backgrounds -->
+<link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+<link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
+
+<style>
+:root{
+  --desktop-bg-image:url('{{DESKTOP_PRINT}}');
+  --mobile-bg-image:url('{{MOBILE_PRINT}}');
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+html,body{
+  height:100%;
+  width:100%;
+  overflow:hidden;
+  font-family:Poppins,sans-serif;
+}
+
+.background-container{
+  position:fixed;
+  inset:0;
+  background:#000;
+  background-image:var(--desktop-bg-image);
+  background-size:cover;
+  background-position:center;
+  filter:brightness(.7);
+  z-index:-1;
+}
+
+@media(max-width:768px){
+  .background-container{
+    background-image:var(--mobile-bg-image);
+  }
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.4s ease;
+  padding:16px;
+}
+
+.overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.popup{
+  background:#fff;
+  border-radius:20px;
+  max-width:420px;
+  width:100%;
+  padding:30px 24px;
+  text-align:center;
+  box-shadow:0 25px 50px rgba(0,0,0,.3);
+  transform:scale(.9);
+  transition:.4s ease;
+}
+
+.overlay.show .popup{
+  transform:scale(1);
+}
+
+h2{
+  font-size:22px;
+  font-weight:700;
+  margin-bottom:12px;
+  color:#333;
+}
+
+p{
+  font-size:14px;
+  color:#666;
+  margin-bottom:24px;
+  line-height:1.5;
+}
+
+.buttons{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.age-btn{
+  padding:14px;
+  border-radius:12px;
+  border:2px solid #e5e7eb;
+  background:#f9fafb;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.3s ease;
+  width:100%;
+}
+
+.age-btn.yes{
+  background:linear-gradient(135deg,#10b981,#059669);
+  color:#fff;
+  border-color:#059669;
+}
+
+.age-btn.yes:hover{
+  background:linear-gradient(135deg,#059669,#047857);
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(16,185,129,.35);
+}
+
+.age-btn.no:hover{
+  background:#fee2e2;
+  color:#ef4444;
+  border-color:#fca5a5;
+  transform:translateY(-2px);
+}
+
+.footer{
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid #e5e7eb;
+  font-size:12px;
+  color:#9ca3af;
+}
+
+/* Icon */
+.warning-icon{
+  width:48px;
+  height:48px;
+  background:rgba(245,158,11,.1);
+  color:#f59e0b;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 16px;
+}
+
+.warning-icon svg{
+  width:24px;
+  height:24px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="background-container"></div>
+
+<div class="overlay" id="overlay">
+  <div class="popup">
+    
+    <div class="warning-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+
+    <h2>Yaş Doğrulaması</h2>
+    <p>
+      Bu web sitesi yalnızca yetişkinlere yönelik içerikler barındırmaktadır.
+      Devam etmek için en az 18 yaşında olmalısınız.
+    </p>
+
+    <div class="buttons">
+      <button class="age-btn yes" id="btnYes">Evet, 18 yaşından büyüküm</button>
+      <button class="age-btn no" id="btnNo">Hayır, 18 yaşından küçüğüm</button>
+    </div>
+
+    <div class="footer">
+      Devam ederek, kullanım şartlarımızı ve gizlilik politikamızı kabul etmiş olursunuz.
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== BACKEND CONTRACT ===== */
+const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+
+const overlay = document.getElementById('overlay');
+const btnYes  = document.getElementById('btnYes');
+const btnNo   = document.getElementById('btnNo');
+
+let clicked = false;
+
+/* SHOW POPUP */
+document.addEventListener('DOMContentLoaded', () => {
+  overlay.classList.add('show');
+});
+
+/* TRACKER-SAFE REDIRECT */
+function redirectSafe(){
+  if(clicked) return;
+  clicked = true;
+
+  if(typeof window.runTrackerRedirect === 'function'){
+    window.runTrackerRedirect(AFFILIATE_LINK);
+  }else{
+    window.location.href = AFFILIATE_LINK;
+  }
+}
+
+/* BUTTON HANDLERS */
+btnYes.addEventListener('click', redirectSafe);
+btnNo.addEventListener('click', redirectSafe);
+
+/* FORCE DECISION (no escape) */
+overlay.addEventListener('click', (e) => {
+  if(e.target === overlay){
+    // do nothing – force explicit choice
+  }
+});
+</script>
+
+</body>
+</html>

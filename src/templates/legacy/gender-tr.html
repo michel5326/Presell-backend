@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr-TR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>Cinsiyet Seçimi</title>
+
+<style>
+body{
+  margin:0;
+  padding:0;
+  min-height:100vh;
+  background-image:url("{{DESKTOP_PRINT}}");
+  background-size:cover;
+  background-position:center top;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+}
+
+@media(max-width:768px){
+  body{
+    background-image:url("{{MOBILE_PRINT}}") !important;
+    background-attachment:scroll;
+  }
+}
+
+/* OVERLAY */
+.gender-popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  padding:16px;
+}
+
+/* CONTAINER */
+.gender-popup-container{
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  border-radius:18px;
+  padding:2px;
+  box-shadow:0 20px 40px rgba(0,0,0,.3);
+  max-width:400px;
+  width:100%;
+  animation:popupSlideIn .3s ease-out;
+}
+
+/* CONTENT */
+.gender-popup-content{
+  background:#fff;
+  border-radius:16px;
+  padding:24px 20px;
+  text-align:center;
+}
+
+/* HEADER */
+.gender-popup-header{
+  margin-bottom:16px;
+}
+
+.gender-popup-title{
+  font-size:22px;
+  font-weight:700;
+  color:#2d3748;
+  margin:0 0 4px;
+}
+
+.gender-popup-subtitle{
+  font-size:14px;
+  color:#718096;
+  margin:0;
+}
+
+/* OPTIONS */
+.gender-options-container{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.gender-option{
+  display:flex;
+  align-items:center;
+  padding:12px 16px;
+  background:#f7fafc;
+  border:2px solid #e2e8f0;
+  border-radius:14px;
+  cursor:pointer;
+  transition:.3s ease;
+  width:100%;
+}
+
+.gender-option:hover{
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  border-color:#667eea;
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(102,126,234,.3);
+}
+
+.gender-icon{
+  width:36px;
+  height:36px;
+  margin-right:12px;
+  border-radius:10px;
+  background:rgba(102,126,234,.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.gender-option:hover .gender-icon{
+  background:rgba(255,255,255,.2);
+}
+
+.male-icon{color:#4299e1;}
+.female-icon{color:#ed64a6;}
+.other-icon{color:#9f7aea;}
+
+.gender-option:hover .male-icon,
+.gender-option:hover .female-icon,
+.gender-option:hover .other-icon{
+  color:#fff;
+}
+
+.gender-label{
+  font-size:15px;
+  font-weight:600;
+  color:#2d3748;
+}
+
+.gender-option:hover .gender-label{
+  color:#fff;
+}
+
+/* FOOTER */
+.gender-popup-footer{
+  padding-top:12px;
+  border-top:1px solid #e2e8f0;
+}
+
+.gender-popup-note{
+  font-size:12px;
+  color:#a0aec0;
+}
+
+/* ANIMATION */
+@keyframes popupSlideIn{
+  from{opacity:0;transform:scale(.9) translateY(-20px);}
+  to{opacity:1;transform:scale(1) translateY(0);}
+}
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  .gender-popup-content{ padding:20px 16px; }
+  .gender-popup-title{ font-size:20px; }
+  .gender-popup-subtitle{ font-size:13px; }
+  .gender-option{ padding:10px 14px; }
+  .gender-icon{ width:32px; height:32px; margin-right:10px; }
+  .gender-label{ font-size:14px; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="genderPopup" class="gender-popup-overlay">
+  <div class="gender-popup-container">
+    <div class="gender-popup-content">
+
+      <div class="gender-popup-header">
+        <h2 class="gender-popup-title">Cinsiyetinizi Seçin</h2>
+        <p class="gender-popup-subtitle">Sizi en iyi temsil eden seçeneği seçin</p>
+      </div>
+
+      <div class="gender-options-container">
+        <button class="gender-option" onclick="doRedirect()">
+          <div class="gender-icon male-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="10" cy="14" r="8"/>
+              <path d="m17 3 4 4-4 4"/>
+              <path d="M17 7h6"/>
+            </svg>
+          </div>
+          <span class="gender-label">Erkek</span>
+        </button>
+
+        <button class="gender-option" onclick="doRedirect()">
+          <div class="gender-icon female-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="7"/>
+              <path d="m12 15v5"/>
+              <path d="m15 18h-6"/>
+            </svg>
+          </div>
+          <span class="gender-label">Kadın</span>
+        </button>
+
+        <button class="gender-option" onclick="doRedirect()">
+          <div class="gender-icon other-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="m15 9-6 6"/>
+              <path d="m9 9h.01"/>
+              <path d="M15 15h.01"/>
+            </svg>
+          </div>
+          <span class="gender-label">Diğer</span>
+        </button>
+      </div>
+
+      <div class="gender-popup-footer">
+        <p class="gender-popup-note">Bu bilgiler deneyiminizi kişiselleştirmemize yardımcı oluyor</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+let clicked = false;
+
+function doRedirect(){
+  if(clicked) return;
+  clicked = true;
+
+  if(typeof window.runTrackerRedirect === "function"){
+    window.runTrackerRedirect(AFFILIATE_LINK);
+  }else{
+    window.location.href = AFFILIATE_LINK;
+  }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  const popup=document.getElementById("genderPopup");
+  if(popup) popup.style.display="flex";
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr-TR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Avantajlar</title>
+
+<!-- Preconnect fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Preload background images (performance / LCP) -->
+<link rel="preload" as="image" href="{{DESKTOP_PRINT}}">
+<link rel="preload" as="image" href="{{MOBILE_PRINT}}" media="(max-width: 768px)">
+
+<style>
+:root{
+  --primary-color:#4285f4;
+  --secondary-color:#333;
+  --background-color:#fff;
+  --text-color:#666;
+  --radius:12px;
+  --shadow:0 6px 20px rgba(0,0,0,.08);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;touch-action:manipulation}
+
+html,body{
+  height:100%;
+  overflow:hidden;
+  font-family:Poppins,sans-serif
+}
+
+body{
+  background-color:#f5f5f5;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale
+}
+
+/* Background optimized for fast paint */
+.background{
+  position:fixed;
+  inset:0;
+  background-color:#000;
+  background-image:url('{{DESKTOP_PRINT}}');
+  background-size:cover;
+  background-position:center;
+  filter:brightness(.7);
+  z-index:-1;
+  will-change:transform
+}
+@media(max-width:768px){
+  .background{background-image:url('{{MOBILE_PRINT}}')}
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transition:opacity .4s ease;
+  padding:16px;
+  contain:layout paint
+}
+.overlay.show{opacity:1}
+
+.popup{
+  background:#fff;
+  border-radius:var(--radius);
+  padding:24px;
+  max-width:400px;
+  width:100%;
+  text-align:center;
+  box-shadow:var(--shadow);
+  transform:scale(.9);
+  transition:transform .4s ease;
+  will-change:transform
+}
+.overlay.show .popup{transform:scale(1)}
+
+.icon{
+  width:60px;
+  height:60px;
+  background:#e8f0fe;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 16px
+}
+.icon i{
+  font-size:28px;
+  color:var(--primary-color)
+}
+
+h2{
+  font-size:22px;
+  color:var(--secondary-color);
+  margin-bottom:12px
+}
+p{
+  font-size:16px;
+  color:var(--text-color);
+  margin-bottom:20px
+}
+
+.buttons{
+  display:flex;
+  flex-direction:column;
+  gap:12px
+}
+button{
+  padding:16px;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  background:#27ae60;
+  color:#fff;
+  transition:opacity .2s ease
+}
+button.secondary{
+  background:#219a52
+}
+button.loading{
+  opacity:.7;
+  pointer-events:none
+}
+</style>
+</head>
+
+<body>
+
+<div class="background"></div>
+
+<div class="overlay" id="overlay">
+  <div class="popup">
+    <div class="icon">
+      <i class="fas fa-truck"></i>
+    </div>
+
+    <h2>{{TITLE_TEXT}}</h2>
+    <p>{{MESSAGE_TEXT}}</p>
+
+    <div class="buttons">
+      <button id="btn1">{{BUTTON_1_TEXT}}</button>
+      <button id="btn2" class="secondary">{{BUTTON_2_TEXT}}</button>
+    </div>
+  </div>
+</div>
+
+<script defer>
+const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+
+function go(btn){
+  btn.classList.add("loading");
+  setTimeout(()=>location.href=AFFILIATE_LINK,1200);
+}
+
+document.getElementById("btn1").onclick=e=>go(e.target);
+document.getElementById("btn2").onclick=e=>go(e.target);
+
+setTimeout(()=>{
+  document.getElementById("overlay").classList.add("show");
+},100);
+</script>
+
+</body>
+</html>
