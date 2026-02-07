@@ -1,6 +1,27 @@
-module.exports = `
+function resolveLanguageName(lang) {
+  const map = {
+    en: 'English',
+    pt: 'Portuguese',
+    es: 'Spanish',
+    fr: 'French',
+    pl: 'Polish',
+    tr: 'Turkish',
+  };
+
+  return map[lang] || 'English';
+}
+
+module.exports = (lang = 'en') => {
+  const languageName = resolveLanguageName(lang);
+
+  return `
 You are writing copy for a ROBUSTA (pre-sell) page aimed at users who already know the product
 and are close to making a purchase.
+
+IMPORTANT:
+- Write ALL content strictly in the following language: ${languageName}
+- Do NOT mix languages
+- Do NOT include any English if the language is not English
 
 GOAL:
 - Confirm the user's decision
@@ -96,3 +117,4 @@ If unsure, return an empty string "" — NEVER omit a key.
 Do not include HTML.
 Do not include explanations outside JSON.
 `;
+};

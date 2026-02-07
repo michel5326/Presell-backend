@@ -6,12 +6,22 @@ const editorialPrompt = require("./prompts/editorial.prompt");
 const editorialScientificPrompt = require("./prompts/editorial-scientific.prompt");
 
 /**
+ * Normaliza idioma suportado
+ */
+function normalizeLang(lang) {
+  const supported = ["en", "pt", "es", "fr", "pl", "tr"];
+  return supported.includes(lang) ? lang : "en";
+}
+
+/**
  * Gera copy via IA de forma determinística
  */
 async function generateCopy({ type, productUrl, problem, adPhrase, lang }) {
   if (!type) {
     throw new Error("AI type is required");
   }
+
+  const language = normalizeLang(lang);
 
   let systemPrompt;
   let userPrompt;
@@ -25,7 +35,7 @@ async function generateCopy({ type, productUrl, problem, adPhrase, lang }) {
       throw new Error("Invalid productUrl (must be absolute URL)");
     }
 
-    systemPrompt = reviewPrompt(lang || "en");
+    systemPrompt = reviewPrompt(language);
     userPrompt = `Product URL: ${productUrl}`;
 
   /* =========================
@@ -37,7 +47,7 @@ async function generateCopy({ type, productUrl, problem, adPhrase, lang }) {
       throw new Error("Invalid productUrl (must be absolute URL)");
     }
 
-    systemPrompt = robustaPrompt;
+    systemPrompt = robustaPrompt(language);
     userPrompt = `Product URL: ${productUrl}`;
 
   /* =========================
@@ -73,7 +83,7 @@ ${adPhrase ? `Primary ad phrase:\n${adPhrase}` : ""}
     `.trim();
 
   /* =========================
-     GOOGLE ADS SEARCH (NOVO)
+     GOOGLE ADS SEARCH
   ========================= */
   } else if (type === "google_ads_search") {
     if (!adPhrase) {
@@ -94,7 +104,7 @@ Do not include markdown.
     throw new Error(`Unknown AI type: ${type}`);
   }
 
-  console.log("[AI] generating copy (NO RETRY MODE)", type, lang || "en");
+  console.log("[AI] generating copy (NO RETRY MODE)", type, language);
 
   return callDeepSeekJSON({
     systemPrompt,

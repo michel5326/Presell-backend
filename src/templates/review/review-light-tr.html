@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="{{META_DESCRIPTION}}">
+<title>{{PAGE_TITLE}}</title>
+
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+{{TRACKING_SCRIPT}}
+
+<style>
+:root {
+--primary-color:#008080;
+--primary-dark:#006666;
+--primary-light:#e6f2f2;
+--text-dark:#212529;
+--text-muted:#6c757d;
+--shadow-sm:0 2px 8px rgba(0,0,0,.05);
+--shadow-md:0 8px 16px rgba(0,0,0,.08);
+--radius:12px;
+--transition:.3s ease;
+}
+
+body {
+font-family:'Poppins',sans-serif;
+color:var(--text-dark);
+line-height:1.7;
+background:#fff;
+overflow-x:hidden;
+}
+
+/* NAVBAR */
+.navbar-universal {
+background:rgba(255,255,255,.95);
+backdrop-filter:blur(10px);
+box-shadow:0 2px 10px rgba(0,0,0,.05);
+border-bottom:1px solid rgba(0,0,0,.05);
+padding:1rem 0;
+}
+
+.navbar-brand {
+font-weight:700;
+color:var(--primary-color);
+font-size:1.25rem;
+}
+
+/* CTA */
+.btn-universal {
+background:linear-gradient(135deg,var(--primary-color),var(--primary-dark));
+color:#fff;
+font-weight:600;
+padding:12px 28px;
+border-radius:50px;
+border:none;
+transition:var(--transition);
+text-transform:uppercase;
+letter-spacing:.5px;
+font-size:.9rem;
+box-shadow:0 4px 15px rgba(0,128,128,.3);
+}
+
+.btn-universal:hover {
+transform:translateY(-2px);
+box-shadow:0 6px 20px rgba(0,128,128,.4);
+color:#fff;
+}
+
+/* HEADERS */
+.section-header {
+color:var(--primary-dark);
+font-weight:700;
+margin-bottom:3rem;
+text-align:center;
+position:relative;
+padding-bottom:15px;
+font-size:2rem;
+}
+
+.section-header:after {
+content:'';
+position:absolute;
+bottom:0;
+left:50%;
+transform:translateX(-50%);
+width:80px;
+height:4px;
+background:var(--primary-color);
+border-radius:2px;
+}
+
+/* CARDS */
+.card-universal {
+border:1px solid rgba(0,0,0,.05);
+border-radius:var(--radius);
+box-shadow:var(--shadow-sm);
+transition:var(--transition);
+background:#fff;
+height:100%;
+}
+
+.card-universal:hover {
+transform:translateY(-5px);
+box-shadow:var(--shadow-md);
+}
+
+.card-icon {
+font-size:2rem;
+color:var(--primary-color);
+margin-bottom:1rem;
+}
+
+/* IMAGES */
+.product-img {
+max-height:450px;
+border-radius:var(--radius);
+box-shadow:var(--shadow-md);
+padding:10px;
+background:#fff;
+}
+
+.mobile-product-img {
+max-height:300px;
+margin:0 auto 2rem;
+display:block;
+border-radius:var(--radius);
+box-shadow:var(--shadow-md);
+padding:10px;
+background:#fff;
+}
+
+/* TESTIMONIALS */
+.testimonial-stars {
+color:#f1c40f;
+font-size:.9rem;
+margin-bottom:.5rem;
+}
+
+/* AUTO HIDE */
+.hide-if-empty:empty,
+.hide-if-empty > :empty:not(h2):not(.section-header) {
+display:none!important;
+}
+
+.auto-hide-section:not(:has(*:not(:empty))) {
+display:none!important;
+}
+
+/* FOOTER */
+.footer-universal {
+background:var(--primary-dark);
+color:#fff;
+margin-top:5rem;
+padding:3rem 0;
+}
+
+@media(max-width:768px){
+.section-header{font-size:1.6rem}
+.btn-universal{width:100%}
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-universal sticky-top">
+<div class="container">
+<a class="navbar-brand" href="#">
+<i class="fas fa-layer-group me-2"></i>İNCELEME REHBERİ
+</a>
+<a href="{{AFFILIATE_LINK}}" class="btn btn-universal">
+RESMİ SİTEYE GİT
+</a>
+</div>
+</nav>
+
+<main class="container my-5">
+
+<!-- HERO -->
+<section class="row align-items-center gy-5 mb-5 auto-hide-section">
+
+<div class="col-lg-6">
+<h1 class="display-4 fw-bold mb-3" style="color:var(--primary-dark)">
+{{HEADLINE}}
+</h1>
+
+<p class="lead text-muted mb-4">{{SUBHEADLINE}}</p>
+
+<div class="d-block d-lg-none text-center mb-4 product-img-container">
+{{#PRODUCT_IMAGE}}
+<img src="{{PRODUCT_IMAGE}}" class="mobile-product-img" alt="Ürün Görseli">
+{{/PRODUCT_IMAGE}}
+</div>
+
+<div class="bg-light p-4 rounded-4 mb-4 border-start border-4 border-primary">
+<p class="mb-0">{{INTRO}}</p>
+</div>
+
+<a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
+SATIN AL <i class="fas fa-chevron-right ms-2"></i>
+</a>
+</div>
+
+<div class="col-lg-6 text-center d-none d-lg-block product-img-container">
+{{#PRODUCT_IMAGE}}
+<img src="{{PRODUCT_IMAGE}}" class="product-img img-fluid mx-auto d-block" alt="Ürün Görseli">
+{{/PRODUCT_IMAGE}}
+</div>
+
+</section>
+
+<!-- NASIL ÇALIŞIR -->
+<section class="mb-5 auto-hide-section">
+<h2 class="section-header">Nasıl Çalışır</h2>
+<div class="card card-universal" style="background:var(--primary-light)">
+<div class="card-body p-4">
+<p class="fs-5 text-center mb-0">{{WHY_IT_WORKS}}</p>
+<div class="text-center mt-4">
+<a href="{{AFFILIATE_LINK}}" class="btn btn-universal">DAHA FAZLA BİLGİ AL</a>
+</div>
+</div>
+</div>
+</section>
+
+<!-- TEMEL BİLEŞENLER -->
+<section class="mb-5 auto-hide-section">
+<h2 class="section-header">Temel Bileşenler</h2>
+<div class="row g-4 hide-if-empty">
+{{FORMULA_COMPONENTS}}
+</div>
+</section>
+
+<!-- TEMEL FAYDALAR -->
+<section class="mb-5 auto-hide-section">
+<h2 class="section-header">Temel Faydalar</h2>
+<div class="row g-4 hide-if-empty">
+{{BENEFITS_CARDS}}
+</div>
+</section>
+
+<!-- SOSYAL KANIT -->
+<section class="mb-5 auto-hide-section">
+<h2 class="section-header">Kullanıcılar Ne Diyor</h2>
+<div class="row g-4 hide-if-empty">
+{{TESTIMONIAL_CARDS}}
+</div>
+<p class="text-center mt-4 text-muted hide-if-empty">
+{{SOCIAL_PROOF}}
+</p>
+</section>
+
+<!-- GARANTİ -->
+<section class="mb-5 auto-hide-section">
+<h2 class="section-header">Garantimiz</h2>
+<div class="card card-universal" style="background:#f0f7f7">
+<div class="card-body text-center py-5">
+<p class="fs-5 mb-4">{{GUARANTEE}}</p>
+<a href="{{AFFILIATE_LINK}}" class="btn btn-universal btn-lg">
+RİSİKSİZ DENE
+</a>
+</div>
+</div>
+</section>
+
+<!-- SON CTA -->
+<section class="py-5 rounded-4 mb-5" style="background:linear-gradient(135deg,var(--primary-color),var(--primary-dark));color:white">
+<div class="container text-center">
+<h2 class="fw-bold mb-3">Değişiklik Yapmaya Hazır Mısınız?</h2>
+<p class="lead opacity-75 mb-4">Faydaları zaten yaşayan binlerce kişiye katılın.</p>
+<a href="{{AFFILIATE_LINK}}" class="btn btn-light fw-bold px-5 py-3 rounded-pill">
+HEMEN BAŞLA
+</a>
+</div>
+</section>
+
+</main>
+
+<footer class="footer-universal">
+<div class="container">
+<div class="row">
+<div class="col-md-6">
+<p class="mb-0">&copy; {{CURRENT_YEAR}} İnceleme Rehberi</p>
+</div>
+<div class="col-md-6 text-md-end">
+<p class="mb-0 small opacity-75">Yasal Uyarı: Bu bağımsız bir incelemedir.</p>
+</div>
+</div>
+</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

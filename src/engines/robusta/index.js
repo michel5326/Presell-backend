@@ -1,12 +1,12 @@
 const aiService = require('../../services/ai');
 const { resolveProductImage } = require('../product-images');
 const { renderTemplate } = require('../../templates/renderTemplate.service');
+const fs = require('fs');
+const path = require('path');
 
 function normalizeCopyKeys(copy = {}) {
   const out = {};
-  for (const k of Object.keys(copy)) {
-    out[k.toUpperCase()] = copy[k];
-  }
+  for (const k of Object.keys(copy)) out[k.toUpperCase()] = copy[k];
   return out;
 }
 
@@ -16,49 +16,57 @@ function safe(val) {
   return val;
 }
 
+function normalizeLang(lang) {
+  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr'];
+  return supported.includes(lang) ? lang : 'en';
+}
+
+function templateExists(relativePath) {
+  const fullPath = path.join(__dirname, '../../templates', relativePath);
+  return fs.existsSync(fullPath);
+}
+
 async function generate({
   productUrl,
   affiliateUrl,
   attempt,
   theme,
   trackingScript,
-  productImageUrl, // ✅ NOVO (opcional)
+  productImageUrl,
+  lang = 'en',
 }) {
-
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
+  const resolvedLang = normalizeLang(lang);
 
   /* 1) IA — ROBUSTA */
   const rawCopy = await aiService.generateCopy({
     type: 'robusta',
     productUrl,
+    lang: resolvedLang,
   });
 
   const copy = normalizeCopyKeys(rawCopy);
 
   /* 2) IMAGEM */
   const image = await resolveProductImage(
-  productUrl,
-  attempt,
-  safe(productImageUrl)
-);
-
+    productUrl,
+    attempt,
+    safe(productImageUrl)
+  );
 
   const now = new Date();
 
-  /* 3) VIEW — CONTRATO FIRME */
+  /* 3) VIEW */
   const view = {
-    /* META */
     PAGE_TITLE: safe(copy.HEADLINE_MAIN || copy.HEADLINE || 'Product Review'),
     META_DESCRIPTION: safe(copy.SUBHEADLINE_MAIN),
-    LANG: 'en',
+    LANG: resolvedLang,
 
-    /* BRAND */
     SITE_BRAND: safe(copy.SITE_BRAND) || 'Review Guide',
     CURRENT_YEAR: String(now.getFullYear()),
     UPDATED_DATE: safe(copy.UPDATED_DATE),
     AFFILIATE_LINK: affiliateUrl,
 
-    /* HERO */
     DECISION_STAGE_LINE: safe(copy.DECISION_STAGE_LINE),
     HEADLINE_MAIN: safe(copy.HEADLINE_MAIN),
     SUBHEADLINE_MAIN: safe(copy.SUBHEADLINE_MAIN),
@@ -66,27 +74,22 @@ async function generate({
     CTA_BUTTON_TEXT: safe(copy.CTA_BUTTON_TEXT) || 'Visit Official Site',
     PRODUCT_IMAGE: image,
 
-    /* PROBLEM */
     PRIMARY_PROBLEM_TITLE: safe(copy.PRIMARY_PROBLEM_TITLE),
     PRIMARY_PROBLEM_TEXT: safe(copy.PRIMARY_PROBLEM_TEXT),
 
-    /* WHY DIFFERENT */
     WHY_DIFFERENT_TITLE: safe(copy.WHY_DIFFERENT_TITLE),
     WHY_DIFFERENT_1: safe(copy.WHY_DIFFERENT_1),
     WHY_DIFFERENT_2: safe(copy.WHY_DIFFERENT_2),
     WHY_DIFFERENT_3: safe(copy.WHY_DIFFERENT_3),
 
-    /* MECHANISM */
     MECHANISM_TITLE: safe(copy.MECHANISM_TITLE),
     MECHANISM_STEP_1: safe(copy.MECHANISM_STEP_1),
     MECHANISM_STEP_2: safe(copy.MECHANISM_STEP_2),
     MECHANISM_STEP_3: safe(copy.MECHANISM_STEP_3),
 
-    /* FORMULA */
     FORMULA_TEXT: safe(copy.FORMULA_TEXT),
     INGREDIENT_IMAGES: safe(copy.INGREDIENT_IMAGES),
 
-    /* TARGET */
     WHO_SHOULD_USE_TITLE: safe(copy.WHO_SHOULD_USE_TITLE),
     WHO_SHOULD_1: safe(copy.WHO_SHOULD_1),
     WHO_SHOULD_2: safe(copy.WHO_SHOULD_2),
@@ -97,7 +100,6 @@ async function generate({
     WHO_NOT_2: safe(copy.WHO_NOT_2),
     WHO_NOT_3: safe(copy.WHO_NOT_3),
 
-    /* TRUST */
     SCAM_ALERT_TITLE: safe(copy.SCAM_ALERT_TITLE),
     SCAM_ALERT_TEXT: safe(copy.SCAM_ALERT_TEXT),
 
@@ -105,33 +107,29 @@ async function generate({
     TESTIMONIAL_NOTICE_TEXT: safe(copy.TESTIMONIAL_NOTICE_TEXT),
     TESTIMONIAL_CTA_TEXT: safe(copy.TESTIMONIAL_CTA_TEXT),
 
-    /* BONUS */
     BONUS_TITLE: safe(copy.BONUS_TITLE),
     BONUS_IMAGES: safe(copy.BONUS_IMAGES),
 
-    /* GUARANTEE */
     GUARANTEE_TITLE: safe(copy.GUARANTEE_TITLE),
     GUARANTEE_TEXT: safe(copy.GUARANTEE_TEXT),
     GUARANTEE_IMAGE: safe(copy.GUARANTEE_IMAGE),
 
-    /* LEGAL */
     DISCLAIMER_TEXT: safe(copy.DISCLAIMER_TEXT),
     FOOTER_DISCLAIMER: safe(copy.FOOTER_DISCLAIMER),
 
-    /* LINKS */
     PRIVACY_URL: copy.PRIVACY_URL || '#',
     TERMS_URL: copy.TERMS_URL || '#',
     CONTACT_URL: copy.CONTACT_URL || '#',
 
-    /* ✅ TRACKER (PASS-THROUGH PURO) */
     TRACKING_SCRIPT: safe(trackingScript),
   };
 
   /* 4) TEMPLATE */
-  const templatePath =
-    resolvedTheme === 'light'
-      ? 'robusta/robusta-light.html'
-      : 'robusta/robusta-dark.html';
+  const baseName = `robusta-${resolvedTheme}`;
+  const localized = `robusta/${baseName}-${resolvedLang}.html`;
+  const fallback = `robusta/${baseName}.html`;
+
+  const templatePath = templateExists(localized) ? localized : fallback;
 
   /* 5) RENDER */
   const html = renderTemplate(templatePath, view);
@@ -142,6 +140,7 @@ async function generate({
     html,
     theme: resolvedTheme,
     templatePath,
+    lang: resolvedLang,
   };
 }
 

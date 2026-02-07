@@ -1,10 +1,26 @@
-module.exports = (lang = 'en') => `
+function resolveLanguageName(lang) {
+  const map = {
+    en: 'English',
+    pt: 'Portuguese',
+    es: 'Spanish',
+    fr: 'French',
+    pl: 'Polish',
+    tr: 'Turkish',
+  };
+
+  return map[lang] || 'English';
+}
+
+module.exports = (lang = 'en') => {
+  const languageName = resolveLanguageName(lang);
+
+  return `
 You are writing copy for a REVIEW page.
 
 IMPORTANT:
-- Write ALL content strictly in the following language: ${lang.toUpperCase()}
+- Write ALL content strictly in the following language: ${languageName}
 - Do NOT mix languages
-- Do NOT include any English if the language is not EN
+- Do NOT include any English if the language is not English
 
 GOAL:
 - Explain clearly what the product is
@@ -73,3 +89,4 @@ JSON STRUCTURE:
   "CTA_TEXT": ""
 }
 `;
+};

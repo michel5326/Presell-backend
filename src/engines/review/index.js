@@ -95,6 +95,11 @@ function renderTestimonials(list) {
 
 /* ---------- MAIN ---------- */
 
+function normalizeLang(lang) {
+  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr'];
+  return supported.includes(lang) ? lang : 'en';
+}
+
 async function generate({
   productUrl,
   affiliateUrl,
@@ -106,13 +111,13 @@ async function generate({
   lang = 'en',
 }) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
-  const resolvedLang = ['pt', 'es', 'fr'].includes(lang) ? lang : 'en';
+  const resolvedLang = normalizeLang(lang);
 
   /* ---------- IA COPY ---------- */
   const rawCopy = await aiService.generateCopy({
     type: 'review',
     productUrl,
-    lang: resolvedLang, // ✅ FIX DEFINITIVO
+    lang: resolvedLang,
   });
 
   const copy = normalizeCopyKeys(rawCopy);
@@ -164,7 +169,10 @@ async function generate({
   let templatePath;
 
   if (template === 'review-video') {
-    templatePath = 'review/review-video.html';
+    const localized = `review/review-video-${resolvedLang}.html`;
+    const fallback = 'review/review-video.html';
+
+    templatePath = templateExists(localized) ? localized : fallback;
   } else {
     const baseName = `review-${resolvedTheme}`;
     const localized = `review/${baseName}-${resolvedLang}.html`;

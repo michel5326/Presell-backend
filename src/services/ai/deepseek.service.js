@@ -2,30 +2,39 @@ const fetch = require("node-fetch");
 
 const API_URL = "https://api.deepseek.com/v1/chat/completions";
 const MODEL = "deepseek-chat";
+const TIMEOUT_MS = 60_000; // 60s
 
-/**
- * Contrato:
- * - recebe systemPrompt + userPrompt
- * - retorna SEMPRE um objeto JSON plano
- * - sem regex
- * - determinístico
- */
 async function callDeepSeekJSON({ systemPrompt, userPrompt }) {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      temperature: 0.3,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  let res;
+
+  try {
+    res = await fetch(API_URL, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        temperature: 0.3,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("DeepSeek timeout");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     throw new Error(`DeepSeek error: ${res.status}`);
@@ -38,7 +47,6 @@ async function callDeepSeekJSON({ systemPrompt, userPrompt }) {
     throw new Error("DeepSeek empty response");
   }
 
-  // 🔒 limpeza segura (remove markdown / lixo comum)
   const cleaned = raw
     .replace(/```json/gi, "")
     .replace(/```/g, "")

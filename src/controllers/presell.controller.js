@@ -1,6 +1,11 @@
 const reviewEngine = require('../engines/review');
 const robustaEngine = require('../engines/robusta');
 
+function normalizeLang(lang) {
+  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr'];
+  return supported.includes(lang) ? lang : 'en';
+}
+
 async function generatePresellData(req, res) {
   try {
     const {
@@ -12,7 +17,7 @@ async function generatePresellData(req, res) {
       template,
       trackingScript,
       productImageUrl,
-      lang, // ✅ AGORA LIDO
+      lang,
     } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
@@ -20,6 +25,8 @@ async function generatePresellData(req, res) {
         error: 'Missing required fields',
       });
     }
+
+    const language = normalizeLang(lang);
 
     let result;
 
@@ -29,10 +36,10 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
-        template,
+        template,          // 👈 necessário para review-video
         trackingScript,
         productImageUrl,
-        lang, // ✅ AGORA REPASSADO
+        lang: language,
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
@@ -42,7 +49,7 @@ async function generatePresellData(req, res) {
         theme,
         trackingScript,
         productImageUrl,
-        // ❌ lang não entra aqui (por enquanto)
+        lang: language,
       });
     } else {
       return res.status(400).json({
@@ -52,7 +59,7 @@ async function generatePresellData(req, res) {
 
     console.log('================ PRESSELL DEBUG ================');
     console.log('[TYPE]', type);
-    console.log('[LANG]', lang || 'en'); // 👈 DEBUG ÚTIL
+    console.log('[LANG]', language);
     console.log('[TEMPLATE]', template || 'LEGACY');
     console.log('[IMAGE SOURCE]', productImageUrl ? 'FRONT' : 'AUTO');
     console.log('[IMAGE FINAL]', result?.image || 'EMPTY');
