@@ -104,7 +104,7 @@ async function getProductContext(productUrl) {
     })
     .catch(() => {});
 
-  return null; // fallback imediato
+  return null;
 }
 
 // =======================
@@ -146,7 +146,9 @@ async function generateSearchCampaign({
     throw new Error('AI response is not valid JSON');
   }
 
+  // =======================
   // HARD CAPS
+  // =======================
   parsed.headlines = parsed.headlines?.map(h => clampText(h, 30));
   parsed.descriptions = parsed.descriptions?.map(d => clampText(d, 90));
   parsed.callouts = parsed.callouts?.map(c => clampText(c, 25));
@@ -164,6 +166,28 @@ async function generateSearchCampaign({
       .filter(Boolean);
   }
 
+  // =======================
+  // 🔒 FALLBACK DE KEYWORDS
+  // =======================
+  if (!parsed.keywords || typeof parsed.keywords !== 'object') {
+    parsed.keywords = {};
+  }
+
+  parsed.keywords.exact = Array.isArray(parsed.keywords.exact)
+    ? parsed.keywords.exact
+    : [];
+
+  parsed.keywords.phrase = Array.isArray(parsed.keywords.phrase)
+    ? parsed.keywords.phrase
+    : [];
+
+  parsed.keywords.broad = Array.isArray(parsed.keywords.broad)
+    ? parsed.keywords.broad
+    : [];
+
+  // =======================
+  // VALIDATION
+  // =======================
   const validate = ajv.compile(schema);
   if (!validate(parsed)) {
     const errors = validate.errors
