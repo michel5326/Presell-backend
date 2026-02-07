@@ -7,6 +7,14 @@ const cheerio = require('cheerio');
 
 const ajv = new Ajv({ allErrors: true });
 
+// =======================
+// CACHE EM MEMÓRIA
+// =======================
+const productCache = new Map();
+
+// =======================
+// HELPERS
+// =======================
 function normalizeBaseUrl(url) {
   if (!url) return null;
   if (!/^https?:\/\//i.test(url)) {
@@ -15,57 +23,6 @@ function normalizeBaseUrl(url) {
   return url;
 }
 
-/**
- * Scraping semântico e controlado da página do produto
- */
-async function scrapeProductPage(productUrl) {
-  try {
-    const { data } = await axios.get(productUrl, {
-      timeout: 10000,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-          '(KHTML, like Gecko) Chrome/120.0 Safari/537.36'
-      }
-    });
-
-    const $ = cheerio.load(data);
-
-    const title = $('title').first().text().trim();
-    const metaDescription = $('meta[name="description"]').attr('content') || '';
-
-    const h1 = $('h1').first().text().trim();
-    const h2 = $('h2')
-      .slice(0, 3)
-      .map((_, el) => $(el).text().trim())
-      .get();
-
-    const bodyText = $('body')
-      .clone()
-      .find('script, style, noscript, iframe')
-      .remove()
-      .end()
-      .text()
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 2000);
-
-    return {
-      title,
-      metaDescription,
-      h1,
-      h2,
-      bodyText
-    };
-  } catch (err) {
-    console.warn('[SCRAPING FAIL]', productUrl);
-    return null;
-  }
-}
-
-/**
- * Garante limite máximo de caracteres sem quebrar frase
- */
 function clampText(text, max) {
   if (!text || typeof text !== 'string') return text;
   if (text.length <= max) return text;
@@ -73,9 +30,6 @@ function clampText(text, max) {
   return sliced.replace(/\s+\S*$/, '').trim();
 }
 
-/**
- * Normaliza structured snippets para string simples
- */
 function normalizeStructuredSnippet(snippet) {
   if (!snippet) return null;
 
@@ -97,6 +51,65 @@ function normalizeStructuredSnippet(snippet) {
   return null;
 }
 
+// =======================
+// SCRAPING (BACKGROUND)
+// =======================
+async function scrapeProductPage(productUrl) {
+  try {
+    const { data } = await axios.get(productUrl, {
+      timeout: 8000,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+          '(KHTML, like Gecko) Chrome/120.0 Safari/537.36'
+      }
+    });
+
+    const $ = cheerio.load(data);
+
+    return {
+      title: $('title').first().text().trim(),
+      metaDescription: $('meta[name="description"]').attr('content') || '',
+      h1: $('h1').first().text().trim(),
+      h2: $('h2')
+        .slice(0, 3)
+        .map((_, el) => $(el).text().trim())
+        .get(),
+      bodyText: $('body')
+        .clone()
+        .find('script, style, noscript, iframe')
+        .remove()
+        .end()
+        .text()
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 2000)
+    };
+  } catch {
+    return null;
+  }
+}
+
+// =======================
+// CONTEXTO NÃO BLOQUEANTE
+// =======================
+async function getProductContext(productUrl) {
+  if (productCache.has(productUrl)) {
+    return productCache.get(productUrl);
+  }
+
+  scrapeProductPage(productUrl)
+    .then(data => {
+      if (data) productCache.set(productUrl, data);
+    })
+    .catch(() => {});
+
+  return null; // fallback imediato
+}
+
+// =======================
+// ENGINE PRINCIPAL
+// =======================
 async function generateSearchCampaign({
   keyword,
   language,
@@ -108,8 +121,8 @@ async function generateSearchCampaign({
 
   const normalizedUrl = normalizeBaseUrl(baseUrl);
 
-  // 🔍 SCRAPING REAL DO PRODUTO
-  const productContext = await scrapeProductPage(productUrl);
+  // 🚀 NÃO BLOQUEIA REQUEST
+  const productContext = await getProductContext(productUrl);
 
   const prompt = searchCampaignPrompt({
     keyword,
@@ -134,22 +147,14 @@ async function generateSearchCampaign({
   }
 
   // HARD CAPS
-  if (Array.isArray(parsed.headlines)) {
-    parsed.headlines = parsed.headlines.map(h => clampText(h, 30));
-  }
-
-  if (Array.isArray(parsed.descriptions)) {
-    parsed.descriptions = parsed.descriptions.map(d => clampText(d, 90));
-  }
-
-  if (Array.isArray(parsed.callouts)) {
-    parsed.callouts = parsed.callouts.map(c => clampText(c, 25));
-  }
+  parsed.headlines = parsed.headlines?.map(h => clampText(h, 30));
+  parsed.descriptions = parsed.descriptions?.map(d => clampText(d, 90));
+  parsed.callouts = parsed.callouts?.map(c => clampText(c, 25));
 
   if (Array.isArray(parsed.sitelinks) && normalizedUrl) {
-    parsed.sitelinks = parsed.sitelinks.map((sl, index) => ({
+    parsed.sitelinks = parsed.sitelinks.map((sl, i) => ({
       title: clampText(sl.title, 25),
-      url: `${normalizedUrl}?sl=${index + 1}`
+      url: `${normalizedUrl}?sl=${i + 1}`
     }));
   }
 
