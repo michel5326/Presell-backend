@@ -1,13 +1,8 @@
-/**
- * Prompt híbrido para geração de campanhas Google Ads Search
- * Modelo: funções fixas + variação controlada
- * Objetivo: anúncios aprováveis, não repetitivos e escaláveis
- */
-
 module.exports = function searchCampaignPrompt({
   keyword,
   language,
-  baseUrl
+  baseUrl,
+  productContext
 }) {
   return `
 You are an expert Google Ads Search advertiser.
@@ -20,16 +15,47 @@ using a HYBRID MODEL:
 DO NOT generate synonyms or rephrasings of the same idea.
 Each item must serve a DISTINCT purpose.
 
-GENERAL RULES:
+==============================
+PRIMARY SOURCE OF TRUTH
+==============================
+
+Below is FACTUAL CONTENT extracted from the official product page.
+This content is your PRIMARY reference.
+
+- Use it to understand what the product is
+- Use it to infer category, format, usage, and positioning
+- DO NOT invent features, benefits, or claims not supported by this text
+- If information is unclear, stay neutral or generic
+
+PRODUCT PAGE CONTENT:
+"""
+${productContext || 'No product content provided'}
+"""
+
+IMPORTANT:
+- If the product content is generic, unclear, or repetitive:
+  - Stay conservative
+  - Prefer brand-neutral and category-level language
+  - Avoid assumptions about features or differentiation
+
+==============================
+GENERAL RULES
+==============================
+
 - 100% original content
 - No years, dates, or time references
 - No exaggerated or medical claims
 - No guarantees of results
 - Neutral, informational, review-style tone
 - Strictly respect character limits
-- Content must be SAFE for Google Ads approval
+- Content must be SAFE for Google Ads approval and comply with ad policy language standards
+- Prefer factual descriptions over persuasive language
+- If unsure, describe what the product IS, not what it DOES
 
-CAMPAIGN CONTEXT:
+==============================
+CAMPAIGN CONTEXT
+==============================
+
 Main keyword: "${keyword}"
 Language: "${language}"
 Base URL (optional): "${baseUrl || 'N/A'}"
@@ -61,8 +87,8 @@ HEADLINE FUNCTIONS:
 14. Availability or access
 15. Where to find more information
 
-Vary phrasing naturally.
-Avoid interchangeable headlines.
+Use the product content as reference.
+Avoid speculation.
 
 ==============================
 2) DESCRIPTIONS (4 TOTAL)
@@ -79,13 +105,15 @@ Each description MUST have a distinct ROLE:
 4. Access or usage information
 
 Do NOT repeat ideas across descriptions.
-Keep tone informational and compliant.
+Stay factual and restrained.
 
 ==============================
 3) KEYWORDS
 ==============================
 
-Generate keyword lists based on the main keyword only.
+Generate keyword lists based on:
+- the main keyword
+- terms clearly supported by the product content
 
 Provide:
 - Exact match keywords
@@ -97,7 +125,7 @@ Focus on:
 - review intent
 - product-related intent
 
-Avoid unrelated variations.
+Avoid assumptions.
 
 ==============================
 4) STRUCTURED SNIPPETS
@@ -111,9 +139,10 @@ You may ONLY use these headers:
 - Information
 - Highlights
 
-Choose the most appropriate headers.
-Each snippet should list 2–3 short, neutral items.
-Avoid medical or performance claims.
+Each snippet:
+- 2–3 short, neutral items
+- Must be supported by the product content
+- Avoid medical, performance, or outcome claims
 
 ==============================
 5) SITELINKS (ONLY IF BASE URL IS PROVIDED)
@@ -131,8 +160,6 @@ For each sitelink, provide:
 - Title (concise, neutral)
 - Full URL extending the base URL
 
-Vary wording naturally.
-
 ==============================
 6) CALLOUTS (4 TOTAL)
 ==============================
@@ -146,7 +173,7 @@ Each callout must reflect a DIFFERENT idea:
 - Transparency
 - Access or availability
 
-Keep them short, compliant, and non-promotional.
+Short. Neutral. Compliant.
 
 ==============================
 OUTPUT FORMAT
@@ -156,20 +183,5 @@ Return ONLY valid JSON.
 No explanations.
 No comments.
 No markdown.
-
-JSON STRUCTURE:
-
-{
-  "headlines": [],
-  "descriptions": [],
-  "keywords": {
-    "exact": [],
-    "phrase": [],
-    "broad": []
-  },
-  "structured_snippets": [],
-  "sitelinks": [],
-  "callouts": []
-}
 `;
 };
