@@ -11,6 +11,19 @@ async function legacyController(req, res) {
       ...flatBody
     } = req.body;
 
+    // ===== validações mínimas =====
+    if (!templateId) {
+      return res.status(400).json({ error: "missing_template_id" });
+    }
+
+    if (!productUrl || !productUrl.startsWith("http")) {
+      return res.status(400).json({ error: "invalid_product_url" });
+    }
+
+    if (!affiliateUrl || !affiliateUrl.startsWith("http")) {
+      return res.status(400).json({ error: "invalid_affiliate_url" });
+    }
+
     const html = await generateLegacyPage({
       templateId,
       productUrl,
