@@ -37,13 +37,13 @@ async function preparePageForScreenshot(page) {
   });
   await page.waitForTimeout(800);
 
-  // 🔹 VOLTA PARA O TOPO ANTES DO PRINT
+  // volta para o topo antes do print
   await page.evaluate(() => {
     window.scrollTo(0, 0);
   });
   await page.waitForTimeout(300);
 
-  // detectar anti-bot
+  // detectar anti-bot explícito
   const isBlocked = await page.evaluate(() => {
     const t = document.body.innerText.toLowerCase();
     return (
@@ -56,23 +56,6 @@ async function preparePageForScreenshot(page) {
 
   if (isBlocked) {
     throw new Error("anti_bot_detected");
-  }
-
-  // verificar se existe imagem grande visível
-  const hasProductImage = await page.evaluate(() => {
-    return [...document.images].some(img => {
-      const r = img.getBoundingClientRect();
-      return (
-        r.width > 200 &&
-        r.height > 200 &&
-        r.top >= 0 &&
-        r.top < window.innerHeight
-      );
-    });
-  });
-
-  if (!hasProductImage) {
-    throw new Error("no_product_image_visible");
   }
 }
 
@@ -120,7 +103,7 @@ async function generateLegacyPage({
     // ===== MOBILE =====
     const p2 = await browser.newPage({
       ...devices["iPhone 12"],
-      deviceScaleFactor: 1 // evita print gigante
+      deviceScaleFactor: 1
     });
 
     await p2.goto(productUrl, {
