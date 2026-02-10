@@ -30,7 +30,7 @@ function normalizeStructuredSnippet(snippet) {
 }
 
 // 🔒 garante tamanho mínimo SEM inventar copy
-function padArray(arr, min, filler = '') {
+function padArray(arr, min, filler = null) {
   const out = Array.isArray(arr) ? [...arr] : [];
   while (out.length < min) out.push(filler);
   return out;
@@ -62,41 +62,57 @@ async function generateSearchCampaign({ keyword, language, baseUrl }) {
     throw new Error('AI response is not valid JSON');
   }
 
-  // ========= HEADLINES =========
-  parsed.headlines = padArray(parsed.headlines, 15)
+  /* ========= HEADLINES ========= */
+  parsed.headlines = padArray(parsed.headlines, 15, '')
     .slice(0, 15)
     .map(h => clampText(h, 30));
 
-  // ========= DESCRIPTIONS =========
-  parsed.descriptions = padArray(parsed.descriptions, 4)
+  /* ========= DESCRIPTIONS ========= */
+  parsed.descriptions = padArray(parsed.descriptions, 4, '')
     .slice(0, 4)
     .map(d => clampText(d, 90));
 
-  // ========= CALLOUTS =========
-  parsed.callouts = padArray(parsed.callouts, 4)
+  /* ========= CALLOUTS ========= */
+  parsed.callouts = padArray(parsed.callouts, 4, '')
     .slice(0, 4)
     .map(c => clampText(c, 25));
 
-  // ========= SITELINKS =========
+  /* ========= SITELINKS (COM DESCRIÇÃO) ========= */
   if (normalizedUrl) {
-    const base = [
-      'Official Information',
-      'Reviews & Feedback',
-      'Product Details',
-      'Usage Guide'
+    const fallbackTitles = [
+      'How It Works',
+      'Ingredients Overview',
+      'Real User Reviews',
+      'Official Website'
     ];
 
-    parsed.sitelinks = padArray(parsed.sitelinks, 4)
+    const fallbackDesc1 = [
+      'Learn the basic process',
+      'See what the formula uses',
+      'Read user experiences',
+      'Visit the official page'
+    ];
+
+    const fallbackDesc2 = [
+      'Simple overview explained',
+      'Key elements explained',
+      'Feedback from real users',
+      'More product information'
+    ];
+
+    parsed.sitelinks = padArray(parsed.sitelinks, 4, {})
       .slice(0, 4)
       .map((sl, i) => ({
-        title: clampText(sl?.title || base[i], 25),
+        title: clampText(sl?.title || fallbackTitles[i], 25),
+        description_1: clampText(sl?.description_1 || fallbackDesc1[i], 35),
+        description_2: clampText(sl?.description_2 || fallbackDesc2[i], 35),
         url: `${normalizedUrl}?sl=${i + 1}`
       }));
   } else {
     parsed.sitelinks = [];
   }
 
-  // ========= STRUCTURED SNIPPETS =========
+  /* ========= STRUCTURED SNIPPETS ========= */
   parsed.structured_snippets = Array.isArray(parsed.structured_snippets)
     ? parsed.structured_snippets
         .map(normalizeStructuredSnippet)

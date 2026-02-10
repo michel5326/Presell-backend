@@ -35,6 +35,17 @@ CALLOUT RULES:
 - Generate at least 4 callouts
 - Each callout MUST respect the 25 character limit
 
+SITELINKS RULES (CRITICAL):
+- Generate EXACTLY 4 sitelinks
+- Each sitelink MUST include:
+  - title (max 25 characters)
+  - description_1 (max 35 characters)
+  - description_2 (max 35 characters)
+- Tone must be neutral and informational
+- Do NOT include promises, guarantees, or claims
+- Do NOT reference prices, discounts, or urgency
+- Sitelinks must feel like helpful navigation options
+
 CAMPAIGN CONTEXT:
 Main keyword: "${keyword}"
 Language: "${language}"
@@ -51,7 +62,13 @@ Return ONLY valid JSON with this structure:
     "broad": []
   },
   "structured_snippets": [],
-  "sitelinks": [],
+  "sitelinks": [
+    {
+      "title": "",
+      "description_1": "",
+      "description_2": ""
+    }
+  ],
   "callouts": []
 }
 `;

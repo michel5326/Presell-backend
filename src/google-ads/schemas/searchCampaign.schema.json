@@ -47,17 +47,34 @@
     },
     "structured_snippets": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "sitelinks": {
       "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
       "items": {
         "type": "object",
-        "required": ["title", "url"],
+        "required": [
+          "title",
+          "description_1",
+          "description_2",
+          "url"
+        ],
         "properties": {
           "title": {
             "type": "string",
             "maxLength": 25
+          },
+          "description_1": {
+            "type": "string",
+            "maxLength": 35
+          },
+          "description_2": {
+            "type": "string",
+            "maxLength": 35
           },
           "url": {
             "type": "string"
