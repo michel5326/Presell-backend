@@ -35,8 +35,13 @@ async function preparePageForScreenshot(page) {
   await page.evaluate(() => {
     window.scrollTo(0, window.innerHeight / 2);
   });
-
   await page.waitForTimeout(800);
+
+  // 🔹 VOLTA PARA O TOPO ANTES DO PRINT
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(300);
 
   // detectar anti-bot
   const isBlocked = await page.evaluate(() => {
@@ -113,7 +118,10 @@ async function generateLegacyPage({
     await p.close();
 
     // ===== MOBILE =====
-    const p2 = await browser.newPage(devices["iPhone 12"]);
+    const p2 = await browser.newPage({
+      ...devices["iPhone 12"],
+      deviceScaleFactor: 1 // evita print gigante
+    });
 
     await p2.goto(productUrl, {
       waitUntil: "domcontentloaded",
