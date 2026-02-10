@@ -20,6 +20,21 @@ GENERAL RULES:
 - Strictly respect character limits
 - Content must be SAFE for Google Ads approval
 
+HEADLINES RULES (CRITICAL):
+- Generate EXACTLY 15 headlines
+- Each headline must be UNIQUE
+- Do NOT return fewer than 15 headlines
+- Each headline MUST respect the 30 character limit
+- Do NOT include numbering, quotes, or special characters
+
+DESCRIPTIONS RULES:
+- Generate 3 or 4 descriptions
+- Each description MUST respect the 90 character limit
+
+CALLOUT RULES:
+- Generate at least 4 callouts
+- Each callout MUST respect the 25 character limit
+
 CAMPAIGN CONTEXT:
 Main keyword: "${keyword}"
 Language: "${language}"
