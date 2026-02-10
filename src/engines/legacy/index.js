@@ -7,6 +7,70 @@ const { safeUnlink } = require("../../utils/file.utils");
 const { applyGlobals } = require("../../utils/html.utils");
 const { findTemplate } = require("../../utils/file.utils");
 
+async function preparePageForScreenshot(page) {
+  // espera base
+  await page.waitForTimeout(1500);
+
+  // remove overlays / cookies
+  await page.evaluate(() => {
+    const selectors = [
+      '[id*="cookie"]',
+      '[class*="cookie"]',
+      '[id*="consent"]',
+      '[class*="consent"]',
+      '[aria-label*="cookie"]',
+      '[role="dialog"]',
+      '[class*="overlay"]',
+      '[class*="modal"]'
+    ];
+
+    selectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => el.remove());
+    });
+
+    document.body.style.overflow = "auto";
+  });
+
+  // scroll para ativar lazy-load
+  await page.evaluate(() => {
+    window.scrollTo(0, window.innerHeight / 2);
+  });
+
+  await page.waitForTimeout(800);
+
+  // detectar anti-bot
+  const isBlocked = await page.evaluate(() => {
+    const t = document.body.innerText.toLowerCase();
+    return (
+      t.includes("access denied") ||
+      t.includes("blocked") ||
+      t.includes("checking your browser") ||
+      t.includes("sorry")
+    );
+  });
+
+  if (isBlocked) {
+    throw new Error("anti_bot_detected");
+  }
+
+  // verificar se existe imagem grande visível
+  const hasProductImage = await page.evaluate(() => {
+    return [...document.images].some(img => {
+      const r = img.getBoundingClientRect();
+      return (
+        r.width > 200 &&
+        r.height > 200 &&
+        r.top >= 0 &&
+        r.top < window.innerHeight
+      );
+    });
+  });
+
+  if (!hasProductImage) {
+    throw new Error("no_product_image_visible");
+  }
+}
+
 async function generateLegacyPage({
   templateId,
   productUrl,
@@ -16,7 +80,6 @@ async function generateLegacyPage({
   flatBody,
   userEmail
 }) {
-  /* ===== LEGACY (MODO ANTIGO) ===== */
   console.log("🔄 Executando fluxo Legacy");
 
   const finalLegacyData = { ...legacyData, ...flatBody };
@@ -36,50 +99,52 @@ async function generateLegacyPage({
 
   const browser = await chromium.launch({ headless: true });
 
-  // ===== DESKTOP =====
-  const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+  try {
+    // ===== DESKTOP =====
+    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
 
-  await p.goto(productUrl, {
-    waitUntil: "domcontentloaded",
-    timeout: 60000
-  });
+    await p.goto(productUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: 60000
+    });
 
-  await p.waitForTimeout(2000);
-  await p.screenshot({ path: d, fullPage: false });
-  await p.close();
+    await preparePageForScreenshot(p);
+    await p.screenshot({ path: d, fullPage: false });
+    await p.close();
 
-  // ===== MOBILE =====
-  const p2 = await browser.newPage(devices["iPhone 12"]);
+    // ===== MOBILE =====
+    const p2 = await browser.newPage(devices["iPhone 12"]);
 
-  await p2.goto(productUrl, {
-    waitUntil: "domcontentloaded",
-    timeout: 60000
-  });
+    await p2.goto(productUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: 60000
+    });
 
-  await p2.waitForTimeout(2000);
-  await p2.screenshot({ path: m, fullPage: false });
-  await p2.close();
+    await preparePageForScreenshot(p2);
+    await p2.screenshot({ path: m, fullPage: false });
+    await p2.close();
 
-  const du = await uploadToR2(d, `desktop/${d}`);
-  const mu = await uploadToR2(m, `mobile/${m}`);
+    const du = await uploadToR2(d, `desktop/${d}`);
+    const mu = await uploadToR2(m, `mobile/${m}`);
 
-  safeUnlink(d);
-  safeUnlink(m);
-  await browser.close();
+    let html = fs
+      .readFileSync(templatePath, "utf8")
+      .replaceAll("{{DESKTOP_PRINT}}", du)
+      .replaceAll("{{MOBILE_PRINT}}", mu)
+      .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
 
-  let html = fs
-    .readFileSync(templatePath, "utf8")
-    .replaceAll("{{DESKTOP_PRINT}}", du)
-    .replaceAll("{{MOBILE_PRINT}}", mu)
-    .replaceAll("{{AFFILIATE_LINK}}", affiliateUrl);
+    for (const [k, v] of Object.entries(finalLegacyData)) {
+      html = html.replaceAll(`{{${k}}}`, String(v));
+    }
 
-  for (const [k, v] of Object.entries(finalLegacyData)) {
-    html = html.replaceAll(`{{${k}}}`, String(v));
+    html = applyGlobals(html);
+    return html;
+
+  } finally {
+    safeUnlink(d);
+    safeUnlink(m);
+    await browser.close();
   }
-
-  html = applyGlobals(html);
-
-  return html;
 }
 
 module.exports = { generateLegacyPage };
