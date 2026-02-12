@@ -7,9 +7,37 @@ const { safeUnlink } = require("../../utils/file.utils");
 const { applyGlobals } = require("../../utils/html.utils");
 const { findTemplate } = require("../../utils/file.utils");
 
+/* =========================
+   BROWSER SINGLETON
+========================= */
+let browserInstance = null;
+
+async function getBrowser() {
+  if (!browserInstance) {
+    browserInstance = await chromium.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage"
+      ]
+    });
+  }
+  return browserInstance;
+}
+
+/* =========================
+   PREPARE PAGE
+========================= */
 async function preparePageForScreenshot(page) {
-  // espera base
+  // espera inicial
   await page.waitForTimeout(1500);
+
+  // interação mínima humana
+  await page.mouse.move(200, 200);
+  await page.waitForTimeout(200);
+  await page.mouse.move(400, 350);
+  await page.waitForTimeout(300);
 
   // remove overlays / cookies
   await page.evaluate(() => {
@@ -31,26 +59,27 @@ async function preparePageForScreenshot(page) {
     document.body.style.overflow = "auto";
   });
 
-  // scroll para ativar lazy-load
+  // scroll leve (ativa lazy load)
   await page.evaluate(() => {
     window.scrollTo(0, window.innerHeight / 2);
   });
   await page.waitForTimeout(800);
 
-  // volta para o topo antes do print
+  // volta para topo
   await page.evaluate(() => {
     window.scrollTo(0, 0);
   });
   await page.waitForTimeout(300);
 
-  // detectar anti-bot explícito
+  // detectar bloqueio explícito
   const isBlocked = await page.evaluate(() => {
     const t = document.body.innerText.toLowerCase();
     return (
       t.includes("access denied") ||
       t.includes("blocked") ||
       t.includes("checking your browser") ||
-      t.includes("sorry")
+      t.includes("verify you are human") ||
+      t.includes("captcha")
     );
   });
 
@@ -59,6 +88,9 @@ async function preparePageForScreenshot(page) {
   }
 }
 
+/* =========================
+   GENERATE LEGACY
+========================= */
 async function generateLegacyPage({
   templateId,
   productUrl,
@@ -85,36 +117,56 @@ async function generateLegacyPage({
   const d = `desktop-${id}.png`;
   const m = `mobile-${id}.png`;
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await getBrowser();
 
   try {
-    // ===== DESKTOP =====
-    const p = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    /* =========================
+       DESKTOP
+    ========================= */
+    const contextDesktop = await browser.newContext({
+      viewport: { width: 1366, height: 768 },
+      locale: "en-US",
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+    });
+
+    const p = await contextDesktop.newPage();
 
     await p.goto(productUrl, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle",
       timeout: 60000
     });
 
     await preparePageForScreenshot(p);
     await p.screenshot({ path: d, fullPage: false });
-    await p.close();
 
-    // ===== MOBILE =====
-    const p2 = await browser.newPage({
+    await p.close();
+    await contextDesktop.close();
+
+    /* =========================
+       MOBILE
+    ========================= */
+    const contextMobile = await browser.newContext({
       ...devices["iPhone 12"],
       deviceScaleFactor: 1
     });
 
+    const p2 = await contextMobile.newPage();
+
     await p2.goto(productUrl, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle",
       timeout: 60000
     });
 
     await preparePageForScreenshot(p2);
     await p2.screenshot({ path: m, fullPage: false });
-    await p2.close();
 
+    await p2.close();
+    await contextMobile.close();
+
+    /* =========================
+       UPLOAD
+    ========================= */
     const du = await uploadToR2(d, `desktop/${d}`);
     const mu = await uploadToR2(m, `mobile/${m}`);
 
@@ -134,7 +186,7 @@ async function generateLegacyPage({
   } finally {
     safeUnlink(d);
     safeUnlink(m);
-    await browser.close();
+    // ⚠️ NÃO fechamos o browser aqui
   }
 }
 
