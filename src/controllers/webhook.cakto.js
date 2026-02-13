@@ -2,6 +2,10 @@ const { supabaseAdmin } = require("../services/supabase");
 
 async function caktoWebhook(req, res) {
   try {
+    console.log("===== CAKTO WEBHOOK RECEBIDO =====");
+    console.log(JSON.stringify(req.body, null, 2));
+    console.log("===================================");
+
     const body = req.body;
     const payload = body?.payload || body;
 
@@ -26,7 +30,7 @@ async function caktoWebhook(req, res) {
       .catch(() => {});
 
     const accessUntil = new Date();
-    accessUntil.setMonth(accessUntil.getMonth() + 3);
+    accessUntil.setMonth(accessUntil.getMonth() + 1);
     accessUntil.setHours(23, 59, 59, 999);
 
     await supabaseAdmin
