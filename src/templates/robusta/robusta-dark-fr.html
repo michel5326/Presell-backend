@@ -563,17 +563,90 @@
       }
     });
 
+    // CORRECTION PRINCIPALE : LOGIQUE DE Fallback POUR ÉLÉMENTS VIDES
     document.addEventListener("DOMContentLoaded", () => {
+      // Fonction pour vérifier et masquer les éléments vides ou avec contenu par défaut
+      function hideEmptyElements() {
+        const elementsToCheck = [
+          '.tech-specs-visual',
+          '.bonus-section',
+          '.feature-card p',
+          '.styled-list li'
+        ];
+
+        elementsToCheck.forEach(selector => {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach(element => {
+            // Vérifie si le contenu est vide, contient seulement des espaces, ou contient du texte par défaut
+            const content = element.innerHTML.trim();
+            const hasDefaultContent = content.includes('aguardando') || 
+                                   content.includes('loading') || 
+                                   content.includes('placeholder') ||
+                                   content.includes('default');
+            
+            if (content === '' || hasDefaultContent) {
+              element.style.display = 'none';
+              // Cherche l'élément parent pour masquer toute la section si nécessaire
+              const parent = element.closest('.content-block') || 
+                           element.closest('.tech-specs-visual') ||
+                           element.closest('.bonus-section');
+              if (parent) {
+                parent.style.display = 'none';
+              }
+            }
+          });
+        });
+
+        // Vérifie spécifiquement les sections complètes
+        const techSpecs = document.querySelector('.tech-specs-visual');
+        if (techSpecs && techSpecs.innerHTML.trim() === '') {
+          techSpecs.style.display = 'none';
+          const parentBlock = techSpecs.closest('.content-block');
+          if (parentBlock) parentBlock.style.display = 'none';
+        }
+
+        const bonusSection = document.querySelector('.bonus-section');
+        if (bonusSection && bonusSection.innerHTML.trim() === '') {
+          bonusSection.style.display = 'none';
+        }
+      }
+
+      // Exécute la vérification
+      hideEmptyElements();
+
+      // Gère les grilles d'images de bonus pour éviter les doublons
       const bonusGrids = document.querySelectorAll('.bonus-section .image-grid');
       bonusGrids.forEach(bonusSection => {
         const images = bonusSection.querySelectorAll('img');
         const seenUrls = new Set();
         images.forEach(img => {
           const url = img.src;
-          if (seenUrls.has(url)) { img.style.display = 'none'; } 
-          else { seenUrls.add(url); }
+          if (seenUrls.has(url)) { 
+            img.style.display = 'none'; 
+          } else { 
+            seenUrls.add(url); 
+          }
         });
       });
+
+      // Valide les couleurs une seconde fois après le chargement
+      setTimeout(() => {
+        const root = document.documentElement;
+        let pColor = getComputedStyle(root).getPropertyValue('--primary-color').trim();
+        let sColor = getComputedStyle(root).getPropertyValue('--secondary-color').trim();
+        
+        if (!pColor || pColor === '') {
+          root.style.setProperty('--primary-color', '#00e676');
+        }
+        if (!sColor || sColor === '') {
+          root.style.setProperty('--secondary-color', '#00b0ff');
+        }
+      }, 1000);
+    });
+
+    // Ajoute une vérification avant le redémarrage de la page
+    window.addEventListener('beforeunload', () => {
+      clicked = false;
     });
   </script>
 </body>
