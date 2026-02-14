@@ -21,7 +21,7 @@
       --primary-color: {{PRIMARY_COLOR}};
       --secondary-color: {{SECONDARY_COLOR}};
       
-      /* TEMA CLARO (Light Mode) */
+      /* TEMA CLARO */
       --bg-body: #F8FAFC;
       --bg-card: #FFFFFF;
       --text-main: #0F172A;
@@ -65,7 +65,7 @@
     .header-info { display: flex; align-items: center; gap: 10px; }
     .header-info a { color: var(--primary-color, #e67e22); font-weight: 600; font-size: 14px; }
 
-    /* HERO SECTION (Layout Lado a Lado) */
+    /* HERO SECTION */
     .hero {
       max-width: 1300px; margin: 0 auto; padding: 60px 24px;
       display: grid; grid-template-columns: 1.1fr 0.9fr; grid-template-rows: auto auto; gap: 40px; align-items: start;
@@ -81,10 +81,9 @@
 
     .hero-img { width: 100%; max-width: 450px; height: auto; display: block; margin: 0 auto; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid var(--border); background: #fff; }
     
-    /* BOTÃO CTA (Corrigido com Fallback) */
+    /* BOTÃO CTA */
     .btn {
       display: inline-block; width: 100%; padding: 20px; border-radius: 12px;
-      /* Força um fallback sólido se as variáveis falharem */
       background-color: #e67e22; 
       background-image: linear-gradient(135deg, var(--primary-color, #e67e22), var(--secondary-color, #27ae60));
       color: #fff !important; font-weight: 700; font-size: 18px;
@@ -180,8 +179,7 @@
 
   <div class="container">
     <main>
-      <!-- SEÇÃO DINÂMICA (INGREDIENTES/ESPECIFICAÇÕES) -->
-      <!-- O Backend deve injetar o conteúdo aqui. Se for vazio, some pelo CSS -->
+      <!-- SEÇÃO DINÂMICA -->
       <div class="content-block">
         <h2 class="section-title">{{SECTION_4_TITLE}}</h2>
         <p style="color:var(--text-sec);">{{SECTION_4_TEXT}}</p>
@@ -286,6 +284,21 @@
             btn.innerHTML = '{{CTA_BUTTON_TEXT}} <span class="btn-subtext">Limited Stock Available - Order Today</span>'; 
         });
       }
+    });
+
+    // INTELIGÊNCIA: Esconde blocos vazios para não ficar espaço branco
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.content-block').forEach(block => {
+            // Pega todo o texto, remove espaços em branco
+            const textContent = block.innerText.trim();
+            // Verifica se tem imagens
+            const hasImages = block.querySelectorAll('img').length > 0;
+            
+            // Se o texto for vazio E não tiver imagens, esconde o bloco
+            if (textContent === "" && !hasImages) {
+                block.style.display = 'none';
+            }
+        });
     });
   </script>
 </body>
