@@ -70,7 +70,7 @@
     /* --- NETTOYAGE AUTOMATIQUE : MASQUE LES ÉLÉMENTS VIDES --- */
     /* Si le backend ne remplit pas, l'élément disparaît automatiquement */
     h2:empty, h3:empty, h4:empty, p:empty, 
-    .tech-specs-visual:empty, .bonus-section:empty {
+    .tech-specs-visual:empty {
         display: none !important;
     }
 
@@ -274,11 +274,6 @@
     .alert.warn { border-color: #f59e0b; color: #fcd34d !important; }
     .alert.danger { border-color: #ef4444; color: #fca5a5 !important; }
     .alert.info { border-color: #2979ff; color: #93c5fd !important; }
-
-    /* --- BLOC DE BONUS --- */
-    .bonus-section {
-      margin-top: 30px; padding: 24px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);
-    }
 
     /* --- SPÉCIFICATIONS TECHNIQUES / INGRÉDIENTS --- */
     .tech-specs-visual {
@@ -488,10 +483,6 @@
             <span>🔒 Paiement sécurisé</span><span>•</span><span>Site officiel</span>
           </div>
         </div>
-        <div class="bonus-section">
-          <h4 style="margin-bottom:12px; font-size:15px; color:#fff !important;">🎁 {{BONUS_TITLE}}</h4>
-          {{BONUS_IMAGES}}
-        </div>
       </div>
 
       <div class="content-block">
@@ -516,10 +507,6 @@
         <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
           <span>🔒 Paiement sécurisé</span><span>•</span><span>Site officiel</span>
         </div>
-      </div>
-      <div class="bonus-section">
-        <h4 style="margin-bottom:12px; font-size:15px; color:#fff !important;">🎁 {{BONUS_TITLE}}</h4>
-        {{BONUS_IMAGES}}
       </div>
     </aside>
   </div>
@@ -561,19 +548,6 @@
         const btns = document.querySelectorAll('.btn');
         btns.forEach(btn => { btn.innerHTML = '{{CTA_BUTTON_TEXT}}'; });
       }
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const bonusGrids = document.querySelectorAll('.bonus-section .image-grid');
-      bonusGrids.forEach(bonusSection => {
-        const images = bonusSection.querySelectorAll('img');
-        const seenUrls = new Set();
-        images.forEach(img => {
-          const url = img.src;
-          if (seenUrls.has(url)) { img.style.display = 'none'; } 
-          else { seenUrls.add(url); }
-        });
-      });
     });
   </script>
 </body>
