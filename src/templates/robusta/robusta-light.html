@@ -17,20 +17,17 @@
 
   <style>
     :root {
-      /* VARIÁVEIS DINÂMICAS DO SEU SISTEMA */
+      /* VARIÁVEIS DINÂMICAS */
       --primary-color: {{PRIMARY_COLOR}};
       --secondary-color: {{SECONDARY_COLOR}};
       
       /* TEMA CLARO (Light Mode) */
       --bg-body: #F8FAFC;
       --bg-card: #FFFFFF;
-      --bg-card-hover: #F1F5F9;
-      
       --text-main: #0F172A;
       --text-sec: #64748B;
       --border: rgba(15, 23, 42, 0.08);
-      
-      --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       --radius: 16px;
     }
 
@@ -46,198 +43,100 @@
 
     h1, h2, h3, h4, .btn { font-family: 'Outfit', sans-serif; }
     a { text-decoration: none; transition: all 0.3s ease; }
-    p { margin-bottom: 1rem; }
+    
+    /* Auto-Cleanup: Esconde títulos vazios */
+    h2:empty, h3:empty, p:empty, .ingredients-visual:empty { display: none !important; }
 
-    /* AUTO-CLEANUP */
-    h2:empty, h3:empty, h4:empty, p:empty, 
-    .ingredients-visual:empty, .bonus-section:empty {
-        display: none !important;
-    }
-
-    /* BACKGROUND FX (Sutil para Light Mode) */
+    /* Background FX */
     .bg-glow {
       position: fixed; top: -20%; left: -10%; width: 50vw; height: 50vw;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
-      z-index: -1; pointer-events: none;
-    }
-    .bg-glow-2 {
-      position: fixed; bottom: -20%; right: -10%; width: 40vw; height: 40vw;
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(230, 126, 34, 0.08) 0%, transparent 70%);
       z-index: -1; pointer-events: none;
     }
 
     /* HEADER */
     header {
-      padding: 15px 5%;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      position: sticky; top: 0; z-index: 50; 
-      background: rgba(255, 255, 255, 0.9);
+      padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.9);
     }
-
     .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
-    .dot { width: 8px; height: 8px; background: var(--primary-color, #10B981); border-radius: 50%; box-shadow: 0 0 10px var(--primary-color, #10B981); }
-    
+    .dot { width: 8px; height: 8px; background: var(--primary-color, #e67e22); border-radius: 50%; box-shadow: 0 0 10px var(--primary-color, #e67e22); }
     .header-info { display: flex; align-items: center; gap: 10px; }
-    .updated-pill { font-size: 11px; color: var(--text-sec); }
-    .header-info a { color: var(--primary-color, #10B981); font-weight: 600; font-size: 14px; }
+    .header-info a { color: var(--primary-color, #e67e22); font-weight: 600; font-size: 14px; }
 
     /* HERO SECTION (Layout Lado a Lado) */
     .hero {
       max-width: 1300px; margin: 0 auto; padding: 60px 24px;
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      grid-template-rows: auto auto;
-      gap: 40px;
-      align-items: start;
+      display: grid; grid-template-columns: 1.1fr 0.9fr; grid-template-rows: auto auto; gap: 40px; align-items: start;
     }
-
     .hero-part-top { grid-column: 1; grid-row: 1; align-self: end; }
     .hero-part-bottom { grid-column: 1; grid-row: 2; }
+    .hero-img-wrapper { grid-column: 2; grid-row: 1 / span 2; position: relative; display: flex; align-items: center; justify-content: center; height: 100%; }
 
-    .hero-img-wrapper {
-      grid-column: 2; grid-row: 1 / span 2;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-    }
-
-    .hero-part-top h1 {
-      font-size: clamp(36px, 5vw, 58px);
-      line-height: 1.1;
-      margin-bottom: 0;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-
-    .hero-label {
-      color: var(--primary-color, #10B981); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block;
-    }
-
+    .hero-part-top h1 { font-size: clamp(36px, 5vw, 56px); line-height: 1.1; margin-bottom: 0; font-weight: 800; color: var(--text-main); }
+    .hero-label { color: var(--primary-color, #e67e22); font-weight:700; letter-spacing:1px; text-transform:uppercase; font-size:13px; margin-bottom:10px; display:block; }
     .hero-sub { font-size: 18px; color: var(--text-sec); margin-bottom: 16px; }
+    .positioning-text { font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary-color, #e67e22); padding-left: 16px; }
+
+    .hero-img { width: 100%; max-width: 450px; height: auto; display: block; margin: 0 auto; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid var(--border); background: #fff; }
     
-    .positioning-text {
-      font-size: 16px; color: var(--text-main); margin-bottom: 32px; font-weight: 500; border-left: 2px solid var(--primary-color, #10B981); padding-left: 16px;
-    }
-
-    /* IMAGEM SEM ANIMAÇÃO */
-    .hero-img-wrapper::before {
-      content: ''; position: absolute; inset: -10px;
-      background: linear-gradient(135deg, var(--primary-color, #10B981), var(--secondary-color, #3B82F6)); filter: blur(80px); opacity: 0.15; z-index: -1;
-      border-radius: 50%;
-    }
-
-    .hero-img {
-      width: 100%; max-width: 450px; height: auto;
-      display: block; margin: 0 auto;
-      border-radius: 24px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-      border: 1px solid var(--border);
-      transition: 0.3s;
-      background: #fff;
-    }
-    .hero-img:hover { transform: scale(1.02); }
-
-    /* BOTÃO CTA (Corrigido) */
+    /* BOTÃO CTA (Corrigido com Fallback) */
     .btn {
-      display: inline-block; width: 100%; padding: 18px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--primary-color, #10B981), var(--secondary-color, #3B82F6)); color: #fff; font-weight: 700; font-size: 16px;
+      display: inline-block; width: 100%; padding: 20px; border-radius: 12px;
+      /* Força um fallback sólido se as variáveis falharem */
+      background-color: #e67e22; 
+      background-image: linear-gradient(135deg, var(--primary-color, #e67e22), var(--secondary-color, #27ae60));
+      color: #fff !important; font-weight: 700; font-size: 18px;
       text-align: center; border: none; cursor: pointer;
-      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+      box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3);
       transition: all 0.3s ease;
+      text-transform: uppercase;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.5); }
-    
-    /* Texto de urgência dentro do botão */
-    .btn-subtext {
-      display: block;
-      margin-top: 8px;
-      font-size: 13px;
-      color: #fff; /* FORÇA BRANCO */
-      font-weight: 600;
-      opacity: 0.9;
-    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
+    .btn-subtext { display: block; margin-top: 5px; font-size: 12px; font-weight: 600; opacity: 0.9; text-transform: none; }
 
     /* MAIN LAYOUT */
-    .container {
-      max-width: 1200px; margin: 0 auto; padding: 40px 24px;
-      display: grid; grid-template-columns: 1fr; gap: 40px; /* Grid de 1 coluna para foco total */
-    }
-    
+    .container { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
     .content-block { margin-bottom: 60px; }
-    
-    .section-title {
-      font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: var(--text-main);
-    }
-    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .section-title { font-size: 24px; margin-bottom: 24px; color: var(--text-main); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
 
-    /* CARDS DE INGREDIENTES (Robustos) */
-    .grid-ingredients {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 30px;
-    }
-
-    .feature-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      padding: 24px; border-radius: var(--radius);
-      transition: 0.3s;
-      box-shadow: var(--shadow-card);
-    }
-    .feature-card:hover { transform: translateY(-5px); border-color: var(--primary-color, #10B981); }
-
+    /* CARDS */
+    .grid-ingredients { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .feature-card { background: var(--bg-card); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow-card); transition: 0.3s; }
+    .feature-card:hover { transform: translateY(-3px); border-color: var(--primary-color, #e67e22); }
     .feature-card h3 { font-size: 18px; color: var(--text-main); margin-bottom: 10px; }
     .feature-card p { font-size: 15px; color: var(--text-sec); margin: 0; line-height: 1.6; }
-    .feature-card .icon { font-size: 24px; margin-bottom: 12px; display: block; }
 
-    /* AUTORIDADE / ALERTAS */
-    .authority-bar {
-      background-color: #2c3e50; color: #fff; padding: 20px 0; text-align: center; margin-bottom: 40px;
-    }
-    .authority-bar p { margin: 0; font-weight: 500; }
+    /* AUTHORITY & ALERTS */
+    .authority-bar { background-color: #2c3e50; color: #fff; padding: 20px; text-align: center; margin-bottom: 40px; font-weight: 500; }
     .authority-bar span { color: #f1c40f; font-weight: bold; }
-
-    .alert {
-      padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 15px; background: #fff;
-    }
+    
+    .alert { padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 15px; background: #fff; }
     .alert.warn { border-color: #F59E0B; color: #92400E; background: #FFFBEB; }
-    .alert.danger { border-color: #EF4444; color: #991B1B; background: #FEF2F2; }
     .alert.info { border-color: #3B82F6; color: #1E40AF; background: #EFF6FF; }
 
-    /* GARANTIA */
-    .guarantee-section {
-      background-color: #fdfdfd; padding: 60px 20px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); text-align: center;
-    }
-    .guarantee-content { max-width: 600px; margin: 0 auto; }
-
     /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border); background: #fff; padding: 60px 20px; margin-top: 80px;
-    }
-    .footer-content { max-width: 800px; margin: 0 auto; text-align: center; }
-    .footer-brand { font-weight: 800; font-size: 16px; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    footer { border-top: 1px solid var(--border); background: #fff; padding: 60px 20px; margin-top: 80px; text-align: center; }
+    .footer-content { max-width: 800px; margin: 0 auto; }
+    .footer-brand { font-weight: 800; font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .footer-links { margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px; }
     .footer-links a { color: var(--text-sec); }
-    .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; opacity: 0.8; }
+    .footer-disclaimer { color: #94A3B8; font-size: 12px; line-height: 1.7; }
 
     /* RESPONSIVE */
     @media (max-width: 900px) {
       .hero { display: flex; flex-direction: column-reverse; text-align: center; padding-top: 30px; }
       .hero-part-top { margin-bottom: 20px; }
       .hero-img { margin: 20px 0; max-width: 300px; }
-      .positioning-text { border-left: none; border-top: 2px solid var(--primary-color, #10B981); padding-left: 0; padding-top: 16px; }
+      .positioning-text { border-left: none; border-top: 2px solid var(--primary-color, #e67e22); padding: 16px 0 0 0; }
     }
-    @media (max-width: 600px) {
-      h1 { font-size: 32px !important; } 
-      .grid-ingredients { grid-template-columns: 1fr !important; }
-    }
+    @media (max-width: 600px) { h1 { font-size: 32px !important; } }
   </style>
 </head>
 <body>
 
   <div class="bg-glow"></div>
-  <div class="bg-glow-2"></div>
 
   <!-- HEADER -->
   <header>
@@ -245,7 +144,6 @@
       <span class="dot"></span> {{SITE_BRAND}}
     </div>
     <div class="header-info">
-      <span class="updated-pill">Updated: {{UPDATED_DATE}}</span>
       <a href="javascript:void(0)" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}} &rarr;
       </a>
@@ -268,48 +166,28 @@
       <div class="positioning-text">
         {{POSITIONING_STATEMENT}}
       </div>
-      <!-- BOTÃO COM URGENCIA CORRIGIDA -->
       <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}}
-        <span class="btn-subtext">Estoque Limitado - Últimas Unidades com Desconto</span>
+        <span class="btn-subtext">Limited Stock Available - Order Today</span>
       </a>
     </div>
   </section>
 
   <!-- AUTHORITY BAR -->
   <section class="authority-bar">
-    <div class="container">
-      <p>⚠️ Atenção: A venda oficial é realizada <span>APENAS</span> através deste site para garantir a autenticidade.</p>
-    </div>
+    <p>⚠️ Warning: Official Product Sold Only Here. <span>Beware of Fakes.</span></p>
   </section>
 
   <div class="container">
     <main>
-      <!-- SEÇÃO DE INGREDIENTES (USANDO A ESTRUTURA DA IA) -->
+      <!-- SEÇÃO DINÂMICA (INGREDIENTES/ESPECIFICAÇÕES) -->
+      <!-- O Backend deve injetar o conteúdo aqui. Se for vazio, some pelo CSS -->
       <div class="content-block">
         <h2 class="section-title">{{SECTION_4_TITLE}}</h2>
-        <div class="grid-ingredients">
-          <!-- A IA do seu sistema deve gerar os cards aqui ou você usa o bloco genérico -->
-          <div class="feature-card">
-            <span class="icon">🦠</span>
-            <h3>Ingrediente Chave 1</h3>
-            <p>{{SECTION_4_TEXT}}</p>
-          </div>
-          <!-- Fallback caso a IA use o bloco unico -->
-          <div class="feature-card" style="display:none;">
-             <!-- Esconde se não usar, lógica simples -->
-          </div>
+        <p style="color:var(--text-sec);">{{SECTION_4_TEXT}}</p>
+        <div class="ingredients-visual" style="margin-top:20px;">
+          {{SECTION_4_IMAGES_OR_CONTENT}}
         </div>
-        <!-- Se o seu backend gera HTML complexo, ele entra aqui: -->
-        <div class="ingredients-visual">
-            {{SECTION_4_IMAGES_OR_CONTENT}}
-        </div>
-      </div>
-
-      <!-- PROBLEMA / SOLUÇÃO -->
-      <div class="content-block">
-        <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
       </div>
 
       <!-- MECANISMO -->
@@ -317,27 +195,26 @@
         <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
         <div class="grid-ingredients">
           <div class="feature-card">
-            <span class="icon">⚡</span>
+            <p style="font-weight:600; color:var(--primary-color, #e67e22);">Step 1</p>
             <p>{{MECHANISM_STEP_1}}</p>
           </div>
           <div class="feature-card">
-            <span class="icon">🛡️</span>
+            <p style="font-weight:600; color:var(--primary-color, #e67e22);">Step 2</p>
             <p>{{MECHANISM_STEP_2}}</p>
           </div>
           <div class="feature-card">
-            <span class="icon">✅</span>
+            <p style="font-weight:600; color:var(--primary-color, #e67e22);">Step 3</p>
             <p>{{MECHANISM_STEP_3}}</p>
           </div>
         </div>
       </div>
 
       <!-- CTA INTERMEDIÁRIO -->
-      <div class="content-block" style="text-align: center; padding: 20px 0;">
-         <h3 style="margin-bottom: 16px; color: var(--text-main);">Ready to secure your order?</h3>
+      <div class="content-block" style="text-align: center; background: #fff; padding: 40px; border-radius: 16px; box-shadow: var(--shadow-card);">
+         <h3 style="margin-bottom: 16px; color: var(--text-main);">Ready to make a change?</h3>
          <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 400px; margin: 0 auto;">
            {{CTA_BUTTON_TEXT}} &rarr;
          </a>
-         <p style="font-size: 13px; color: var(--text-sec); margin-top: 10px;">Secure checkout • Official Stock</p>
       </div>
 
       <!-- QUEM DEVE USAR -->
@@ -361,9 +238,7 @@
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info" style="text-align:center;">
           {{GUARANTEE_TEXT}}
-          <div style="margin-top:20px;">
-            {{GUARANTEE_IMAGE}}
-          </div>
+          <div style="margin-top:20px;">{{GUARANTEE_IMAGE}}</div>
         </div>
       </div>
 
@@ -402,12 +277,13 @@
       }
     }
 
+    // Restaura o botão se o usuário voltar
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) {
         clicked = false;
         const btns = document.querySelectorAll('.btn');
         btns.forEach(btn => { 
-            btn.innerHTML = '{{CTA_BUTTON_TEXT}} <span class="btn-subtext">Estoque Limitado - Últimas Unidades com Desconto</span>'; 
+            btn.innerHTML = '{{CTA_BUTTON_TEXT}} <span class="btn-subtext">Limited Stock Available - Order Today</span>'; 
         });
       }
     });
