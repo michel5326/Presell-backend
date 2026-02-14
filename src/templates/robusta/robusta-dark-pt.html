@@ -16,12 +16,13 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-{{TRACKING_SCRIPT}}
+  {{TRACKING_SCRIPT}}
 
 <style>
   :root {
-      /* VARIÁVEIS DINÂMICAS */
-      --primary-color: {{PRIMARY_COLOR}};
+      /* VARIÁVEIS DINÂMICAS (Injetadas pelo Backend/IA) */
+      /* Fallbacks inline garantem que o site não quebre se a variável vier vazia */
+      --primary-color: {{PRIMARY_COLOR}}; 
       --secondary-color: {{SECONDARY_COLOR}};
       
       --bg-body: #02040a;
@@ -330,19 +331,19 @@
 </head>
 <body>
 
-  <!-- CORRIGE AS CORES NO CARREGAMENTO DA PÁGINA -->
+  <!-- CORRIGE AS CORES NO CARREGAMENTO DA PÁGINA (Se o Backend falhar) -->
   <script>
     (function() {
       const root = document.documentElement;
-      // Lê as cores atuais (o que o backend injetou)
+      // Lê as cores atuais (o que o backend/IA injetou)
       let pColor = getComputedStyle(root).getPropertyValue('--primary-color').trim();
       let sColor = getComputedStyle(root).getPropertyValue('--secondary-color').trim();
       
-      // Se a cor estiver vazia, força o padrão Verde e Azul
-      if (!pColor || pColor === '') {
+      // Se a cor estiver vazia (ex: {{PRIMARY_COLOR}} não foi substituída), força o padrão
+      if (!pColor || pColor === '' || pColor.includes('{{')) {
         root.style.setProperty('--primary-color', '#00e676');
       }
-      if (!sColor || sColor === '') {
+      if (!sColor || sColor === '' || sColor.includes('{{')) {
         root.style.setProperty('--secondary-color', '#00b0ff');
       }
     })();
@@ -351,7 +352,7 @@
   <div class="bg-glow"></div>
   <div class="bg-glow-2"></div>
 
-  <!-- NAV -->
+  <!-- INÍCIO: HEADER -->
   <header>
     <div class="logo">
       <span class="dot"></span> {{SITE_BRAND}}
@@ -364,7 +365,7 @@
     </div>
   </header>
 
-  <!-- HERO SECTION -->
+  <!-- INÍCIO: HERO SECTION -->
   <section class="hero">
     <div class="hero-part-top">
       <span class="hero-label">{{DECISION_STAGE_LINE}}</span>
@@ -386,13 +387,16 @@
     </div>
   </section>
 
+  <!-- INÍCIO: CONTAINER PRINCIPAL (Main + Sidebar) -->
   <div class="container">
     <main>
+      <!-- Bloco 1: Problema Principal -->
       <div class="content-block">
         <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
         <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
       </div>
 
+      <!-- Bloco 2: Diferenciais (Grid 3) -->
       <div class="content-block">
         <h2 class="section-title">{{WHY_DIFFERENT_TITLE}}</h2>
         <div class="grid-3">
@@ -411,6 +415,7 @@
         </div>
       </div>
 
+      <!-- Bloco 3: Mecanismo -->
       <div class="content-block">
         <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
         <ul class="styled-list">
@@ -420,7 +425,7 @@
         </ul>
       </div>
 
-      <!-- SEÇÃO DINÂMICA (Ingredients/Specs) -->
+      <!-- Bloco 4: Conteúdo Dinâmico (Imagens/Specs) -->
       <div class="content-block">
         <h2 class="section-title">{{SECTION_4_TITLE}}</h2>
         <div class="tech-specs-visual">
@@ -431,6 +436,7 @@
         </p>
       </div>
 
+      <!-- CTA Intermediário -->
       <div class="content-block" style="text-align: center; padding: 20px 0;">
          <h3 style="margin-bottom: 16px; color: #fff !important;">{{MID_PAGE_CTA_TITLE}}</h3>
          <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 400px; margin: 0 auto;">
@@ -439,6 +445,7 @@
          <p style="font-size: 13px; color: var(--text-sec); margin-top: 10px;">Pagamento seguro • Estoque oficial</p>
       </div>
 
+      <!-- Bloco 5: Quem Deve Usar -->
       <div class="content-block">
         <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
         <div class="grid-3">
@@ -448,6 +455,7 @@
         </div>
       </div>
 
+      <!-- Bloco 6: Quem NÃO Deve Usar -->
       <div class="content-block">
         <h2 class="section-title">{{WHO_SHOULD_NOT_TITLE}}</h2>
         <div class="alert danger">
@@ -459,11 +467,13 @@
         </div>
       </div>
 
+      <!-- Bloco 7: Alerta de Golpe -->
       <div class="content-block">
         <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
         <div class="alert warn">{{SCAM_ALERT_TEXT}}</div>
       </div>
 
+      <!-- Bloco 8: Depoimentos -->
       <div class="content-block" style="margin-top:24px;">
         <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
         <div class="alert info" style="font-size:14px;">
@@ -475,6 +485,7 @@
         </div>
       </div>
 
+      <!-- INÍCIO: SIDEBAR MOBILE (Só aparece no mobile) -->
       <div class="mobile-sidebar-group">
         <div class="offer-box">
           <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
@@ -488,12 +499,15 @@
             <span>🔒 Pagamento Seguro</span><span>•</span><span>Site Oficial</span>
           </div>
         </div>
+        
+        <!-- SEÇÃO BÔNUS (Vai se esconder se {{BONUS_IMAGES}} vier vazio) -->
         <div class="bonus-section">
           <h4 style="margin-bottom:12px; font-size:15px; color:#fff !important;">🎁 {{BONUS_TITLE}}</h4>
           {{BONUS_IMAGES}}
         </div>
       </div>
 
+      <!-- Bloco 9: Garantia -->
       <div class="content-block">
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
@@ -504,6 +518,7 @@
       <p style="font-size:11px; color:#475569; margin-top:40px; border-top:1px solid var(--glass-border); padding-top:20px;">{{DISCLAIMER_TEXT}}</p>
     </main>
 
+    <!-- INÍCIO: SIDEBAR DESKTOP -->
     <aside>
       <div class="offer-box">
         <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
@@ -517,6 +532,8 @@
           <span>🔒 Pagamento Seguro</span><span>•</span><span>Site Oficial</span>
         </div>
       </div>
+      
+      <!-- SEÇÃO BÔNUS DESKTOP -->
       <div class="bonus-section">
         <h4 style="margin-bottom:12px; font-size:15px; color:#fff !important;">🎁 {{BONUS_TITLE}}</h4>
         {{BONUS_IMAGES}}
@@ -524,6 +541,7 @@
     </aside>
   </div>
 
+  <!-- INÍCIO: FOOTER -->
   <footer>
     <div class="footer-content">
       <div class="footer-brand">
@@ -539,15 +557,24 @@
     </div>
   </footer>
 
+  <!-- SCRIPTS DO TEMPLATE -->
   <script>
+    // CONFIGURAÇÃO DE LINK (Injetado pelo Backend/IA)
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
     let clicked = false;
 
     function doRedirect(){
+      // Verifica se o link está vazio ou contém a tag não substituída
       if(clicked) return;
+      if(!AFFILIATE_LINK || AFFILIATE_LINK.includes('{{')) {
+          console.warn("Link de afiliado não configurado.");
+          return;
+      }
+
       clicked = true;
       const btns = document.querySelectorAll('.btn');
       btns.forEach(btn => btn.innerHTML = 'Redirecionando...');
+      
       if(typeof window.runTrackerRedirect === "function"){
         window.runTrackerRedirect(AFFILIATE_LINK);
       }else{
@@ -555,6 +582,7 @@
       }
     }
 
+    // Restaura botões se o usuário usar o botão "Voltar" do navegador
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) {
         clicked = false;
@@ -563,17 +591,22 @@
       }
     });
 
+    // Script para tratar imagens duplicadas na seção de bônus (segurança extra)
     document.addEventListener("DOMContentLoaded", () => {
       const bonusGrids = document.querySelectorAll('.bonus-section .image-grid');
-      bonusGrids.forEach(bonusSection => {
-        const images = bonusSection.querySelectorAll('img');
-        const seenUrls = new Set();
-        images.forEach(img => {
-          const url = img.src;
-          if (seenUrls.has(url)) { img.style.display = 'none'; } 
-          else { seenUrls.add(url); }
-        });
-      });
+      
+      // Só executa se houver grids de bônus
+      if(bonusGrids.length > 0) {
+          bonusGrids.forEach(bonusSection => {
+            const images = bonusSection.querySelectorAll('img');
+            const seenUrls = new Set();
+            images.forEach(img => {
+              const url = img.src;
+              if (seenUrls.has(url)) { img.style.display = 'none'; } 
+              else { seenUrls.add(url); }
+            });
+          });
+      }
     });
   </script>
 </body>
