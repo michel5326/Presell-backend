@@ -44,7 +44,7 @@
       overflow-x: hidden;
     }
 
-    /* --- NUCLEAR VISIBILITY FIX --- */
+    /* --- VISIBILITY FIX --- */
     main, main p, main span, main div, main li, 
     main .text-muted, main .alert, 
     .feature-card, .feature-card p, 
@@ -154,22 +154,14 @@
     }
     .hero-img:hover { transform: scale(1.02); border-color: var(--primary-color, #00e676); }
 
-    /* --- BUTTONS (NEON VERDE CORRIGIDO) --- */
+    /* --- BUTTONS (NEON VERDE) --- */
     .btn {
       display: inline-block; width: 100%; padding: 18px; border-radius: 50px;
-      
-      /* 1. Fallback Sólido: Verde Neon Puro */
       background-color: #00e676; 
-      
-      /* 2. Gradiente: Verde Neon para Preto (Efeito Cyberpunk) */
       background-image: linear-gradient(135deg, var(--primary-color, #00e676), #000);
-      
       color: #fff; font-weight: 800; font-size: 16px;
       text-align: center; border: none; cursor: pointer; position: relative; overflow: hidden;
-      
-      /* 3. Sombra Neon (O Brilho) */
       box-shadow: 0 0 20px var(--primary-color, #00e676);
-      
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       text-transform: uppercase; letter-spacing: 1px;
     }
@@ -254,7 +246,7 @@
     .alert.danger { border-color: #ef4444; color: #fca5a5 !important; }
     .alert.info { border-color: #2979ff; color: #93c5fd !important; }
 
-    /* --- TECH SPECS / INGREDIENTS --- */
+    /* --- TECH SPECS --- */
     .tech-specs-visual {
       padding: 24px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius);
       display: flex; flex-direction: column; align-items: center;
@@ -347,19 +339,29 @@
         <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
       </div>
 
+      <!-- CARDS COM ÍCONES SVG (CORRIGIDO) -->
       <div class="content-block">
         <h2 class="section-title">{{WHY_DIFFERENT_TITLE}}</h2>
         <div class="grid-3">
           <div class="feature-card">
-            <div class="icon-box"><i class="fas fa-bolt"></i></div>
+            <div class="icon-box">
+              <!-- Ícone de Raio (Bolt) -->
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
             <p>{{WHY_DIFFERENT_1}}</p>
           </div>
           <div class="feature-card">
-            <div class="icon-box"><i class="fas fa-cube"></i></div>
+            <div class="icon-box">
+              <!-- Ícone de Caixa (Package/Cube) -->
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
             <p>{{WHY_DIFFERENT_2}}</p>
           </div>
           <div class="feature-card">
-            <div class="icon-box"><i class="fas fa-check-circle"></i></div>
+            <div class="icon-box">
+              <!-- Ícone de Check Circle -->
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
             <p>{{WHY_DIFFERENT_3}}</p>
           </div>
         </div>
