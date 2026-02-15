@@ -236,7 +236,10 @@
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
         <div class="alert info" style="text-align:center;">
           {{GUARANTEE_TEXT}}
-          <div style="margin-top:20px;">{{GUARANTEE_IMAGE}}</div>
+          <!-- AJUSTE: Imagem da garantia com tratamento de erro -->
+          <div style="margin-top:20px;">
+            <img src="{{GUARANTEE_IMAGE}}" alt="Guarantee Seal" style="max-width: 150px; margin: 0 auto; display: block;" onerror="this.style.display='none'">
+          </div>
         </div>
       </div>
 
@@ -289,12 +292,8 @@
     // INTELIGÊNCIA: Esconde blocos vazios para não ficar espaço branco
     document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.content-block').forEach(block => {
-            // Pega todo o texto, remove espaços em branco
             const textContent = block.innerText.trim();
-            // Verifica se tem imagens
             const hasImages = block.querySelectorAll('img').length > 0;
-            
-            // Se o texto for vazio E não tiver imagens, esconde o bloco
             if (textContent === "" && !hasImages) {
                 block.style.display = 'none';
             }
