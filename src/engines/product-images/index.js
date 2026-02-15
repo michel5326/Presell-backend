@@ -1,4 +1,5 @@
 const { extractOgImage } = require('./extractors/og-image');
+const { extractGuaranteeImage } = require('./extractors/guarantee-image');
 const { extractImagesFromHtml } = require('./extractors/img-only');
 const { extractHeroScreenshotDataUrl } = require('./extractors/hero-screenshot');
 const {
@@ -34,6 +35,7 @@ function isSameOrSubdomain(child, parent) {
  * 3) Screenshot do hero
  * 4) Imagens do HTML
  * 5) OG image
+ * 6) Guarantee image (fallback final)
  *
  * ❌ Nunca retorna base64
  * ❌ Nunca grava cache automaticamente
@@ -60,7 +62,6 @@ async function resolveProductImage(
         await saveImageForDomain(productHost, productImageUrl, 'manual');
       }
 
-      // usa sempre, mesmo se não salvar cache
       return productImageUrl;
     }
 
@@ -72,13 +73,13 @@ async function resolveProductImage(
       }
     }
 
-    // 3) Screenshot (bloqueando base64)
+    // 3) Screenshot do hero (bloqueando base64)
     const heroShot = await extractHeroScreenshotDataUrl(productUrl, attempt);
     if (heroShot && !isDataImage(heroShot)) {
       return heroShot;
     }
 
-    // 4) HTML images
+    // 4) Imagens do HTML
     const images = await extractImagesFromHtml(productUrl);
 
     if (!images.length) {
@@ -86,8 +87,16 @@ async function resolveProductImage(
       if (ogImage) images.push(ogImage);
     }
 
-    if (!images.length) return '';
+    // 5) Se ainda não encontrou nada → tentar garantia
+    if (!images.length) {
+      const guaranteeImage = await extractGuaranteeImage(productUrl);
+      if (guaranteeImage) {
+        return guaranteeImage;
+      }
+      return '';
+    }
 
+    // Rotação determinística por attempt
     const index = Math.abs(Number(attempt) || 0) % images.length;
     return images[index] || '';
   } catch {
