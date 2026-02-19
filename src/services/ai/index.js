@@ -9,7 +9,7 @@ const editorialScientificPrompt = require("./prompts/editorial-scientific.prompt
  * Normaliza idioma suportado
  */
 function normalizeLang(lang) {
-  const supported = ["en", "pt", "es", "fr", "pl", "tr"];
+  const supported = ["en", "pt", "es", "fr", "pl", "tr", "de"];
   return supported.includes(lang) ? lang : "en";
 }
 
