@@ -96,9 +96,10 @@ function renderTestimonials(list) {
 /* ---------- MAIN ---------- */
 
 function normalizeLang(lang) {
-  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr'];
+  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr', 'de'];
   return supported.includes(lang) ? lang : 'en';
 }
+
 
 async function generate({
   productUrl,

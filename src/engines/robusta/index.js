@@ -17,9 +17,10 @@ function safe(val) {
 }
 
 function normalizeLang(lang) {
-  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr'];
+  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr', 'de'];
   return supported.includes(lang) ? lang : 'en';
 }
+
 
 function templateExists(relativePath) {
   const fullPath = path.join(__dirname, '../../templates', relativePath);
