@@ -25,11 +25,16 @@ IMPORTANT LANGUAGE RULE:
 - Do NOT include any English if the language is not English
 
 DATE RULE (CRITICAL):
-- DO NOT include any specific numeric year (such as 2024, 2025, 2026)
-- DO NOT invent publication dates
-- If needed, use neutral wording such as:
-  "Recently Updated", "Latest Information", or equivalent in the target language
-- NEVER include numeric years
+- The ONLY allowed numeric year is 2026
+- If a year is included anywhere in the output, it MUST be 2026
+- NEVER use 2024, 2025, 2027 or any other year
+- Do NOT invent specific publication dates (no full dates like March 2026)
+- You may use:
+  "Updated for 2026"
+  "Latest 2026 Information"
+  or equivalent in the target language
+- Only the standalone year 2026 is allowed
+- If any year other than 2026 appears in the output, regenerate the entire response
 
 GOAL:
 - Assume the reader already searched for this product
