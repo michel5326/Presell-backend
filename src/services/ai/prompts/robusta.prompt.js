@@ -12,7 +12,6 @@ function resolveLanguageName(lang) {
   return map[lang] || 'English';
 }
 
-
 module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
@@ -24,6 +23,13 @@ IMPORTANT:
 - Write ALL content strictly in the following language: ${languageName}
 - Do NOT mix languages
 - Do NOT include any English if the language is not English
+
+DATE RULE (CRITICAL):
+- DO NOT include any specific year (such as 2024, 2025, 2026)
+- DO NOT invent publication dates
+- If a date reference is needed, use neutral wording such as:
+  "Recently Updated", "Latest Information", or equivalent in the target language
+- NEVER include numeric years
 
 GOAL:
 - Confirm the user's decision
