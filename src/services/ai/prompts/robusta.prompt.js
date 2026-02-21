@@ -30,50 +30,57 @@ STRICT DATE RULE:
 - NEVER use any other year
 - NEVER include months
 - NEVER include full dates
-- The UPDATED_DATE field must contain ONLY: "2026"
+- UPDATED_DATE must contain ONLY: "2026"
 
 STRATEGIC GOAL:
-- Clarify the product
+- Clarify what the product is
 - Reduce hesitation
-- Confirm legitimacy
-- Provide structured decision support
-- Encourage accessing the official source naturally
+- Reinforce legitimacy
+- Support decision-making
+- Encourage visiting the official source naturally
 - No artificial urgency
+
+CONVERSION BALANCE:
+- 65% informational
+- 35% reassuring and decision-oriented
+- Clear, concrete wording
+- Avoid vague generic phrases
 
 CORE PRODUCT EXPLANATION RULE (MANDATORY):
 
-Before discussing purchasing logistics, you MUST clearly explain:
+Before discussing purchase logistics, clearly explain:
 
 • What the product is  
 • Its category  
 • Its intended general purpose  
-• How it works (in neutral, descriptive terms)  
+• How it works (neutral description)  
 • How it is typically used  
 
-This explanation must:
-- Be informational
-- Avoid promises or guarantees
+The explanation must:
+- Be specific but neutral
+- Avoid medical diagnoses or cures
 - Avoid exaggerated claims
-- Avoid medical cures or diagnoses
 - Avoid superiority framing
-- Avoid hype
+- Avoid hype language
 
 HERO STRUCTURE (MANDATORY):
 
-- One structured headline
+- One strong but compliant headline
 - One supportive subheadline
 - One neutral positioning statement
 - EXACTLY 3 bullets
 
 HERO BULLET RULE:
 
-• Bullet 1 → Distribution clarity (official source, channel logic)
-• Bullet 2 → Transparency clarity (pricing structure, support access)
-• Bullet 3 → Protection clarity (refund eligibility, safeguards)
+• Bullet 1 → Distribution clarity (official source)  
+• Bullet 2 → Transparency clarity (pricing visibility + support access)  
+• Bullet 3 → Protection clarity (refund policy / safeguards)  
 
-Each bullet must introduce a distinct informational angle.
-No repetition.
-No fear amplification.
+Each bullet must:
+- Be distinct
+- Be concrete
+- Avoid repetition
+- Avoid fear amplification
 
 SECTION STRUCTURE (MANDATORY ORDER):
 
@@ -81,40 +88,41 @@ SECTION STRUCTURE (MANDATORY ORDER):
 2. WHERE TO BUY  
 3. PRICE & AVAILABILITY  
 4. GUARANTEE  
-5. SCAM ALERT  
+5. PURCHASE NOTICE (instead of “Scam Alert” wording tone must be neutral)  
 6. FINAL CTA  
 
-Each section must serve a different psychological function.
-No conceptual repetition across sections.
+Each section must serve a different psychological purpose.
+Do not repeat ideas across sections.
 
 COMPLIANCE (Google Ads Safe):
 
 - No guarantees of results
-- No urgency
+- No urgency language
 - No scarcity framing
 - No medical claims
-- No exaggerated benefits
 - No unrealistic performance language
+- Do not imply treatment of diseases
 
 TONE:
 
 - Professional
 - Calm
 - Structured
-- Informational first
-- 70% informational
-- 30% subtle reassurance
+- Clear and specific
+- Avoid robotic or academic tone
+
+CONTENT LENGTH:
+
+Target: 600–750 words.
+Avoid unnecessary repetition.
+Short paragraphs (max 3 lines).
 
 FINAL CTA RULE:
 
-Before the final CTA title, include one calm confirmation sentence.
-It must sound neutral and supportive, not persuasive.
+Before FINAL_CTA_TITLE, include one calm confirmation sentence.
+It must sound supportive, not persuasive or urgent.
 
-CONTENT LENGTH:
-650–850 words.
-Short paragraphs (max 3 lines).
-
-MANDATORY FIELDS RULE (CRITICAL):
+MANDATORY FIELDS RULE:
 
 The following fields must NEVER be empty:
 
@@ -124,10 +132,8 @@ The following fields must NEVER be empty:
 - PRODUCT_OVERVIEW_TITLE
 - PRODUCT_OVERVIEW_TEXT
 
-If any of these fields are empty, incomplete, or contain only whitespace,
-you MUST regenerate the entire response.
-
-Do NOT return empty strings for these fields under any circumstance.
+If any of these are empty or whitespace,
+regenerate the entire response.
 
 OUTPUT FORMAT:
 
