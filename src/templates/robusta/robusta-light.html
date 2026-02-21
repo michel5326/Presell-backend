@@ -17,12 +17,12 @@
 
   <style>
     :root{
-      /* entradas do backend (podem vir vazias) */
+      /* entradas do backend */
       --primary: {{PRIMARY_COLOR}};
       --secondary: {{SECONDARY_COLOR}};
 
-      /* fallbacks (sempre existem) */
-      --primary-fallback: #e67e22;  /* LARANJA */
+      /* fallbacks */
+      --primary-fallback: #e67e22;
       --primary-dark: #d35400;
       --primary-soft: #fcece0;
 
@@ -55,7 +55,7 @@
 
     h1,h2,h3,.btn{font-family:var(--font-h)}
 
-    /* Auto-hide se o backend enviar vazio */
+    /* Auto-hide */
     [data-empty="true"]{ display:none !important; }
 
     .container{
@@ -102,7 +102,7 @@
       text-decoration:none;
     }
 
-    /* HERO */
+    /* HERO - ESTRUTURA NOVA */
     .hero-wrap{
       max-width:1200px;
       margin:0 auto;
@@ -110,9 +110,9 @@
     }
     .hero{
       display:grid;
-      grid-template-columns: 1.1fr .9fr;
+      grid-template-columns: 1.1fr .9fr; /* Desktop: 2 colunas */
       gap:48px;
-      align-items:center;
+      align-items:start; /* Alinha no topo para consistência */
       padding:54px;
       border-radius: 28px;
       background:
@@ -132,6 +132,25 @@
       pointer-events:none;
     }
     .hero > *{ position:relative; z-index:1; }
+
+    /* PARTES DO HERO */
+    .hero-intro {
+      grid-column: 1;
+      /* No mobile, a ordem é definida pelo DOM */
+    }
+    
+    .hero-media{
+      grid-column: 2;
+      grid-row: 1 / span 2; /* Imagem ocupa altura do Intro + Body no desktop */
+      align-self: center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .hero-body {
+      grid-column: 1;
+    }
 
     .badge{
       display:inline-flex;
@@ -207,11 +226,8 @@
       text-decoration:none;
       cursor:pointer;
       border: 1px solid rgba(255,255,255,.25);
-
-      /* fallback laranja + texto branco */
       background: var(--primary, var(--primary-fallback));
       color:#fff !important;
-
       box-shadow: var(--shadow-brand);
       transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
       user-select:none;
@@ -229,11 +245,6 @@
       color: var(--muted);
     }
 
-    .hero-media{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
     .product-img{
       width:100%;
       max-width: 520px;
@@ -375,35 +386,48 @@
 
     /* RESPONSIVE */
     @media(max-width: 900px){
-      .hero{ grid-template-columns: 1fr; padding: 34px 22px; }
-      .product-img{ transform:none; max-width: 420px; }
+      /* Hero vira coluna única */
+      .hero{ 
+        grid-template-columns: 1fr; 
+        padding: 34px 22px;
+        gap: 0; /* Gap controlado pelas margins dos elementos */
+      }
+      
+      /* A imagem flui naturalmente após o intro (h1) */
+      .hero-intro { margin-bottom: 24px; }
+      
+      .hero-media{
+        grid-column: 1; /* Reseta coluna */
+        grid-row: auto; /* Reseta linha */
+        margin-bottom: 24px; /* Espaço antes do corpo de texto */
+        align-self: center;
+      }
+
+      .product-img{ 
+        transform:none; 
+        max-width: 420px; 
+      }
+      
       .hero-wrap{ padding-top: 34px; }
       .container{ padding: 46px 20px; }
       .nav-right{ display:none; }
     }
   </style>
 
-  <!-- Força fallback se backend mandar vazio/inválido -->
   <script>
     (function(){
       const root = document.documentElement;
-
       function normalizeColor(val){
         if(!val) return "";
         const v = String(val).trim();
-        // evita "null", "undefined", strings vazias e placeholders quebrados
         if(!v || v === "null" || v === "undefined" || v === "{{PRIMARY_COLOR}}") return "";
         return v;
       }
-
       const computed = getComputedStyle(root);
       const p = normalizeColor(computed.getPropertyValue('--primary'));
       const s = normalizeColor(computed.getPropertyValue('--secondary'));
-
       if(!p) root.style.setProperty('--primary', getComputedStyle(root).getPropertyValue('--primary-fallback').trim() || '#e67e22');
       if(!s) root.style.setProperty('--secondary', '#3b82f6');
-
-      // define hover dark com base em fallback fixo (mantém consistente)
       root.style.setProperty('--primary-dark', '#d35400');
     })();
   </script>
@@ -424,51 +448,48 @@
     </div>
   </header>
 
-  <!-- HERO (imagem na primeira dobra) -->
+  <!-- HERO -->
   <div class="hero-wrap">
     <section class="hero">
-      <div>
+      
+      <!-- 1. INTRO (Badge + H1) -->
+      <div class="hero-intro">
         <div class="badge">{{DECISION_STAGE_LINE}}</div>
-
         <h1>{{HEADLINE_MAIN}}</h1>
-        <div class="hero-sub">{{SUBHEADLINE_MAIN}}</div>
+      </div>
 
+      <!-- 2. IMAGEM (No mobile ficará aqui, logo após o H1) -->
+      <div class="hero-media">
+        <img class="product-img" src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" loading="lazy">
+      </div>
+
+      <!-- 3. CORPO (Restante do conteúdo) -->
+      <div class="hero-body">
+        <div class="hero-sub">{{SUBHEADLINE_MAIN}}</div>
         <div class="positioning">{{POSITIONING_STATEMENT}}</div>
 
-        <!-- Bullets (usando WHY_DIFFERENT_1/2/3 pra não criar keys novas) -->
         <ul class="hero-list">
           <li id="hb1">
-            <span class="check" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
-            </span>
+            <span class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg></span>
             <span>{{WHY_DIFFERENT_1}}</span>
           </li>
           <li id="hb2">
-            <span class="check" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
-            </span>
+            <span class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg></span>
             <span>{{WHY_DIFFERENT_2}}</span>
           </li>
           <li id="hb3">
-            <span class="check" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
-            </span>
+            <span class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg></span>
             <span>{{WHY_DIFFERENT_3}}</span>
           </li>
         </ul>
 
-        <a class="btn" href="javascript:void(0)" onclick="doRedirect()">
-          {{CTA_BUTTON_TEXT}} →
-        </a>
+        <a class="btn" href="javascript:void(0)" onclick="doRedirect()">{{CTA_BUTTON_TEXT}} →</a>
 
         <div class="trustline">
           ✔ Secure checkout • ✔ Official distribution • ✔ Updated {{CURRENT_YEAR}}
         </div>
       </div>
 
-      <div class="hero-media">
-        <img class="product-img" src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" loading="lazy">
-      </div>
     </section>
   </div>
 
@@ -485,26 +506,20 @@
       <p class="lead">{{PRICE_AVAILABILITY_TEXT}}</p>
     </section>
 
-    <!-- EDUCATIONAL DEPTH (neutral) -->
+    <!-- EDUCATIONAL DEPTH -->
     <section class="section">
       <h2>{{MECHANISM_TITLE}}</h2>
       <ul class="hero-list" style="margin-top:10px;">
         <li id="ms1">
-          <span class="check" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
-          </span>
+          <span class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg></span>
           <span>{{MECHANISM_STEP_1}}</span>
         </li>
         <li id="ms2">
-          <span class="check" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
-          </span>
+          <span class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg></span>
           <span>{{MECHANISM_STEP_2}}</span>
         </li>
         <li id="ms3">
-          <span class="check" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
-          </span>
+          <span class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg></span>
           <span>{{MECHANISM_STEP_3}}</span>
         </li>
       </ul>
@@ -523,39 +538,28 @@
     <!-- GUARANTEE -->
     <section class="section">
       <h2>{{GUARANTEE_TITLE}}</h2>
-      <div class="alert">
-        <p>{{GUARANTEE_TEXT}}</p>
-      </div>
+      <div class="alert"><p>{{GUARANTEE_TEXT}}</p></div>
     </section>
 
     <!-- SCAM ALERT -->
     <section class="section">
       <h2>{{SCAM_ALERT_TITLE}}</h2>
-      <div class="alert scam">
-        <p>{{SCAM_ALERT_TEXT}}</p>
-      </div>
+      <div class="alert scam"><p>{{SCAM_ALERT_TEXT}}</p></div>
     </section>
 
     <!-- FINAL CTA -->
     <section class="final-cta">
       <h3>{{FINAL_CTA_TITLE}}</h3>
-      <a class="btn" href="javascript:void(0)" onclick="doRedirect()">
-        {{CTA_BUTTON_TEXT}} →
-      </a>
+      <a class="btn" href="javascript:void(0)" onclick="doRedirect()">{{CTA_BUTTON_TEXT}} →</a>
     </section>
 
-    <div class="disclaimer">
-      {{DISCLAIMER_TEXT}}
-    </div>
+    <div class="disclaimer">{{DISCLAIMER_TEXT}}</div>
   </div>
 
   <!-- FOOTER -->
   <footer>
     <div class="footer">
-      <div style="font-weight:900;color:var(--text);font-size:16px;">
-        {{SITE_BRAND}}
-      </div>
-
+      <div style="font-weight:900;color:var(--text);font-size:16px;">{{SITE_BRAND}}</div>
       <div style="margin-top:14px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
         <a href="{{PRIVACY_URL}}">Privacy Policy</a>
         <span style="opacity:.5;">•</span>
@@ -563,18 +567,12 @@
         <span style="opacity:.5;">•</span>
         <a href="{{CONTACT_URL}}">Contact</a>
       </div>
-
-      <div style="margin-top:14px;">
-        {{FOOTER_DISCLAIMER}}
-      </div>
-
-      <div style="margin-top:18px; font-size:12px; opacity:.85;">
-        &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}
-      </div>
+      <div style="margin-top:14px;">{{FOOTER_DISCLAIMER}}</div>
+      <div style="margin-top:18px; font-size:12px; opacity:.85;">&copy; {{CURRENT_YEAR}} {{SITE_BRAND}}</div>
     </div>
   </footer>
 
-  <!-- REDIRECT -->
+  <!-- SCRIPTS -->
   <script>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
     let clicked = false;
@@ -582,41 +580,28 @@
     function doRedirect(){
       if(clicked) return;
       clicked = true;
-
-      document.querySelectorAll('.btn').forEach(btn => {
-        btn.textContent = "{{REDIRECTING_TEXT}}";
-      });
-
+      document.querySelectorAll('.btn').forEach(btn => btn.textContent = "{{REDIRECTING_TEXT}}");
       if(typeof window.runTrackerRedirect === "function"){
         window.runTrackerRedirect(AFFILIATE_LINK);
-      }else{
+      } else {
         window.location.href = AFFILIATE_LINK;
       }
     }
 
-    // Volta texto ao retornar via bfcache
     window.addEventListener('pageshow', function(event){
       if(event.persisted){
         clicked = false;
-        document.querySelectorAll('.btn').forEach(btn => {
-          btn.textContent = "{{CTA_BUTTON_TEXT}} →";
-        });
+        document.querySelectorAll('.btn').forEach(btn => btn.textContent = "{{CTA_BUTTON_TEXT}} →");
       }
     });
 
-    // ---------------------------------------------------------
-    // LÓGICA DE LIMPEZA ATUALIZADA:
-    // Remove espaços em branco ocultando elementos vazios
-    // ---------------------------------------------------------
     (function(){
-      
-      // Helper: verifica se elemento está vazio (apenas whitespace)
       const isBlank = (el) => {
         if(!el) return true;
         return (el.innerText || "").trim().length === 0;
       };
 
-      // 1. Esconde itens de lista vazios (Hero e Educational)
+      // 1. Esconde itens de lista vazios
       const listIds = ["hb1","hb2","hb3","ms1","ms2","ms3"];
       listIds.forEach(id => {
         const el = document.getElementById(id);
@@ -626,35 +611,21 @@
       // 2. Esconde Positioning Statement se vazio
       const pos = document.querySelector('.positioning');
       if(pos && isBlank(pos)) pos.setAttribute("data-empty","true");
+      
+      // 3. Esconde elementos de texto vazios
+      document.querySelectorAll('.hero-sub, .lead, .card p, .alert p, .section h2, .badge').forEach(el => {
+        if(isBlank(el)) el.setAttribute("data-empty","true");
+      });
 
-      // 3. Esconde Cards vazios (Who Should Use)
+      // 4. Esconde Cards vazios
       document.querySelectorAll('.card').forEach(card => {
-        // Se o parágrafo dentro do card estiver vazio, esconde o card todo
         if(isBlank(card.querySelector('p'))) card.setAttribute("data-empty","true");
       });
 
-      // 4. Esconde Títulos h2 vazios dentro de sections
-      document.querySelectorAll('.section h2').forEach(h2 => {
-        if(isBlank(h2)) h2.setAttribute("data-empty","true");
-      });
-
-      // 5. Esconde Parágrafos Lead vazios (Where to Buy / Price)
-      document.querySelectorAll('.lead').forEach(lead => {
-        if(isBlank(lead)) lead.setAttribute("data-empty","true");
-      });
-
-      // 6. Esconde Alerts vazios (Guarantee / Scam)
-      document.querySelectorAll('.alert').forEach(alert => {
-         if(isBlank(alert.querySelector('p'))) alert.setAttribute("data-empty","true");
-      });
-
-      // 7. Limpeza de Containers: Se todos os filhos forem vazios, esconde o container pai
-      
-      // Helper para checar containers
+      // 5. Esconde containers pais se filhos estiverem vazios
       const hideIfAllChildrenEmpty = (parentSelector, childSelector) => {
         document.querySelectorAll(parentSelector).forEach(parent => {
           const children = parent.querySelectorAll(childSelector);
-          // Se houver filhos e TODOS estiverem marcados como data-empty
           if(children.length > 0) {
             const allEmpty = Array.from(children).every(c => c.getAttribute('data-empty') === 'true');
             if(allEmpty) parent.setAttribute('data-empty', 'true');
@@ -662,26 +633,20 @@
         });
       };
 
-      // Esconde listas .hero-list se todos os li estiverem vazios
       hideIfAllChildrenEmpty('.hero-list', 'li');
-      
-      // Esconde wrapper .cards se todos os cards estiverem vazios
       hideIfAllChildrenEmpty('.cards', '.card');
-
-      // 8. Limpeza de Seções: Se o conteúdo principal da seção sumiu, esconde a seção inteira
+      
+      // 6. Esconde Seções inteiras se o conteúdo principal sumir
       document.querySelectorAll('.section').forEach(section => {
-        // Verifica se sobrou algum conteúdo visível principal
         const hasVisibleLead = section.querySelector('.lead:not([data-empty])');
         const hasVisibleList = section.querySelector('.hero-list:not([data-empty])');
         const hasVisibleCards = section.querySelector('.cards:not([data-empty])');
         const hasVisibleAlert = section.querySelector('.alert:not([data-empty])');
         
-        // Se nenhum conteúdo principal for visível, esconde a section inteira
         if(!hasVisibleLead && !hasVisibleList && !hasVisibleCards && !hasVisibleAlert) {
           section.setAttribute('data-empty', 'true');
         }
       });
-
     })();
   </script>
 </body>
