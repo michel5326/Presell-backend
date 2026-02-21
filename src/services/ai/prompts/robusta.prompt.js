@@ -48,13 +48,21 @@ The goal is to:
 HERO STRUCTURE REQUIREMENTS:
 The hero section must:
 - Feel authoritative and structured
+- Include one short positioning sentence (neutral, contextual)
 - Include 3 short bullet points focused on transaction clarity
 - Avoid aggressive language
 - Avoid urgency
 
+POSITIONING STATEMENT RULE:
+- 1 concise sentence
+- Neutral tone
+- Clarifies that the page provides structured purchase information
+- Do NOT repeat the headline
+- Do NOT include promotional claims
+- Do NOT push urgency
+
 CRITICAL STRUCTURE RULE (ANTI-REPETITION):
 Each section must serve a DISTINCT psychological purpose.
-
 Do NOT repeat the same justification across sections.
 
 DISTINCTION ENFORCEMENT:
@@ -127,6 +135,7 @@ Never omit keys.
   "HEADLINE_MAIN": "",
   "SUBHEADLINE_MAIN": "",
   "DECISION_STAGE_LINE": "",
+  "POSITIONING_STATEMENT": "",
   "HERO_SUPPORT_LINE": "",
   "HERO_BULLET_1": "",
   "HERO_BULLET_2": "",

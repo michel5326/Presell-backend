@@ -400,10 +400,15 @@
       const p = normalizeColor(computed.getPropertyValue('--primary'));
       const s = normalizeColor(computed.getPropertyValue('--secondary'));
 
-      if(!p) root.style.setProperty('--primary', getComputedStyle(root).getPropertyValue('--primary-fallback').trim() || '#e67e22');
+      // Se não tiver cor primária válida, força Laranja
+      if(!p) {
+        const orange = getComputedStyle(root).getPropertyValue('--primary-fallback').trim() || '#e67e22';
+        root.style.setProperty('--primary', orange);
+      }
+      
       if(!s) root.style.setProperty('--secondary', '#3b82f6');
 
-      // define hover dark com base em fallback fixo (mantém consistente)
+      // define hover dark com base em fallback fixo (mantém consistente laranja)
       root.style.setProperty('--primary-dark', '#d35400');
     })();
   </script>
@@ -574,7 +579,7 @@
     </div>
   </footer>
 
-  <!-- REDIRECT -->
+  <!-- REDIRECT & CLEANUP SCRIPT -->
   <script>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
     let clicked = false;
@@ -604,14 +609,33 @@
       }
     });
 
-    // Auto-hide se strings vierem vazias (evita “buracos” na hero)
-    (function(){
+    // --- LIMPEZA DE BLOCOS VAZIOS (CORREÇÃO SOLICITADA) ---
+    (function cleanEmptyBlocks(){
+      const sections = document.querySelectorAll('.section');
+
+      sections.forEach(section => {
+        // Clona para analisar sem quebrar o layout visual
+        const clone = section.cloneNode(true);
+        
+        // Remove elementos decorativos (Ícones SVG, Checks) da contagem de texto
+        clone.querySelectorAll('svg, .check, .badge').forEach(el => el.remove());
+        
+        // Pega o texto restante e remove espaços excessivos
+        const text = clone.innerText.replace(/\s+/g,'').trim();
+        
+        // Se o texto for muito curto (menos que 10 caracteres), considera vazio e esconde a seção
+        if(text.length < 10) {
+          section.style.display = 'none';
+        }
+      });
+
+      // Limpeza específica para os itens de lista (Hero e Mecanismos) caso venham vazios
       const ids = ["hb1","hb2","hb3","ms1","ms2","ms3"];
       ids.forEach(id => {
         const el = document.getElementById(id);
         if(!el) return;
         const text = (el.innerText || "").replace(/\s+/g,' ').trim();
-        // se vier só o check ou vazio, esconde
+        // se vier só o check ou vazio, esconde o item <li>
         if(!text || text.length < 2){
           el.setAttribute("data-empty","true");
         }
