@@ -16,95 +16,109 @@ module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
   return `
-You are writing copy for a ROBUSTA pre-sell page designed specifically for Google Search traffic
-where users already searched for the product name and are close to buying.
+You are writing copy for a ROBUSTA pre-sell page designed for Google Search traffic.
+Users have already searched for the product name and are close to making a purchase decision.
 
 IMPORTANT LANGUAGE RULE:
 - Write ALL content strictly in ${languageName}
 - Do NOT mix languages
 - Do NOT include English words if the language is not English
 
-DATE RULE (CRITICAL):
-- The ONLY allowed year is 2026
+DATE RULE:
+- The only allowed year is 2026
 - If a year appears, it must be 2026
 - Never use any other year
-- You may write:
-  "Updated for 2026"
-  or equivalent in the target language
 
 STRATEGIC CONTEXT:
-- This page targets bottom-of-funnel search intent
-- The user likely searched for:
-  "buy [product]"
-  "[product] official website"
-  "[product] price"
-  "where to order [product]"
-  "[product] availability"
-- The goal is to confirm legitimacy and reduce hesitation
-- The page must feel informative, structured and trustworthy
-- It must NOT feel like a thin bridge page
-- It must contain meaningful content depth (at least 700–1000 words total)
+This page targets bottom-of-funnel search intent.
+The user likely searched:
+- buy [product]
+- [product] official website
+- [product] price
+- where to order [product]
+- [product] availability
 
-SEARCH INTENT OPTIMIZATION (VERY IMPORTANT):
-- Naturally include transactional terms such as:
-  buy, order, official website, price, availability, secure checkout
-- Mention verification of pricing and stock on the official page
-- Include one subtle decision-confirmation sentence before the final CTA
-- Reinforce that the user can safely proceed if ready
-- Keep tone calm and non-aggressive
+The goal is to:
+- Confirm legitimacy
+- Reduce hesitation
+- Provide structured and useful information
+- Support an informed purchase decision
 
-PRIMARY OBJECTIVES:
-- Reinforce that purchasing through the official website is safest
-- Mention availability and pricing in a neutral, factual way
-- Emphasize secure checkout and manufacturer guarantee
-- Reduce fear of fake sellers or third-party platforms
-- Encourage proceeding confidently to the official source
+CRITICAL STRUCTURE RULE (ANTI-REPETITION):
+Each section must serve a DISTINCT psychological purpose.
+Do NOT repeat the same justification across sections.
+Do NOT restate “buy from official website” in multiple blocks.
+Avoid repeating phrases like:
+- official website
+- secure checkout
+- manufacturer guarantee
+- avoid third-party sellers
 
-IMPORTANT COMPLIANCE RULES:
-- Do NOT create urgency
-- Do NOT mention discounts or limited offers
-- Do NOT exaggerate
+If these concepts are used, they must appear in different contexts and with new information.
+
+SECTION PURPOSES MUST BE:
+
+1. WHERE TO BUY
+Focus on distribution model and authenticity.
+Do NOT repeat pricing or scam warnings here.
+
+2. PRICE & AVAILABILITY
+Focus on transparency, stock control, and updated information.
+Do NOT repeat scam or authenticity warnings.
+
+3. GUARANTEE
+Focus only on purchase protection and satisfaction policy.
+Do NOT repeat “official website” warnings.
+
+4. SCAM ALERT
+Focus only on identifying unauthorized listings.
+Do NOT restate pricing or guarantee information.
+
+5. EDUCATIONAL DEPTH
+Include at least one neutral informational section that does not push the sale.
+For example:
+- What to review before ordering
+- How to evaluate a supplement
+- Understanding the formulation
+This reduces the appearance of a bridge page.
+
+CONTENT DEPTH:
+- Minimum 800 words total
+- Provide meaningful informational value
+- Must not feel like a redirect page
+
+COMPLIANCE RULES:
 - Do NOT guarantee results
+- Do NOT create urgency
+- Do NOT mention limited offers
+- Do NOT exaggerate
 - Avoid medical claims
-- Do NOT claim treatment, cure, prevention or diagnosis
-- Use cautious wording such as:
+- Use cautious language such as:
   "may support"
-  "designed to help"
+  "designed to"
   "according to the manufacturer"
-- Keep all health-related wording conservative and compliant
 
 TONE:
-- Clear
-- Transaction-oriented
+- Informative first
+- Transaction-aware but not aggressive
 - Structured
-- Reassuring
-- Trust-focused
-- Informative with subtle authority
+- Professional
+- Calm and authoritative
 
 PERSUASION BALANCE:
-- 70–80% informational
-- 20–30% subtle reassurance and direction toward official purchase
+- 75% informational
+- 25% subtle direction toward official purchase
 
-STRUCTURE PRIORITY:
-The content must prioritize in this order:
-1. Where to buy safely
-2. Price & availability
-3. Manufacturer guarantee
-4. Scam prevention
-5. Key benefits (non-exaggerated)
-6. Mechanism overview
-7. Who should use
-
-FINAL CTA INSTRUCTION:
-Before the final CTA title, include one calm confirmation sentence such as:
-"If you have been researching this product and feel ready to proceed, you can access the official order page below."
-This must feel natural and not aggressive.
+FINAL CTA RULE:
+Before the final CTA, include a calm confirmation sentence such as:
+"If you feel ready to proceed after reviewing the information above, you may access the official order page below."
+It must feel natural and not promotional.
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
 All keys must exist.
 All values must be strings.
-If unsure, return "" but never omit keys.
+Never omit keys.
 
 {
   "SITE_BRAND": "",
