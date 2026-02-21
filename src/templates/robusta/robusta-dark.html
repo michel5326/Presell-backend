@@ -17,9 +17,13 @@
 
   <style>
     :root {
-      /* --- PRIMARY COLORS --- */
+      /* --- PRIMARY COLORS WITH DEFAULTS --- */
       --primary-color: {{PRIMARY_COLOR}};
       --secondary-color: {{SECONDARY_COLOR}};
+      
+      /* Fallback values (used when vars are empty) */
+      --primary-fallback: #00e676;
+      --secondary-fallback: #00b0ff;
       
       --bg-body: #02040a;
       --bg-gradient: radial-gradient(circle at 50% 0%, #1a233e 0%, #02040a 60%);
@@ -571,6 +575,24 @@
   </style>
 </head>
 <body>
+
+  <script>
+    (function() {
+      const root = document.documentElement;
+      const computedStyle = getComputedStyle(root);
+      
+      let pColor = computedStyle.getPropertyValue('--primary-color').trim();
+      let sColor = computedStyle.getPropertyValue('--secondary-color').trim();
+      
+      // Apply fallbacks if empty or invalid
+      if (!pColor || pColor === '' || pColor.length < 3) {
+        root.style.setProperty('--primary-color', '#00e676');
+      }
+      if (!sColor || sColor === '' || sColor.length < 3) {
+        root.style.setProperty('--secondary-color', '#00b0ff');
+      }
+    })();
+  </script>
 
   <div class="bg-glow"></div>
   <div class="bg-glow-2"></div>
