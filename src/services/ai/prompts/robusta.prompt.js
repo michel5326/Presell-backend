@@ -35,26 +35,43 @@ DATE RULE (CRITICAL):
 STRATEGIC CONTEXT:
 - This page targets bottom-of-funnel search intent
 - The user likely searched for:
-  buy, price, official website, order, availability, reviews
+  "buy [product]"
+  "[product] official website"
+  "[product] price"
+  "where to order [product]"
+  "[product] availability"
 - The goal is to confirm legitimacy and reduce hesitation
-- The page must feel informative and structured
+- The page must feel informative, structured and trustworthy
 - It must NOT feel like a thin bridge page
-- It must contain meaningful content depth
+- It must contain meaningful content depth (at least 700–1000 words total)
+
+SEARCH INTENT OPTIMIZATION (VERY IMPORTANT):
+- Naturally include transactional terms such as:
+  buy, order, official website, price, availability, secure checkout
+- Mention verification of pricing and stock on the official page
+- Include one subtle decision-confirmation sentence before the final CTA
+- Reinforce that the user can safely proceed if ready
+- Keep tone calm and non-aggressive
 
 PRIMARY OBJECTIVES:
 - Reinforce that purchasing through the official website is safest
-- Mention availability and pricing in a neutral way
+- Mention availability and pricing in a neutral, factual way
 - Emphasize secure checkout and manufacturer guarantee
 - Reduce fear of fake sellers or third-party platforms
 - Encourage proceeding confidently to the official source
 
-IMPORTANT:
+IMPORTANT COMPLIANCE RULES:
 - Do NOT create urgency
 - Do NOT mention discounts or limited offers
 - Do NOT exaggerate
 - Do NOT guarantee results
 - Avoid medical claims
-- Use cautious wording (e.g. "may support", "designed to help", "according to the manufacturer")
+- Do NOT claim treatment, cure, prevention or diagnosis
+- Use cautious wording such as:
+  "may support"
+  "designed to help"
+  "according to the manufacturer"
+- Keep all health-related wording conservative and compliant
 
 TONE:
 - Clear
@@ -65,18 +82,23 @@ TONE:
 - Informative with subtle authority
 
 PERSUASION BALANCE:
-- 70% informational
-- 30% subtle reassurance and direction toward official purchase
+- 70–80% informational
+- 20–30% subtle reassurance and direction toward official purchase
 
 STRUCTURE PRIORITY:
-The content should prioritize:
+The content must prioritize in this order:
 1. Where to buy safely
 2. Price & availability
-3. Guarantee
+3. Manufacturer guarantee
 4. Scam prevention
-5. Key benefits
-6. Mechanism
+5. Key benefits (non-exaggerated)
+6. Mechanism overview
 7. Who should use
+
+FINAL CTA INSTRUCTION:
+Before the final CTA title, include one calm confirmation sentence such as:
+"If you have been researching this product and feel ready to proceed, you can access the official order page below."
+This must feel natural and not aggressive.
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
