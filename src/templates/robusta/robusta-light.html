@@ -16,13 +16,15 @@
 <style>
 :root{
   --primary: {{PRIMARY_COLOR}};
-  --primary-fallback: #10b981;
-  --bg:#f8fafc;
+  --primary-fallback:#e67e22; /* LARANJA PADRÃO */
+  --bg:#f4f7fb;
+  --gradient:linear-gradient(135deg,#ffffff 0%,#eef2f7 100%);
   --card:#ffffff;
+  --accent:#fdf2e9;
   --text:#0f172a;
   --muted:#64748b;
   --border:rgba(15,23,42,.08);
-  --radius:14px;
+  --radius:16px;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -30,43 +32,54 @@
 body{
   font-family:Inter,sans-serif;
   background:var(--bg);
+  background-image:var(--gradient);
   color:var(--text);
   line-height:1.6;
 }
 
-h1,h2,h3,.btn{
-  font-family:Outfit,sans-serif
-}
+h1,h2,h3,.btn{font-family:Outfit,sans-serif}
 
 .container{
   max-width:1100px;
   margin:0 auto;
-  padding:40px 20px
+  padding:50px 20px;
 }
 
 .section{
-  margin-bottom:60px
+  margin-bottom:70px;
 }
 
 .section h2{
   font-size:22px;
-  margin-bottom:18px
+  margin-bottom:18px;
+  position:relative;
+}
+
+.section h2:after{
+  content:"";
+  display:block;
+  width:50px;
+  height:3px;
+  margin-top:8px;
+  background:var(--primary, var(--primary-fallback));
+  border-radius:2px;
 }
 
 p{
   margin-bottom:14px;
-  color:var(--muted)
+  color:var(--muted);
 }
 
 ul{
-  list-style:none
+  list-style:none;
+  margin:18px 0;
 }
 
 ul li{
-  margin-bottom:12px;
-  padding-left:24px;
+  margin-bottom:10px;
+  padding-left:26px;
   position:relative;
-  color:var(--muted)
+  color:var(--muted);
 }
 
 ul li:before{
@@ -74,46 +87,42 @@ ul li:before{
   position:absolute;
   left:0;
   color:var(--primary, var(--primary-fallback));
-  font-weight:700
+  font-weight:700;
 }
 
-/* BUTTON SAFE */
+/* BUTTON */
 .btn{
   display:inline-block;
   background:var(--primary, var(--primary-fallback));
   color:#fff !important;
-  padding:16px 28px;
+  padding:16px 30px;
   border-radius:50px;
   font-weight:700;
   text-align:center;
   text-decoration:none;
   transition:0.3s ease;
+  box-shadow:0 8px 20px rgba(230,126,34,0.35);
 }
 
 .btn:hover{
-  opacity:.9
+  transform:translateY(-2px);
+  opacity:.95;
 }
 
 /* HERO */
 .hero{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:40px;
+  gap:50px;
   align-items:center;
-  padding:60px 20px;
+  padding:70px 20px;
   max-width:1100px;
   margin:0 auto;
 }
 
-.hero img{
-  max-width:100%;
-  border-radius:20px;
-  border:1px solid var(--border);
-}
-
 .hero-content h1{
   font-size:42px;
-  margin-bottom:16px;
+  margin-bottom:18px;
 }
 
 .badge{
@@ -121,8 +130,16 @@ ul li:before{
   font-weight:700;
   text-transform:uppercase;
   color:var(--primary, var(--primary-fallback));
-  margin-bottom:10px;
+  margin-bottom:12px;
   display:block;
+  letter-spacing:1px;
+}
+
+.hero img{
+  max-width:100%;
+  border-radius:22px;
+  border:1px solid var(--border);
+  box-shadow:0 20px 50px rgba(0,0,0,0.08);
 }
 
 /* CARDS */
@@ -134,45 +151,46 @@ ul li:before{
 
 .card{
   background:var(--card);
-  padding:20px;
+  padding:24px;
   border-radius:var(--radius);
   border:1px solid var(--border);
+  box-shadow:0 10px 25px rgba(0,0,0,0.05);
 }
 
 /* ALERT */
 .alert{
-  padding:18px;
-  border-radius:12px;
-  background:#f1f5f9;
+  padding:20px;
+  border-radius:14px;
+  background:var(--accent);
   border-left:4px solid var(--primary, var(--primary-fallback));
-  color:var(--muted);
+  color:var(--text);
 }
 
 /* FOOTER */
 .footer{
   text-align:center;
-  padding:40px 20px;
+  padding:50px 20px;
   font-size:12px;
   color:var(--muted);
   border-top:1px solid var(--border);
+  background:#ffffff;
 }
 
 /* MOBILE */
 @media(max-width:900px){
   .hero{
     grid-template-columns:1fr;
-    text-align:center
+    text-align:center;
   }
 }
 </style>
 
-<!-- AUTO COLOR FALLBACK SCRIPT -->
 <script>
 (function(){
   const root=document.documentElement;
   let p=getComputedStyle(root).getPropertyValue('--primary').trim();
   if(!p){
-    root.style.setProperty('--primary','#10b981');
+    root.style.setProperty('--primary','#e67e22');
   }
 })();
 </script>
@@ -180,20 +198,27 @@ ul li:before{
 </head>
 <body>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-content">
     <span class="badge">{{DECISION_STAGE_LINE}}</span>
     <h1>{{HEADLINE_MAIN}}</h1>
     <p>{{SUBHEADLINE_MAIN}}</p>
-    <p>{{POSITIONING_STATEMENT}}</p>
+
+    <ul>
+      <li>Direct manufacturer distribution</li>
+      <li>Real-time availability updates</li>
+      <li>Secure online ordering process</li>
+    </ul>
+
     <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
       {{CTA_BUTTON_TEXT}}
     </a>
-    <p style="margin-top:10px;font-size:13px;">
+
+    <p style="margin-top:12px;font-size:13px;">
       ✔ Secure Checkout • ✔ Official Distribution • ✔ Updated {{CURRENT_YEAR}}
     </p>
   </div>
+
   <div>
     <img src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" loading="lazy">
   </div>
@@ -201,19 +226,16 @@ ul li:before{
 
 <div class="container">
 
-  <!-- WHERE TO BUY -->
   <div class="section">
     <h2>{{WHERE_TO_BUY_TITLE}}</h2>
     <p>{{WHERE_TO_BUY_TEXT}}</p>
   </div>
 
-  <!-- PRICE & AVAILABILITY -->
   <div class="section">
     <h2>{{PRICE_AVAILABILITY_TITLE}}</h2>
     <p>{{PRICE_AVAILABILITY_TEXT}}</p>
   </div>
 
-  <!-- WHY DIFFERENT -->
   <div class="section">
     <h2>{{WHY_DIFFERENT_TITLE}}</h2>
     <div class="cards">
@@ -223,7 +245,6 @@ ul li:before{
     </div>
   </div>
 
-  <!-- GUARANTEE -->
   <div class="section">
     <h2>{{GUARANTEE_TITLE}}</h2>
     <div class="alert">
@@ -231,7 +252,6 @@ ul li:before{
     </div>
   </div>
 
-  <!-- SCAM ALERT -->
   <div class="section">
     <h2>{{SCAM_ALERT_TITLE}}</h2>
     <div class="alert">
@@ -239,15 +259,14 @@ ul li:before{
     </div>
   </div>
 
-  <!-- FINAL CTA -->
   <div class="section" style="text-align:center;">
-    <h3 style="margin-bottom:16px;">{{FINAL_CTA_TITLE}}</h3>
+    <h3 style="margin-bottom:18px;">{{FINAL_CTA_TITLE}}</h3>
     <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
       {{CTA_BUTTON_TEXT}}
     </a>
   </div>
 
-  <p style="font-size:11px;margin-top:40px;border-top:1px solid var(--border);padding-top:20px;">
+  <p style="font-size:11px;margin-top:50px;border-top:1px solid var(--border);padding-top:20px;">
     {{DISCLAIMER_TEXT}}
   </p>
 
@@ -255,12 +274,12 @@ ul li:before{
 
 <footer class="footer">
   <div>{{SITE_BRAND}}</div>
-  <div style="margin-top:10px;">
+  <div style="margin-top:12px;">
     <a href="{{PRIVACY_URL}}">Privacy</a> •
     <a href="{{TERMS_URL}}">Terms</a> •
     <a href="{{CONTACT_URL}}">Contact</a>
   </div>
-  <div style="margin-top:10px;">
+  <div style="margin-top:12px;">
     &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}
   </div>
 </footer>
