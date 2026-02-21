@@ -12,6 +12,17 @@ function normalize(str = '') {
 }
 
 /**
+ * Extrai ID de uma URL do YouTube (fallback manual)
+ */
+function extractYoutubeIdFromUrl(url = '') {
+  const regex =
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/;
+
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
+/**
  * Extrai nome do produto a partir da query
  * Ex: "ProstaVive Review" -> "prostavive"
  */
@@ -54,15 +65,22 @@ function isValidReviewVideo(videoTitle, productName) {
   if (!videoTitle.includes('review')) return false;
   if (!productName) return false;
 
-  // exige match EXATO do nome do produto
+  // exige match do nome do produto no título
   return videoTitle.includes(productName);
 }
 
 /**
  * Busca vídeo de review confiável no YouTube (scraping)
+ * OU usa link manual se fornecido
  */
 async function findYoutubeVideo(query) {
   if (!query) return null;
+
+  // 🔥 NOVO: se for link direto do YouTube, usa ele
+  const manualId = extractYoutubeIdFromUrl(query);
+  if (manualId) {
+    return manualId;
+  }
 
   try {
     const productName = extractProductName(query);
@@ -77,8 +95,7 @@ async function findYoutubeVideo(query) {
       timeout: 8000,
       headers: {
         'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-          '(KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
         'Accept-Language': 'en-US,en;q=0.9',
       },
     });

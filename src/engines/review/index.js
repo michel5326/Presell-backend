@@ -100,7 +100,6 @@ function normalizeLang(lang) {
   return supported.includes(lang) ? lang : 'en';
 }
 
-
 async function generate({
   productUrl,
   affiliateUrl,
@@ -110,6 +109,7 @@ async function generate({
   productImageUrl,
   template,
   lang = 'en',
+  youtubeUrl, // 🔥 NOVO PARAMETRO
 }) {
   const resolvedTheme = theme === 'light' ? 'light' : 'dark';
   const resolvedLang = normalizeLang(lang);
@@ -132,10 +132,17 @@ async function generate({
 
   /* ---------- VÍDEO ---------- */
   let youtubeVideoId = null;
+
   if (template === 'review-video') {
     try {
-      const query = `${copy.HEADLINE || productUrl} review`;
-      youtubeVideoId = await findYoutubeVideo(query);
+      if (youtubeUrl) {
+        // ✅ Se o lead enviou link → usa ele
+        youtubeVideoId = await findYoutubeVideo(youtubeUrl);
+      } else {
+        // ✅ Senão continua automático
+        const query = `${copy.HEADLINE || productUrl} review`;
+        youtubeVideoId = await findYoutubeVideo(query);
+      }
     } catch {}
   }
 

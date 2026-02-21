@@ -19,6 +19,7 @@ async function generatePresellData(req, res) {
       trackingScript,
       productImageUrl,
       lang,
+      youtubeUrl, // 🔥 ADICIONAR ISSO
     } = req.body;
 
     if (!type || !productUrl || !affiliateUrl) {
@@ -37,10 +38,11 @@ async function generatePresellData(req, res) {
         affiliateUrl,
         attempt,
         theme,
-        template,          // 👈 necessário para review-video
+        template,
         trackingScript,
         productImageUrl,
         lang: language,
+        youtubeUrl, // 🔥 PASSAR PARA O ENGINE
       });
     } else if (type === 'robusta') {
       result = await robustaEngine.generate({
@@ -63,6 +65,7 @@ async function generatePresellData(req, res) {
     console.log('[LANG]', language);
     console.log('[TEMPLATE]', template || 'LEGACY');
     console.log('[IMAGE SOURCE]', productImageUrl ? 'FRONT' : 'AUTO');
+    console.log('[YOUTUBE SOURCE]', youtubeUrl ? 'MANUAL' : 'AUTO'); // 🔥 opcional debug
     console.log('[IMAGE FINAL]', result?.image || 'EMPTY');
     console.log('[HTML LENGTH]', result?.html?.length || 0);
     console.log('[TRACKING_SCRIPT]', trackingScript ? 'PRESENT' : 'EMPTY');
