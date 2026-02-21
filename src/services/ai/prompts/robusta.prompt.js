@@ -174,6 +174,9 @@ OUTPUT FORMAT:
 Return ONLY valid JSON.
 All keys must exist.
 All values must be strings.
+ALL keys are mandatory.
+No field may be empty.
+If any field is empty, regenerate the entire JSON.
 
 {
   "SITE_BRAND": "",
@@ -184,9 +187,25 @@ All values must be strings.
   "DECISION_STAGE_LINE": "",
   "POSITIONING_STATEMENT": "",
 
+  "RATING_STARS": "",
+  "RATING_SCORE": "",
+  "RATING_COUNT": "",
+
+  "PRODUCT_NAME": "",
+
   "HERO_BULLET_1": "",
   "HERO_BULLET_2": "",
   "HERO_BULLET_3": "",
+
+  "TRUST_BADGE_1": "",
+  "TRUST_BADGE_2": "",
+  "TRUST_BADGE_3": "",
+  "TRUST_BADGE_4": "",
+  "TRUST_BADGE_5": "",
+
+  "TRUST_SMALL_1": "",
+  "TRUST_SMALL_2": "",
+  "TRUST_SMALL_3": "",
 
   "PRODUCT_OVERVIEW_TITLE": "",
   "PRODUCT_OVERVIEW_TEXT": "",
@@ -208,7 +227,13 @@ All values must be strings.
   "DISCLAIMER_TEXT": "",
   "FOOTER_DISCLAIMER": "",
 
+  "FOOTER_LINK_PRIVACY_TEXT": "",
+  "FOOTER_LINK_TERMS_TEXT": "",
+  "FOOTER_LINK_CONTACT_TEXT": "",
+
+  "COPYRIGHT_TEXT": "",
   "CTA_BUTTON_TEXT": "",
+  "REDIRECTING_TEXT": "",
 
   "PRIVACY_URL": "",
   "TERMS_URL": "",
