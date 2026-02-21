@@ -16,7 +16,8 @@ module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
   return `
-You are writing copy for a structured pre-sell page designed for Google Search BOFU traffic.
+You are writing copy for a structured, premium pre-sell page designed for Google Search BOFU traffic.
+
 Users have already searched for the product name and are close to making a purchase decision.
 
 IMPORTANT LANGUAGE RULE:
@@ -44,86 +45,74 @@ The goal is to:
 - Provide structured and useful information
 - Support an informed purchase decision
 
+HERO STRUCTURE REQUIREMENTS:
+The hero section must:
+- Feel authoritative and structured
+- Include 3 short bullet points focused on transaction clarity
+- Avoid aggressive language
+- Avoid urgency
+
 CRITICAL STRUCTURE RULE (ANTI-REPETITION):
 Each section must serve a DISTINCT psychological purpose.
+
 Do NOT repeat the same justification across sections.
-Avoid repeating phrases like:
-- official website
-- secure checkout
-- manufacturer guarantee
-- avoid third-party sellers
 
-If concepts reappear, they must provide new context or new detail.
-
-SECTION PURPOSES MUST BE:
+DISTINCTION ENFORCEMENT:
 
 1. WHERE TO BUY
-Focus on distribution model and authenticity.
-Do NOT repeat pricing or scam warnings here.
+Focus on distribution channel and authenticity only.
+Do NOT mention pricing or scam warnings.
 
 2. PRICE & AVAILABILITY
-Focus on transparency, stock control, and updated information.
-Do NOT repeat scam or authenticity warnings.
+Focus only on transparency, cost structure, stock logic, or updates.
+Do NOT repeat authenticity warnings.
 
-3. GUARANTEE
-Focus only on purchase protection and satisfaction policy.
-Do NOT restate distribution warnings.
+3. EDUCATIONAL SECTION (WHY DIFFERENT)
+Provide neutral evaluation guidance.
+Do not push purchase here.
 
-4. SCAM ALERT
-Focus only on identifying unauthorized listings.
-Do NOT restate pricing or guarantee details.
+4. GUARANTEE
+Focus strictly on purchase protection terms.
 
-5. EDUCATIONAL DEPTH
-Include at least one neutral informational section.
-Examples:
-- What to review before ordering
-- How to evaluate a supplement
-- Understanding the formulation
-This prevents the page from appearing as a redirect bridge.
+5. SCAM ALERT
+Focus only on identifying unauthorized sellers.
 
 CONTENT DEPTH:
-- Target 600–850 words total
+- Target 650–850 words
 - Prioritize clarity over length
 - Do NOT write long essays
 
 WRITING FORMAT RULE:
 - Paragraphs must not exceed 3 lines
-- Prefer short, structured sentences
-- Break complex explanations into smaller paragraphs
+- Prefer short sentences
 - Avoid dense text blocks
-- Favor clarity and spacing
-
-SCANNABILITY RULE:
-Write in a way that allows fast scanning.
-Avoid long continuous explanations.
-Favor structured phrasing over narrative style.
+- Favor scannable structure
 
 COMPLIANCE RULES:
 - Do NOT guarantee results
 - Do NOT create urgency
-- Do NOT mention limited offers
 - Do NOT exaggerate
 - Avoid medical claims
-- Use cautious language such as:
+- Use cautious phrasing such as:
   "may support"
   "designed to"
   "according to the manufacturer"
 
 TONE:
 - Informative first
-- Transaction-aware but not aggressive
 - Structured
+- Calm
 - Professional
-- Calm and authoritative
+- Transaction-aware but not aggressive
 
 PERSUASION BALANCE:
 - 70% informational
-- 30% subtle direction toward purchase clarity
+- 30% subtle clarity toward official purchase
 
 FINAL CTA RULE:
-Before the final CTA, include a calm confirmation sentence such as:
+Before the final CTA title, include one calm confirmation sentence such as:
 "If you feel ready to proceed after reviewing the information above, you may access the official order page below."
-It must feel natural and not promotional.
+It must sound neutral and natural.
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
@@ -138,7 +127,11 @@ Never omit keys.
   "HEADLINE_MAIN": "",
   "SUBHEADLINE_MAIN": "",
   "DECISION_STAGE_LINE": "",
-  "POSITIONING_STATEMENT": "",
+  "HERO_SUPPORT_LINE": "",
+  "HERO_BULLET_1": "",
+  "HERO_BULLET_2": "",
+  "HERO_BULLET_3": "",
+  "TRUST_LINE": "",
 
   "WHERE_TO_BUY_TITLE": "",
   "WHERE_TO_BUY_TEXT": "",
@@ -146,26 +139,16 @@ Never omit keys.
   "PRICE_AVAILABILITY_TITLE": "",
   "PRICE_AVAILABILITY_TEXT": "",
 
-  "GUARANTEE_TITLE": "",
-  "GUARANTEE_TEXT": "",
-
-  "SCAM_ALERT_TITLE": "",
-  "SCAM_ALERT_TEXT": "",
-
   "WHY_DIFFERENT_TITLE": "",
   "WHY_DIFFERENT_1": "",
   "WHY_DIFFERENT_2": "",
   "WHY_DIFFERENT_3": "",
 
-  "MECHANISM_TITLE": "",
-  "MECHANISM_STEP_1": "",
-  "MECHANISM_STEP_2": "",
-  "MECHANISM_STEP_3": "",
+  "GUARANTEE_TITLE": "",
+  "GUARANTEE_TEXT": "",
 
-  "WHO_SHOULD_USE_TITLE": "",
-  "WHO_SHOULD_1": "",
-  "WHO_SHOULD_2": "",
-  "WHO_SHOULD_3": "",
+  "SCAM_ALERT_TITLE": "",
+  "SCAM_ALERT_TEXT": "",
 
   "FINAL_CTA_TITLE": "",
 

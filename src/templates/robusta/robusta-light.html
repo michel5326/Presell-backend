@@ -9,189 +9,382 @@
 <meta name="robots" content="index,follow"/>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
 {{TRACKING_SCRIPT}}
 
 <style>
 :root{
-  --primary: {{PRIMARY_COLOR}};
-  --primary-fallback:#e67e22; /* LARANJA PADRÃO */
-  --bg:#f4f7fb;
-  --gradient:linear-gradient(135deg,#ffffff 0%,#eef2f7 100%);
-  --card:#ffffff;
-  --accent:#fdf2e9;
-  --text:#0f172a;
-  --muted:#64748b;
-  --border:rgba(15,23,42,.08);
-  --radius:16px;
+  /* 
+     DEFINIÇÃO DE CORES FORÇADAS (FALLBACK)
+     O backend pode falhar, mas essas variáveis garante o visual Laranja.
+  */
+  --brand-color: #e67e22;      /* Laranja Principal (Carrot Orange) */
+  --brand-dark: #d35400;       /* Laranja Escuro para Hover */
+  --brand-light: #fcece0;      /* Laranja muito claro para fundos */
+  --brand-text: #ffffff;       /* Texto Branco */
+
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: rgba(15, 23, 42, 0.08);
+  
+  /* SOMBRA COLORIDA (Laranja) */
+  --shadow-brand: 0 10px 25px -5px rgba(230, 126, 34, 0.4);
+  
+  --radius: 20px;
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
-  font-family:Inter,sans-serif;
-  background:var(--bg);
-  background-image:var(--gradient);
-  color:var(--text);
-  line-height:1.6;
+  font-family:var(--font-body);
+  background-color: var(--bg);
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,0) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,0) 0, transparent 50%);
+  color:var(--text-main);
+  line-height:1.7;
+  -webkit-font-smoothing: antialiased;
 }
 
-h1,h2,h3,.btn{font-family:Outfit,sans-serif}
+h1,h2,h3,.btn{font-family:var(--font-heading)}
 
+/* LAYOUT */
 .container{
-  max-width:1100px;
+  max-width:1200px;
   margin:0 auto;
-  padding:50px 20px;
+  padding:60px 24px;
 }
 
-.section{
-  margin-bottom:70px;
-}
+.section{margin-bottom:80px;}
 
+/* TIPOGRAFIA */
 .section h2{
-  font-size:22px;
-  margin-bottom:18px;
+  font-size:26px;
+  font-weight:700;
+  margin-bottom:24px;
+  color:var(--text-main);
   position:relative;
+  display:inline-block;
 }
 
 .section h2:after{
   content:"";
   display:block;
-  width:50px;
-  height:3px;
+  width:40px;
+  height:4px;
   margin-top:8px;
-  background:var(--primary, var(--primary-fallback));
+  background:var(--brand-color); /* Força Laranja */
   border-radius:2px;
+  transition: width 0.3s ease;
 }
 
-p{
-  margin-bottom:14px;
-  color:var(--muted);
+.section:hover h2:after {
+  width: 100%;
 }
 
-ul{
-  list-style:none;
-  margin:18px 0;
-}
+p{margin-bottom:16px;color:var(--text-muted);font-size:1.05rem;}
+
+/* LISTAS COM CHECK LARANJA */
+ul{list-style:none;margin:24px 0;}
 
 ul li{
-  margin-bottom:10px;
-  padding-left:26px;
+  margin-bottom:14px;
+  padding-left:32px;
   position:relative;
-  color:var(--muted);
+  color:var(--text-muted);
+  font-weight:500;
+  transition: transform 0.2s;
+}
+
+ul li:hover{
+  transform: translateX(5px);
+  color: var(--text-main);
 }
 
 ul li:before{
-  content:"✓";
+  content:"";
   position:absolute;
   left:0;
-  color:var(--primary, var(--primary-fallback));
-  font-weight:700;
+  top:4px;
+  width:20px;
+  height:20px;
+  background:var(--brand-color); /* Força Laranja */
+  mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center / contain;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center / contain;
+  border-radius:50%;
 }
 
-/* BUTTON */
+/* BOTÃO LARANJA FORÇADO */
 .btn{
-  display:inline-block;
-  background:var(--primary, var(--primary-fallback));
-  color:#fff !important;
-  padding:16px 30px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  
+  /* Fundo Laranja Sólido */
+  background-color: var(--brand-color); 
+  color: var(--brand-text) !important; /* Texto Branco */
+  
+  padding:18px 42px;
   border-radius:50px;
   font-weight:700;
+  font-size:1.1rem;
   text-align:center;
   text-decoration:none;
-  transition:0.3s ease;
-  box-shadow:0 8px 20px rgba(230,126,34,0.35);
+  transition:all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow:var(--shadow-brand);
+  border: 1px solid rgba(255,255,255,0.2);
+  position:relative;
+  overflow:hidden;
 }
 
 .btn:hover{
-  transform:translateY(-2px);
-  opacity:.95;
+  /* Hover Escuro */
+  background-color: var(--brand-dark);
+  transform:translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 30px -5px rgba(230, 126, 34, 0.5);
 }
 
-/* HERO */
+.btn:active{
+  transform:translateY(-1px) scale(0.98);
+}
+
+/* HERO SECTION */
 .hero{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:50px;
+  gap:60px;
   align-items:center;
-  padding:70px 20px;
-  max-width:1100px;
+  padding:100px 24px;
+  max-width:1200px;
   margin:0 auto;
+  background: linear-gradient(135deg, #ffffff 0%, #fff9f5 100%);
+  border-radius: 0 0 40px 40px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
 }
 
-.hero-content h1{
-  font-size:42px;
-  margin-bottom:18px;
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 50%;
+  height: 80%;
+  background: radial-gradient(circle, var(--brand-light) 0%, transparent 70%); /* Laranja claro */
+  opacity: 0.6;
+  z-index: 0;
+  filter: blur(60px);
 }
 
+/* Badge Laranja */
 .badge{
+  display:inline-block;
   font-size:12px;
   font-weight:700;
   text-transform:uppercase;
-  color:var(--primary, var(--primary-fallback));
-  margin-bottom:12px;
-  display:block;
+  color:var(--brand-color); /* Texto Laranja */
+  background: var(--brand-light); /* Fundo Laranja Claro */
+  padding: 6px 14px;
+  border-radius:30px;
+  margin-bottom:16px;
   letter-spacing:1px;
+  border: 1px solid rgba(230, 126, 34, 0.2);
+}
+
+.hero-content{
+  position:relative;
+  z-index:1;
+}
+
+.hero-content h1{
+  font-size:48px;
+  line-height:1.1;
+  margin-bottom:24px;
+  letter-spacing:-0.02em;
+  color:var(--text-main);
+}
+
+.hero-image-wrapper {
+  position: relative;
+  animation: float 6s ease-in-out infinite;
 }
 
 .hero img{
   max-width:100%;
-  border-radius:22px;
-  border:1px solid var(--border);
-  box-shadow:0 20px 50px rgba(0,0,0,0.08);
+  height: auto;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 2;
+  transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+  transition: transform 0.5s ease;
+}
+
+.hero img:hover {
+  transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
 }
 
 /* CARDS */
 .cards{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:20px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:24px;
 }
 
 .card{
-  background:var(--card);
-  padding:24px;
+  background:var(--surface);
+  padding:32px;
   border-radius:var(--radius);
   border:1px solid var(--border);
-  box-shadow:0 10px 25px rgba(0,0,0,0.05);
+  box-shadow:0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-/* ALERT */
-.alert{
-  padding:20px;
-  border-radius:14px;
-  background:var(--accent);
-  border-left:4px solid var(--primary, var(--primary-fallback));
-  color:var(--text);
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow:0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: var(--brand-color); /* Borda Laranja no Hover */
 }
+
+/* Barra Laranja no topo do Card */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--brand-color); /* Força Laranja */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.card p {
+  font-weight: 500;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ALERTS */
+.alert{
+  padding:24px;
+  border-radius:16px;
+  background:linear-gradient(to right, #fff, var(--brand-light));
+  border-left:5px solid var(--brand-color); /* Força Laranja */
+  color:var(--text-main);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.alert.scam{
+  background:linear-gradient(to right, #fff, #fee2e2);
+  border-left:5px solid #ef4444; /* Vermelho para Scam */
+  color: #7f1d1d;
+}
+
+.alert p { margin: 0; }
 
 /* FOOTER */
 .footer{
   text-align:center;
-  padding:50px 20px;
-  font-size:12px;
-  color:var(--muted);
+  padding:60px 20px;
+  font-size:14px;
+  color:var(--text-muted);
   border-top:1px solid var(--border);
   background:#ffffff;
+  margin-top: 40px;
 }
 
-/* MOBILE */
+.footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer a:hover {
+  color: var(--brand-color); /* Hover Laranja */
+}
+
+/* RESPONSIVIDADE */
 @media(max-width:900px){
   .hero{
     grid-template-columns:1fr;
     text-align:center;
+    padding: 60px 20px;
+    border-radius: 0;
+    gap: 40px;
+  }
+  
+  .hero::before {
+    top: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.3;
+  }
+  
+  .hero-content h1 {
+    font-size: 36px;
+  }
+
+  .hero img {
+    transform: none;
+    max-width: 80%;
+    margin: 0 auto;
+  }
+  
+  .hero-image-wrapper {
+    animation: none;
+  }
+
+  ul li {
+    padding-left: 0;
+    text-align: left;
+    display: inline-block;
+    margin-right: 15px;
+  }
+  
+  ul li:before {
+    position: static;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
   }
 }
 </style>
 
+<!-- SCRIPT: Força a cor laranja caso o backend tente sobrescrever com vazio -->
 <script>
 (function(){
   const root=document.documentElement;
-  let p=getComputedStyle(root).getPropertyValue('--primary').trim();
-  if(!p){
-    root.style.setProperty('--primary','#e67e22');
-  }
+  // Força a variável primária para ser laranja, ignorando falhas do backend
+  root.style.setProperty('--brand-color', '#e67e22');
+  root.style.setProperty('--brand-dark', '#d35400');
+  root.style.setProperty('--brand-light', '#fcece0');
 })();
 </script>
 
@@ -201,25 +394,32 @@ ul li:before{
 <section class="hero">
   <div class="hero-content">
     <span class="badge">{{DECISION_STAGE_LINE}}</span>
+
+    <p style="font-size:16px;color:var(--text-muted);margin-bottom:12px; font-weight:600;">
+      {{HERO_SUPPORT_LINE}}
+    </p>
+
     <h1>{{HEADLINE_MAIN}}</h1>
-    <p>{{SUBHEADLINE_MAIN}}</p>
+    <p style="margin-bottom: 24px;">{{SUBHEADLINE_MAIN}}</p>
 
     <ul>
-      <li>Direct manufacturer distribution</li>
-      <li>Real-time availability updates</li>
-      <li>Secure online ordering process</li>
+      <li>{{HERO_BULLET_1}}</li>
+      <li>{{HERO_BULLET_2}}</li>
+      <li>{{HERO_BULLET_3}}</li>
     </ul>
 
-    <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
-      {{CTA_BUTTON_TEXT}}
-    </a>
+    <div style="margin-top: 32px;">
+        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
+        {{CTA_BUTTON_TEXT}} →
+        </a>
+    </div>
 
-    <p style="margin-top:12px;font-size:13px;">
-      ✔ Secure Checkout • ✔ Official Distribution • ✔ Updated {{CURRENT_YEAR}}
+    <p style="margin-top:20px;font-size:13px; opacity: 0.8;">
+      {{TRUST_LINE}}
     </p>
   </div>
 
-  <div>
+  <div class="hero-image-wrapper">
     <img src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" loading="lazy">
   </div>
 </section>
@@ -228,12 +428,12 @@ ul li:before{
 
   <div class="section">
     <h2>{{WHERE_TO_BUY_TITLE}}</h2>
-    <p>{{WHERE_TO_BUY_TEXT}}</p>
+    <p style="font-size: 1.1rem; color: var(--text-main);">{{WHERE_TO_BUY_TEXT}}</p>
   </div>
 
   <div class="section">
     <h2>{{PRICE_AVAILABILITY_TITLE}}</h2>
-    <p>{{PRICE_AVAILABILITY_TEXT}}</p>
+    <p style="font-size: 1.1rem; color: var(--text-main);">{{PRICE_AVAILABILITY_TEXT}}</p>
   </div>
 
   <div class="section">
@@ -248,38 +448,38 @@ ul li:before{
   <div class="section">
     <h2>{{GUARANTEE_TITLE}}</h2>
     <div class="alert">
-      {{GUARANTEE_TEXT}}
+      <p>{{GUARANTEE_TEXT}}</p>
     </div>
   </div>
 
   <div class="section">
     <h2>{{SCAM_ALERT_TITLE}}</h2>
-    <div class="alert">
-      {{SCAM_ALERT_TEXT}}
+    <div class="alert scam">
+      <p>{{SCAM_ALERT_TEXT}}</p>
     </div>
   </div>
 
-  <div class="section" style="text-align:center;">
-    <h3 style="margin-bottom:18px;">{{FINAL_CTA_TITLE}}</h3>
+  <div class="section" style="text-align:center; background: var(--brand-light); padding: 40px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05);">
+    <h3 style="margin-bottom:18px; font-size: 24px;">{{FINAL_CTA_TITLE}}</h3>
     <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
       {{CTA_BUTTON_TEXT}}
     </a>
   </div>
 
-  <p style="font-size:11px;margin-top:50px;border-top:1px solid var(--border);padding-top:20px;">
+  <p style="font-size:12px;margin-top:60px;border-top:1px solid var(--border);padding-top:20px; opacity: 0.6;">
     {{DISCLAIMER_TEXT}}
   </p>
 
 </div>
 
 <footer class="footer">
-  <div>{{SITE_BRAND}}</div>
-  <div style="margin-top:12px;">
+  <div style="font-weight: 700; font-size: 16px; color: var(--text-main);">{{SITE_BRAND}}</div>
+  <div style="margin-top:16px;">
     <a href="{{PRIVACY_URL}}">Privacy</a> •
     <a href="{{TERMS_URL}}">Terms</a> •
     <a href="{{CONTACT_URL}}">Contact</a>
   </div>
-  <div style="margin-top:12px;">
+  <div style="margin-top:20px;">
     &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}
   </div>
 </footer>
@@ -291,14 +491,14 @@ let clicked=false;
 function doRedirect(){
   if(clicked)return;
   clicked=true;
-  document.querySelectorAll('.btn').forEach(b=>b.innerHTML='Redirecting...');
+  document.querySelectorAll('.btn').forEach(b=>b.innerHTML='Redirecionando...');
   window.location.href=AFFILIATE_LINK;
 }
 
 window.addEventListener('pageshow',function(event){
   if(event.persisted){
     clicked=false;
-    document.querySelectorAll('.btn').forEach(b=>b.innerHTML='{{CTA_BUTTON_TEXT}}');
+    document.querySelectorAll('.btn').forEach(b=>b.innerHTML='{{CTA_BUTTON_TEXT}} →');
   }
 });
 </script>
