@@ -21,7 +21,6 @@ function normalizeLang(lang) {
   return supported.includes(lang) ? lang : 'en';
 }
 
-
 function templateExists(relativePath) {
   const fullPath = path.join(__dirname, '../../templates', relativePath);
   return fs.existsSync(fullPath);
@@ -59,11 +58,11 @@ async function generate({
 
   /* 3) VIEW */
   const view = {
-    PAGE_TITLE: safe(copy.HEADLINE_MAIN || copy.HEADLINE || 'Product Review'),
+    PAGE_TITLE: safe(copy.HEADLINE_MAIN) || 'Product Information',
     META_DESCRIPTION: safe(copy.SUBHEADLINE_MAIN),
     LANG: resolvedLang,
 
-    SITE_BRAND: safe(copy.SITE_BRAND) || 'Review Guide',
+    SITE_BRAND: safe(copy.SITE_BRAND) || 'Official Guide',
     CURRENT_YEAR: String(now.getFullYear()),
     UPDATED_DATE: safe(copy.UPDATED_DATE),
     AFFILIATE_LINK: affiliateUrl,
@@ -72,48 +71,42 @@ async function generate({
     HEADLINE_MAIN: safe(copy.HEADLINE_MAIN),
     SUBHEADLINE_MAIN: safe(copy.SUBHEADLINE_MAIN),
     POSITIONING_STATEMENT: safe(copy.POSITIONING_STATEMENT),
-    CTA_BUTTON_TEXT: safe(copy.CTA_BUTTON_TEXT) || 'Visit Official Site',
+    CTA_BUTTON_TEXT: safe(copy.CTA_BUTTON_TEXT) || 'Visit Official Website',
     PRODUCT_IMAGE: image,
 
-    PRIMARY_PROBLEM_TITLE: safe(copy.PRIMARY_PROBLEM_TITLE),
-    PRIMARY_PROBLEM_TEXT: safe(copy.PRIMARY_PROBLEM_TEXT),
+    /* 🔥 NOVOS BLOCOS BOFU */
+    WHERE_TO_BUY_TITLE: safe(copy.WHERE_TO_BUY_TITLE),
+    WHERE_TO_BUY_TEXT: safe(copy.WHERE_TO_BUY_TEXT),
 
+    PRICE_AVAILABILITY_TITLE: safe(copy.PRICE_AVAILABILITY_TITLE),
+    PRICE_AVAILABILITY_TEXT: safe(copy.PRICE_AVAILABILITY_TEXT),
+
+    FINAL_CTA_TITLE: safe(copy.FINAL_CTA_TITLE),
+
+    /* BENEFITS */
     WHY_DIFFERENT_TITLE: safe(copy.WHY_DIFFERENT_TITLE),
     WHY_DIFFERENT_1: safe(copy.WHY_DIFFERENT_1),
     WHY_DIFFERENT_2: safe(copy.WHY_DIFFERENT_2),
     WHY_DIFFERENT_3: safe(copy.WHY_DIFFERENT_3),
 
+    /* MECHANISM */
     MECHANISM_TITLE: safe(copy.MECHANISM_TITLE),
     MECHANISM_STEP_1: safe(copy.MECHANISM_STEP_1),
     MECHANISM_STEP_2: safe(copy.MECHANISM_STEP_2),
     MECHANISM_STEP_3: safe(copy.MECHANISM_STEP_3),
 
-    FORMULA_TEXT: safe(copy.FORMULA_TEXT),
-    INGREDIENT_IMAGES: safe(copy.INGREDIENT_IMAGES),
-
+    /* WHO SHOULD USE */
     WHO_SHOULD_USE_TITLE: safe(copy.WHO_SHOULD_USE_TITLE),
     WHO_SHOULD_1: safe(copy.WHO_SHOULD_1),
     WHO_SHOULD_2: safe(copy.WHO_SHOULD_2),
     WHO_SHOULD_3: safe(copy.WHO_SHOULD_3),
 
-    WHO_SHOULD_NOT_TITLE: safe(copy.WHO_SHOULD_NOT_TITLE),
-    WHO_NOT_1: safe(copy.WHO_NOT_1),
-    WHO_NOT_2: safe(copy.WHO_NOT_2),
-    WHO_NOT_3: safe(copy.WHO_NOT_3),
-
+    /* ALERTS */
     SCAM_ALERT_TITLE: safe(copy.SCAM_ALERT_TITLE),
     SCAM_ALERT_TEXT: safe(copy.SCAM_ALERT_TEXT),
 
-    TESTIMONIAL_TITLE: safe(copy.TESTIMONIAL_TITLE),
-    TESTIMONIAL_NOTICE_TEXT: safe(copy.TESTIMONIAL_NOTICE_TEXT),
-    TESTIMONIAL_CTA_TEXT: safe(copy.TESTIMONIAL_CTA_TEXT),
-
-    BONUS_TITLE: safe(copy.BONUS_TITLE),
-    BONUS_IMAGES: safe(copy.BONUS_IMAGES),
-
     GUARANTEE_TITLE: safe(copy.GUARANTEE_TITLE),
     GUARANTEE_TEXT: safe(copy.GUARANTEE_TEXT),
-    GUARANTEE_IMAGE: safe(copy.GUARANTEE_IMAGE),
 
     DISCLAIMER_TEXT: safe(copy.DISCLAIMER_TEXT),
     FOOTER_DISCLAIMER: safe(copy.FOOTER_DISCLAIMER),
