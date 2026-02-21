@@ -16,79 +16,74 @@ module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
   return `
-You are writing copy for a ROBUSTA (pre-sell) page aimed at users who already searched for the product
-and are close to making a purchase decision.
+You are writing copy for a high-intent informational bridge page.
 
-IMPORTANT LANGUAGE RULE:
-- Write ALL content strictly in the following language: ${languageName}
+The user already searched for the product by name and is close to purchasing.
+Your role is NOT to sell aggressively.
+Your role is to confirm, reassure, and guide safely to the official source.
+
+IMPORTANT:
+- Write ALL content strictly in ${languageName}
 - Do NOT mix languages
-- Do NOT include any English if the language is not English
+- Do NOT include English words if the language is not English
 
-DATE RULE (CRITICAL):
-- The ONLY allowed numeric year is 2026
-- If a year is included anywhere in the output, it MUST be 2026
-- NEVER use 2024, 2025, 2027 or any other year
-- Do NOT invent specific publication dates (no full dates like March 2026)
-- You may use:
-  "Updated for 2026"
-  "Latest 2026 Information"
-  or equivalent in the target language
-- Only the standalone year 2026 is allowed
-- If any year other than 2026 appears in the output, regenerate the entire response
+PRIMARY OBJECTIVE:
+- Validate the user’s buying decision
+- Reinforce that they are making a careful and informed choice
+- Emphasize official access and purchase security
+- Reduce hesitation without pressure
 
-GOAL:
-- Assume the reader already searched for this product
-- Confirm they are evaluating it seriously
-- Clarify key information before final purchase
-- Reduce hesitation with reassurance
-- Reinforce authenticity and official purchase channels
-- Encourage moving forward confidently
-- Do NOT create artificial urgency
+STRICT GOOGLE ADS COMPLIANCE:
+- DO NOT mention diseases or medical conditions
+- DO NOT mention blood sugar, glucose, insulin, inflammation or similar terms
+- DO NOT describe biological or biochemical mechanisms
+- DO NOT promise results
+- DO NOT imply guaranteed outcomes
+- DO NOT exaggerate benefits
+- Keep all descriptions at a general wellness and lifestyle level
+- Use neutral and institutional tone
 
-DECISION PSYCHOLOGY (IMPORTANT):
-- Speak to someone close to completing a purchase
-- Validate their research effort
-- Emphasize clarity, transparency, and informed choice
-- Position the product as a structured and legitimate option
-- Encourage accessing the official source naturally
-- Avoid hype or aggressive persuasion
-
-COMPLIANCE (Google Ads Search Safe):
-- DO NOT make absolute promises
-- DO NOT guarantee results
-- DO NOT claim medical cures or diagnoses
-- Avoid exaggerated or sensational language
-- Do NOT imply treatment, prevention, or medical outcomes
-- Keep claims factual and restrained
-- Use cautious language (e.g. "may support", "designed to help", "according to the manufacturer")
-- Avoid unrealistic performance claims
-- Do NOT reference limited-time offers or discounts
+POSITIONING RULES:
+- The page must feel informational, not promotional
+- Avoid dramatic storytelling
+- Avoid investigative tone
+- Avoid fake authority positioning
+- Avoid phrases like “shocking truth”, “what doctors don’t tell you”, etc.
+- Avoid advertorial structure
 
 TONE:
-- Direct
-- Confident (but not absolute)
+- Calm
+- Confident
 - Structured
 - Reassuring
-- Informative with subtle authority
+- Transaction-oriented but not aggressive
 
-STYLE GUIDELINES:
-- You MAY include subtle emojis at the beginning of SHORT confirmation lines
-- Emojis must be subtle and informative (e.g. ✅ 📦 🔒 🧪)
-- Do NOT overuse emojis
-- Do NOT include emojis inside long paragraphs
-- Avoid sounding like a sales page
-- Maintain a review-style structure
+PSYCHOLOGICAL TRIGGERS ALLOWED:
+- Safety
+- Authenticity
+- Official source
+- Updated information
+- Purchase security
+- Satisfaction policy
+- Avoiding imitation products
 
-PERSUASION BALANCE:
-- Keep approximately 70–80% informational tone
-- Allow 20–30% subtle persuasion through reassurance and clarity
-- Focus on risk reduction rather than excitement
+STRUCTURE GUIDELINES:
+- Focus on context of purchase decision
+- Explain who the product is generally intended for (in lifestyle terms)
+- Include a clear recommendation to access the official website
+- Reinforce secure purchase and authenticity
+- Include responsible disclaimer
+
+You MAY include subtle emojis at the beginning of SHORT lines only (e.g. ✅ 🔒 📦).
+Do NOT overuse emojis.
+Do NOT place emojis inside long paragraphs.
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
-ALL keys below MUST exist.
-ALL values MUST be strings.
-If unsure, return an empty string "" — NEVER omit a key.
+ALL keys must exist.
+ALL values must be strings.
+If unsure, return an empty string "".
+Never omit a key.
 
 {
   "SITE_BRAND": "",
@@ -99,18 +94,18 @@ If unsure, return an empty string "" — NEVER omit a key.
   "DECISION_STAGE_LINE": "",
   "POSITIONING_STATEMENT": "",
 
-  "PRIMARY_PROBLEM_TITLE": "",
-  "PRIMARY_PROBLEM_TEXT": "",
+  "CONTEXT_TITLE": "",
+  "CONTEXT_TEXT": "",
 
   "WHY_DIFFERENT_TITLE": "",
   "WHY_DIFFERENT_1": "",
   "WHY_DIFFERENT_2": "",
   "WHY_DIFFERENT_3": "",
 
-  "MECHANISM_TITLE": "",
-  "MECHANISM_STEP_1": "",
-  "MECHANISM_STEP_2": "",
-  "MECHANISM_STEP_3": "",
+  "HOW_POSITIONED_TITLE": "",
+  "HOW_POSITIONED_1": "",
+  "HOW_POSITIONED_2": "",
+  "HOW_POSITIONED_3": "",
 
   "FORMULA_TEXT": "",
   "INGREDIENT_IMAGES": "",
@@ -125,15 +120,12 @@ If unsure, return an empty string "" — NEVER omit a key.
   "WHO_NOT_2": "",
   "WHO_NOT_3": "",
 
-  "SCAM_ALERT_TITLE": "",
-  "SCAM_ALERT_TEXT": "",
+  "AUTHENTICITY_ALERT_TITLE": "",
+  "AUTHENTICITY_ALERT_TEXT": "",
 
   "TESTIMONIAL_TITLE": "",
   "TESTIMONIAL_NOTICE_TEXT": "",
   "TESTIMONIAL_CTA_TEXT": "",
-
-  "BONUS_TITLE": "",
-  "BONUS_IMAGES": "",
 
   "GUARANTEE_TITLE": "",
   "GUARANTEE_TEXT": "",
