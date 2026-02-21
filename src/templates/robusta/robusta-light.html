@@ -1,507 +1,622 @@
 <!doctype html>
-<html lang="{{LANG}}">
+<html lang="{{LANG_CODE}}">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-<title>{{PAGE_TITLE}}</title>
-<meta name="description" content="{{META_DESCRIPTION}}"/>
-<meta name="robots" content="index,follow"/>
+  <title>{{PAGE_TITLE}}</title>
+  <meta name="description" content="{{META_DESCRIPTION}}"/>
+  <meta name="robots" content="index,follow,max-image-preview:large"/>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
 
-{{TRACKING_SCRIPT}}
+  {{TRACKING_SCRIPT}}
 
-<style>
-:root{
-  /* 
-     DEFINIÇÃO DE CORES FORÇADAS (FALLBACK)
-     O backend pode falhar, mas essas variáveis garante o visual Laranja.
-  */
-  --brand-color: #e67e22;      /* Laranja Principal (Carrot Orange) */
-  --brand-dark: #d35400;       /* Laranja Escuro para Hover */
-  --brand-light: #fcece0;      /* Laranja muito claro para fundos */
-  --brand-text: #ffffff;       /* Texto Branco */
+  <style>
+    :root{
+      /* entradas do backend (podem vir vazias) */
+      --primary: {{PRIMARY_COLOR}};
+      --secondary: {{SECONDARY_COLOR}};
 
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border: rgba(15, 23, 42, 0.08);
-  
-  /* SOMBRA COLORIDA (Laranja) */
-  --shadow-brand: 0 10px 25px -5px rgba(230, 126, 34, 0.4);
-  
-  --radius: 20px;
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
-}
+      /* fallbacks (sempre existem) */
+      --primary-fallback: #e67e22;  /* LARANJA */
+      --primary-dark: #d35400;
+      --primary-soft: #fcece0;
 
-*{box-sizing:border-box;margin:0;padding:0}
+      --bg: #f7f9fc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: rgba(15,23,42,.09);
 
-body{
-  font-family:var(--font-body);
-  background-color: var(--bg);
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,0) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,0) 0, transparent 50%);
-  color:var(--text-main);
-  line-height:1.7;
-  -webkit-font-smoothing: antialiased;
-}
+      --radius: 20px;
+      --shadow: 0 12px 30px rgba(15,23,42,.08);
+      --shadow-brand: 0 14px 34px rgba(230,126,34,.30);
 
-h1,h2,h3,.btn{font-family:var(--font-heading)}
+      --font-h: 'Outfit', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      --font-b: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
 
-/* LAYOUT */
-.container{
-  max-width:1200px;
-  margin:0 auto;
-  padding:60px 24px;
-}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:var(--font-b);
+      color:var(--text);
+      line-height:1.7;
+      background:
+        radial-gradient(900px 500px at 10% 0%, rgba(230,126,34,.12), transparent 60%),
+        radial-gradient(800px 450px at 95% 10%, rgba(59,130,246,.10), transparent 60%),
+        linear-gradient(180deg, #fff 0%, var(--bg) 40%, #fff 100%);
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
 
-.section{margin-bottom:80px;}
+    h1,h2,h3,.btn{font-family:var(--font-h)}
 
-/* TIPOGRAFIA */
-.section h2{
-  font-size:26px;
-  font-weight:700;
-  margin-bottom:24px;
-  color:var(--text-main);
-  position:relative;
-  display:inline-block;
-}
+    /* Auto-hide se o backend enviar vazio */
+    [data-empty="true"]{ display:none !important; }
 
-.section h2:after{
-  content:"";
-  display:block;
-  width:40px;
-  height:4px;
-  margin-top:8px;
-  background:var(--brand-color); /* Força Laranja */
-  border-radius:2px;
-  transition: width 0.3s ease;
-}
+    .container{
+      max-width:1200px;
+      margin:0 auto;
+      padding:64px 24px;
+    }
 
-.section:hover h2:after {
-  width: 100%;
-}
+    /* HEADER */
+    header{
+      position:sticky; top:0; z-index:999;
+      background: rgba(255,255,255,.86);
+      backdrop-filter: blur(12px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 24px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:800; letter-spacing:-.4px;
+      color:var(--text);
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: var(--primary, var(--primary-fallback));
+      box-shadow: 0 0 0 6px rgba(230,126,34,.10);
+    }
+    .nav-right{
+      display:flex; align-items:center; gap:12px;
+      font-size:13px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .nav-right a{
+      color: var(--primary, var(--primary-fallback));
+      font-weight:700;
+      text-decoration:none;
+    }
 
-p{margin-bottom:16px;color:var(--text-muted);font-size:1.05rem;}
+    /* HERO */
+    .hero-wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:56px 24px 0;
+    }
+    .hero{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:48px;
+      align-items:center;
+      padding:54px;
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg, #ffffff 0%, rgba(252,236,224,.55) 100%);
+      border:1px solid rgba(15,23,42,.07);
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute; inset:-80px;
+      background:
+        radial-gradient(circle at 80% 20%, rgba(230,126,34,.18), transparent 55%),
+        radial-gradient(circle at 25% 70%, rgba(59,130,246,.10), transparent 55%);
+      filter: blur(10px);
+      pointer-events:none;
+    }
+    .hero > *{ position:relative; z-index:1; }
 
-/* LISTAS COM CHECK LARANJA */
-ul{list-style:none;margin:24px 0;}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color: var(--primary, var(--primary-fallback));
+      background: rgba(230,126,34,.10);
+      border: 1px solid rgba(230,126,34,.18);
+      padding: 7px 14px;
+      border-radius: 999px;
+      margin-bottom:14px;
+    }
 
-ul li{
-  margin-bottom:14px;
-  padding-left:32px;
-  position:relative;
-  color:var(--text-muted);
-  font-weight:500;
-  transition: transform 0.2s;
-}
+    .hero h1{
+      font-size: clamp(34px, 4.2vw, 56px);
+      line-height:1.06;
+      letter-spacing:-.02em;
+      margin-bottom:14px;
+    }
+    .hero-sub{
+      font-size:18px;
+      color:var(--muted);
+      margin-bottom:18px;
+    }
+    .positioning{
+      border-left: 4px solid var(--primary, var(--primary-fallback));
+      background: rgba(255,255,255,.7);
+      padding:14px 16px;
+      border-radius: 12px;
+      color: var(--text);
+      margin-bottom:18px;
+      box-shadow: 0 10px 24px rgba(15,23,42,.06);
+    }
 
-ul li:hover{
-  transform: translateX(5px);
-  color: var(--text-main);
-}
+    .hero-list{
+      list-style:none;
+      display:grid;
+      gap:10px;
+      margin:18px 0 26px;
+      padding:0;
+    }
+    .hero-list li{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      color: var(--muted);
+      font-weight:600;
+    }
+    .check{
+      flex:0 0 auto;
+      width:22px; height:22px;
+      border-radius:50%;
+      background: var(--primary, var(--primary-fallback));
+      box-shadow: 0 10px 22px rgba(230,126,34,.25);
+      display:grid;
+      place-items:center;
+      margin-top:2px;
+    }
+    .check svg{ width:14px; height:14px; fill:#fff; }
 
-ul li:before{
-  content:"";
-  position:absolute;
-  left:0;
-  top:4px;
-  width:20px;
-  height:20px;
-  background:var(--brand-color); /* Força Laranja */
-  mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center / contain;
-  -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>') no-repeat center / contain;
-  border-radius:50%;
-}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px 26px;
+      border-radius: 999px;
+      font-weight:900;
+      letter-spacing:.3px;
+      text-decoration:none;
+      cursor:pointer;
+      border: 1px solid rgba(255,255,255,.25);
 
-/* BOTÃO LARANJA FORÇADO */
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  
-  /* Fundo Laranja Sólido */
-  background-color: var(--brand-color); 
-  color: var(--brand-text) !important; /* Texto Branco */
-  
-  padding:18px 42px;
-  border-radius:50px;
-  font-weight:700;
-  font-size:1.1rem;
-  text-align:center;
-  text-decoration:none;
-  transition:all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow:var(--shadow-brand);
-  border: 1px solid rgba(255,255,255,0.2);
-  position:relative;
-  overflow:hidden;
-}
+      /* fallback laranja + texto branco */
+      background: var(--primary, var(--primary-fallback));
+      color:#fff !important;
 
-.btn:hover{
-  /* Hover Escuro */
-  background-color: var(--brand-dark);
-  transform:translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 30px -5px rgba(230, 126, 34, 0.5);
-}
+      box-shadow: var(--shadow-brand);
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      background: var(--primary-dark);
+      box-shadow: 0 18px 40px rgba(230,126,34,.35);
+    }
+    .btn:active{ transform: translateY(0px); }
 
-.btn:active{
-  transform:translateY(-1px) scale(0.98);
-}
+    .trustline{
+      margin-top:12px;
+      font-size:13px;
+      color: var(--muted);
+    }
 
-/* HERO SECTION */
-.hero{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:60px;
-  align-items:center;
-  padding:100px 24px;
-  max-width:1200px;
-  margin:0 auto;
-  background: linear-gradient(135deg, #ffffff 0%, #fff9f5 100%);
-  border-radius: 0 0 40px 40px;
-  border-bottom:1px solid var(--border);
-  position:relative;
-  overflow:hidden;
-}
+    .hero-media{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .product-img{
+      width:100%;
+      max-width: 520px;
+      border-radius: 24px;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;
+      box-shadow: 0 26px 60px rgba(15,23,42,.15);
+      transform: perspective(1100px) rotateY(-6deg) rotateX(2deg);
+      transition: transform .45s ease;
+    }
+    .product-img:hover{
+      transform: perspective(1100px) rotateY(0deg) rotateX(0deg);
+    }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -10%;
-  right: -10%;
-  width: 50%;
-  height: 80%;
-  background: radial-gradient(circle, var(--brand-light) 0%, transparent 70%); /* Laranja claro */
-  opacity: 0.6;
-  z-index: 0;
-  filter: blur(60px);
-}
+    /* SECTIONS */
+    .section{
+      margin-top:56px;
+      margin-bottom:70px;
+    }
+    .section h2{
+      font-size:26px;
+      font-weight:900;
+      letter-spacing:.5px;
+      text-transform:uppercase;
+      margin-bottom:18px;
+      display:inline-block;
+      position:relative;
+    }
+    .section h2:after{
+      content:"";
+      display:block;
+      width:46px;
+      height:4px;
+      margin-top:10px;
+      border-radius: 99px;
+      background: var(--primary, var(--primary-fallback));
+      transition: width .25s ease;
+    }
+    .section:hover h2:after{ width: 100%; }
 
-/* Badge Laranja */
-.badge{
-  display:inline-block;
-  font-size:12px;
-  font-weight:700;
-  text-transform:uppercase;
-  color:var(--brand-color); /* Texto Laranja */
-  background: var(--brand-light); /* Fundo Laranja Claro */
-  padding: 6px 14px;
-  border-radius:30px;
-  margin-bottom:16px;
-  letter-spacing:1px;
-  border: 1px solid rgba(230, 126, 34, 0.2);
-}
+    .lead{
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      max-width: 900px;
+    }
 
-.hero-content{
-  position:relative;
-  z-index:1;
-}
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .card{
+      background: rgba(255,255,255,.85);
+      border:1px solid rgba(15,23,42,.08);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 10px 24px rgba(15,23,42,.06);
+      position:relative;
+      overflow:hidden;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .card:before{
+      content:"";
+      position:absolute; left:0; top:0; width:100%; height:4px;
+      background: var(--primary, var(--primary-fallback));
+      opacity:.0;
+      transition: opacity .2s ease;
+    }
+    .card:hover{
+      transform: translateY(-6px);
+      border-color: rgba(230,126,34,.35);
+      box-shadow: 0 18px 40px rgba(15,23,42,.10);
+    }
+    .card:hover:before{ opacity:1; }
+    .card p{ color: var(--text); font-weight:600; margin:0; }
 
-.hero-content h1{
-  font-size:48px;
-  line-height:1.1;
-  margin-bottom:24px;
-  letter-spacing:-0.02em;
-  color:var(--text-main);
-}
+    .alert{
+      margin-top: 14px;
+      padding: 20px;
+      border-radius: 16px;
+      border-left: 6px solid var(--primary, var(--primary-fallback));
+      background: linear-gradient(90deg, rgba(255,255,255,.9), rgba(252,236,224,.7));
+      box-shadow: 0 10px 24px rgba(15,23,42,.06);
+      color: var(--text);
+    }
+    .alert.scam{
+      border-left-color:#ef4444;
+      background: linear-gradient(90deg, rgba(255,255,255,.9), rgba(254,226,226,.8));
+      color:#7f1d1d;
+    }
+    .alert p{ margin:0; color:inherit; }
 
-.hero-image-wrapper {
-  position: relative;
-  animation: float 6s ease-in-out infinite;
-}
+    .final-cta{
+      margin-top: 10px;
+      text-align:center;
+      padding: 42px 22px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(252,236,224,.9), rgba(255,255,255,.95));
+      border: 1px solid rgba(230,126,34,.16);
+      box-shadow: 0 14px 34px rgba(15,23,42,.08);
+    }
+    .final-cta h3{
+      font-size: 22px;
+      margin-bottom: 16px;
+      letter-spacing:-.01em;
+    }
 
-.hero img{
-  max-width:100%;
-  height: auto;
-  border-radius:24px;
-  border:1px solid rgba(255,255,255,0.6);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-  position: relative;
-  z-index: 2;
-  transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
-  transition: transform 0.5s ease;
-}
+    .disclaimer{
+      margin-top: 46px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: rgba(100,116,139,.9);
+      line-height: 1.65;
+    }
 
-.hero img:hover {
-  transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
-}
+    /* FOOTER */
+    footer{
+      margin-top: 40px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,.92);
+    }
+    .footer{
+      max-width:1200px;
+      margin:0 auto;
+      padding: 44px 24px;
+      text-align:center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer a{
+      color: var(--muted);
+      text-decoration:none;
+      font-weight:600;
+    }
+    .footer a:hover{ color: var(--primary, var(--primary-fallback)); }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-  100% { transform: translateY(0px); }
-}
+    /* RESPONSIVE */
+    @media(max-width: 900px){
+      .hero{ grid-template-columns: 1fr; padding: 34px 22px; }
+      .product-img{ transform:none; max-width: 420px; }
+      .hero-wrap{ padding-top: 34px; }
+      .container{ padding: 46px 20px; }
+      .nav-right{ display:none; }
+    }
+  </style>
 
-/* CARDS */
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:24px;
-}
+  <!-- Força fallback se backend mandar vazio/inválido -->
+  <script>
+    (function(){
+      const root = document.documentElement;
 
-.card{
-  background:var(--surface);
-  padding:32px;
-  border-radius:var(--radius);
-  border:1px solid var(--border);
-  box-shadow:0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
+      function normalizeColor(val){
+        if(!val) return "";
+        const v = String(val).trim();
+        // evita "null", "undefined", strings vazias e placeholders quebrados
+        if(!v || v === "null" || v === "undefined" || v === "{{PRIMARY_COLOR}}") return "";
+        return v;
+      }
 
-.card:hover {
-  transform: translateY(-8px);
-  box-shadow:0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border-color: var(--brand-color); /* Borda Laranja no Hover */
-}
+      const computed = getComputedStyle(root);
+      const p = normalizeColor(computed.getPropertyValue('--primary'));
+      const s = normalizeColor(computed.getPropertyValue('--secondary'));
 
-/* Barra Laranja no topo do Card */
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: var(--brand-color); /* Força Laranja */
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
+      if(!p) root.style.setProperty('--primary', getComputedStyle(root).getPropertyValue('--primary-fallback').trim() || '#e67e22');
+      if(!s) root.style.setProperty('--secondary', '#3b82f6');
 
-.card:hover::before {
-  opacity: 1;
-}
-
-.card p {
-  font-weight: 500;
-  color: var(--text-main);
-  margin: 0;
-  line-height: 1.6;
-}
-
-/* ALERTS */
-.alert{
-  padding:24px;
-  border-radius:16px;
-  background:linear-gradient(to right, #fff, var(--brand-light));
-  border-left:5px solid var(--brand-color); /* Força Laranja */
-  color:var(--text-main);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.alert.scam{
-  background:linear-gradient(to right, #fff, #fee2e2);
-  border-left:5px solid #ef4444; /* Vermelho para Scam */
-  color: #7f1d1d;
-}
-
-.alert p { margin: 0; }
-
-/* FOOTER */
-.footer{
-  text-align:center;
-  padding:60px 20px;
-  font-size:14px;
-  color:var(--text-muted);
-  border-top:1px solid var(--border);
-  background:#ffffff;
-  margin-top: 40px;
-}
-
-.footer a {
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.footer a:hover {
-  color: var(--brand-color); /* Hover Laranja */
-}
-
-/* RESPONSIVIDADE */
-@media(max-width:900px){
-  .hero{
-    grid-template-columns:1fr;
-    text-align:center;
-    padding: 60px 20px;
-    border-radius: 0;
-    gap: 40px;
-  }
-  
-  .hero::before {
-    top: 0;
-    right: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.3;
-  }
-  
-  .hero-content h1 {
-    font-size: 36px;
-  }
-
-  .hero img {
-    transform: none;
-    max-width: 80%;
-    margin: 0 auto;
-  }
-  
-  .hero-image-wrapper {
-    animation: none;
-  }
-
-  ul li {
-    padding-left: 0;
-    text-align: left;
-    display: inline-block;
-    margin-right: 15px;
-  }
-  
-  ul li:before {
-    position: static;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 8px;
-  }
-}
-</style>
-
-<!-- SCRIPT: Força a cor laranja caso o backend tente sobrescrever com vazio -->
-<script>
-(function(){
-  const root=document.documentElement;
-  // Força a variável primária para ser laranja, ignorando falhas do backend
-  root.style.setProperty('--brand-color', '#e67e22');
-  root.style.setProperty('--brand-dark', '#d35400');
-  root.style.setProperty('--brand-light', '#fcece0');
-})();
-</script>
-
+      // define hover dark com base em fallback fixo (mantém consistente)
+      root.style.setProperty('--primary-dark', '#d35400');
+    })();
+  </script>
 </head>
+
 <body>
+  <!-- HEADER -->
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>{{SITE_BRAND}}</span>
+      </div>
+      <div class="nav-right">
+        <span>{{UPDATED_DATE}}</span>
+        <a href="javascript:void(0)" onclick="doRedirect()">{{CTA_BUTTON_TEXT}} →</a>
+      </div>
+    </div>
+  </header>
 
-<section class="hero">
-  <div class="hero-content">
-    <span class="badge">{{DECISION_STAGE_LINE}}</span>
+  <!-- HERO (imagem na primeira dobra) -->
+  <div class="hero-wrap">
+    <section class="hero">
+      <div>
+        <div class="badge">{{DECISION_STAGE_LINE}}</div>
 
-    <p style="font-size:16px;color:var(--text-muted);margin-bottom:12px; font-weight:600;">
-      {{HERO_SUPPORT_LINE}}
-    </p>
+        <h1>{{HEADLINE_MAIN}}</h1>
+        <div class="hero-sub">{{SUBHEADLINE_MAIN}}</div>
 
-    <h1>{{HEADLINE_MAIN}}</h1>
-    <p style="margin-bottom: 24px;">{{SUBHEADLINE_MAIN}}</p>
+        <div class="positioning">{{POSITIONING_STATEMENT}}</div>
 
-    <ul>
-      <li>{{HERO_BULLET_1}}</li>
-      <li>{{HERO_BULLET_2}}</li>
-      <li>{{HERO_BULLET_3}}</li>
-    </ul>
+        <!-- Bullets (usando WHY_DIFFERENT_1/2/3 pra não criar keys novas) -->
+        <ul class="hero-list">
+          <li id="hb1">
+            <span class="check" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
+            </span>
+            <span>{{WHY_DIFFERENT_1}}</span>
+          </li>
+          <li id="hb2">
+            <span class="check" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
+            </span>
+            <span>{{WHY_DIFFERENT_2}}</span>
+          </li>
+          <li id="hb3">
+            <span class="check" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
+            </span>
+            <span>{{WHY_DIFFERENT_3}}</span>
+          </li>
+        </ul>
 
-    <div style="margin-top: 32px;">
-        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
-        {{CTA_BUTTON_TEXT}} →
+        <a class="btn" href="javascript:void(0)" onclick="doRedirect()">
+          {{CTA_BUTTON_TEXT}} →
         </a>
+
+        <div class="trustline">
+          ✔ Secure checkout • ✔ Official distribution • ✔ Updated {{CURRENT_YEAR}}
+        </div>
+      </div>
+
+      <div class="hero-media">
+        <img class="product-img" src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" loading="lazy">
+      </div>
+    </section>
+  </div>
+
+  <div class="container">
+    <!-- WHERE TO BUY -->
+    <section class="section">
+      <h2>{{WHERE_TO_BUY_TITLE}}</h2>
+      <p class="lead">{{WHERE_TO_BUY_TEXT}}</p>
+    </section>
+
+    <!-- PRICE & AVAILABILITY -->
+    <section class="section">
+      <h2>{{PRICE_AVAILABILITY_TITLE}}</h2>
+      <p class="lead">{{PRICE_AVAILABILITY_TEXT}}</p>
+    </section>
+
+    <!-- EDUCATIONAL DEPTH (neutral) -->
+    <section class="section">
+      <h2>{{MECHANISM_TITLE}}</h2>
+      <ul class="hero-list" style="margin-top:10px;">
+        <li id="ms1">
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
+          </span>
+          <span>{{MECHANISM_STEP_1}}</span>
+        </li>
+        <li id="ms2">
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
+          </span>
+          <span>{{MECHANISM_STEP_2}}</span>
+        </li>
+        <li id="ms3">
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7 19.59 5.59z"/></svg>
+          </span>
+          <span>{{MECHANISM_STEP_3}}</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- WHO SHOULD USE -->
+    <section class="section">
+      <h2>{{WHO_SHOULD_USE_TITLE}}</h2>
+      <div class="cards">
+        <div class="card"><p>{{WHO_SHOULD_1}}</p></div>
+        <div class="card"><p>{{WHO_SHOULD_2}}</p></div>
+        <div class="card"><p>{{WHO_SHOULD_3}}</p></div>
+      </div>
+    </section>
+
+    <!-- GUARANTEE -->
+    <section class="section">
+      <h2>{{GUARANTEE_TITLE}}</h2>
+      <div class="alert">
+        <p>{{GUARANTEE_TEXT}}</p>
+      </div>
+    </section>
+
+    <!-- SCAM ALERT -->
+    <section class="section">
+      <h2>{{SCAM_ALERT_TITLE}}</h2>
+      <div class="alert scam">
+        <p>{{SCAM_ALERT_TEXT}}</p>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="final-cta">
+      <h3>{{FINAL_CTA_TITLE}}</h3>
+      <a class="btn" href="javascript:void(0)" onclick="doRedirect()">
+        {{CTA_BUTTON_TEXT}} →
+      </a>
+    </section>
+
+    <div class="disclaimer">
+      {{DISCLAIMER_TEXT}}
     </div>
-
-    <p style="margin-top:20px;font-size:13px; opacity: 0.8;">
-      {{TRUST_LINE}}
-    </p>
   </div>
 
-  <div class="hero-image-wrapper">
-    <img src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" loading="lazy">
-  </div>
-</section>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer">
+      <div style="font-weight:900;color:var(--text);font-size:16px;">
+        {{SITE_BRAND}}
+      </div>
 
-<div class="container">
+      <div style="margin-top:14px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="{{PRIVACY_URL}}">Privacy Policy</a>
+        <span style="opacity:.5;">•</span>
+        <a href="{{TERMS_URL}}">Terms of Service</a>
+        <span style="opacity:.5;">•</span>
+        <a href="{{CONTACT_URL}}">Contact</a>
+      </div>
 
-  <div class="section">
-    <h2>{{WHERE_TO_BUY_TITLE}}</h2>
-    <p style="font-size: 1.1rem; color: var(--text-main);">{{WHERE_TO_BUY_TEXT}}</p>
-  </div>
+      <div style="margin-top:14px;">
+        {{FOOTER_DISCLAIMER}}
+      </div>
 
-  <div class="section">
-    <h2>{{PRICE_AVAILABILITY_TITLE}}</h2>
-    <p style="font-size: 1.1rem; color: var(--text-main);">{{PRICE_AVAILABILITY_TEXT}}</p>
-  </div>
-
-  <div class="section">
-    <h2>{{WHY_DIFFERENT_TITLE}}</h2>
-    <div class="cards">
-      <div class="card"><p>{{WHY_DIFFERENT_1}}</p></div>
-      <div class="card"><p>{{WHY_DIFFERENT_2}}</p></div>
-      <div class="card"><p>{{WHY_DIFFERENT_3}}</p></div>
+      <div style="margin-top:18px; font-size:12px; opacity:.85;">
+        &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}
+      </div>
     </div>
-  </div>
+  </footer>
 
-  <div class="section">
-    <h2>{{GUARANTEE_TITLE}}</h2>
-    <div class="alert">
-      <p>{{GUARANTEE_TEXT}}</p>
-    </div>
-  </div>
+  <!-- REDIRECT -->
+  <script>
+    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+    let clicked = false;
 
-  <div class="section">
-    <h2>{{SCAM_ALERT_TITLE}}</h2>
-    <div class="alert scam">
-      <p>{{SCAM_ALERT_TEXT}}</p>
-    </div>
-  </div>
+    function doRedirect(){
+      if(clicked) return;
+      clicked = true;
 
-  <div class="section" style="text-align:center; background: var(--brand-light); padding: 40px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05);">
-    <h3 style="margin-bottom:18px; font-size: 24px;">{{FINAL_CTA_TITLE}}</h3>
-    <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
-      {{CTA_BUTTON_TEXT}}
-    </a>
-  </div>
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.textContent = "{{REDIRECTING_TEXT}}";
+      });
 
-  <p style="font-size:12px;margin-top:60px;border-top:1px solid var(--border);padding-top:20px; opacity: 0.6;">
-    {{DISCLAIMER_TEXT}}
-  </p>
+      if(typeof window.runTrackerRedirect === "function"){
+        window.runTrackerRedirect(AFFILIATE_LINK);
+      }else{
+        window.location.href = AFFILIATE_LINK;
+      }
+    }
 
-</div>
+    // Volta texto ao retornar via bfcache
+    window.addEventListener('pageshow', function(event){
+      if(event.persisted){
+        clicked = false;
+        document.querySelectorAll('.btn').forEach(btn => {
+          btn.textContent = "{{CTA_BUTTON_TEXT}} →";
+        });
+      }
+    });
 
-<footer class="footer">
-  <div style="font-weight: 700; font-size: 16px; color: var(--text-main);">{{SITE_BRAND}}</div>
-  <div style="margin-top:16px;">
-    <a href="{{PRIVACY_URL}}">Privacy</a> •
-    <a href="{{TERMS_URL}}">Terms</a> •
-    <a href="{{CONTACT_URL}}">Contact</a>
-  </div>
-  <div style="margin-top:20px;">
-    &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}
-  </div>
-</footer>
-
-<script>
-const AFFILIATE_LINK="{{AFFILIATE_LINK}}";
-let clicked=false;
-
-function doRedirect(){
-  if(clicked)return;
-  clicked=true;
-  document.querySelectorAll('.btn').forEach(b=>b.innerHTML='Redirecionando...');
-  window.location.href=AFFILIATE_LINK;
-}
-
-window.addEventListener('pageshow',function(event){
-  if(event.persisted){
-    clicked=false;
-    document.querySelectorAll('.btn').forEach(b=>b.innerHTML='{{CTA_BUTTON_TEXT}} →');
-  }
-});
-</script>
-
+    // Auto-hide se strings vierem vazias (evita “buracos” na hero)
+    (function(){
+      const ids = ["hb1","hb2","hb3","ms1","ms2","ms3"];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const text = (el.innerText || "").replace(/\s+/g,' ').trim();
+        // se vier só o check ou vazio, esconde
+        if(!text || text.length < 2){
+          el.setAttribute("data-empty","true");
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
