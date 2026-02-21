@@ -177,9 +177,12 @@ All values must be strings.
 ALL keys are mandatory.
 No field may be empty.
 If any field is empty, regenerate the entire JSON.
+Do not include explanations.
+Do not include markdown.
 
 {
   "SITE_BRAND": "",
+  "UPDATED_LABEL": "",
   "UPDATED_DATE": "2026",
 
   "HEADLINE_MAIN": "",
@@ -187,25 +190,9 @@ If any field is empty, regenerate the entire JSON.
   "DECISION_STAGE_LINE": "",
   "POSITIONING_STATEMENT": "",
 
-  "RATING_STARS": "",
-  "RATING_SCORE": "",
-  "RATING_COUNT": "",
-
-  "PRODUCT_NAME": "",
-
   "HERO_BULLET_1": "",
   "HERO_BULLET_2": "",
   "HERO_BULLET_3": "",
-
-  "TRUST_BADGE_1": "",
-  "TRUST_BADGE_2": "",
-  "TRUST_BADGE_3": "",
-  "TRUST_BADGE_4": "",
-  "TRUST_BADGE_5": "",
-
-  "TRUST_SMALL_1": "",
-  "TRUST_SMALL_2": "",
-  "TRUST_SMALL_3": "",
 
   "PRODUCT_OVERVIEW_TITLE": "",
   "PRODUCT_OVERVIEW_TEXT": "",
@@ -227,13 +214,7 @@ If any field is empty, regenerate the entire JSON.
   "DISCLAIMER_TEXT": "",
   "FOOTER_DISCLAIMER": "",
 
-  "FOOTER_LINK_PRIVACY_TEXT": "",
-  "FOOTER_LINK_TERMS_TEXT": "",
-  "FOOTER_LINK_CONTACT_TEXT": "",
-
-  "COPYRIGHT_TEXT": "",
   "CTA_BUTTON_TEXT": "",
-  "REDIRECTING_TEXT": "",
 
   "PRIVACY_URL": "",
   "TERMS_URL": "",
