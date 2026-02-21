@@ -16,79 +16,73 @@ module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
   return `
-You are writing copy for a ROBUSTA (pre-sell) page aimed at users who already searched for the product
-and are close to making a purchase decision.
+You are writing copy for a ROBUSTA pre-sell page designed specifically for Google Search traffic
+where users already searched for the product name and are close to buying.
 
 IMPORTANT LANGUAGE RULE:
-- Write ALL content strictly in the following language: ${languageName}
+- Write ALL content strictly in ${languageName}
 - Do NOT mix languages
-- Do NOT include any English if the language is not English
+- Do NOT include English words if the language is not English
 
 DATE RULE (CRITICAL):
-- The ONLY allowed numeric year is 2026
-- If a year is included anywhere in the output, it MUST be 2026
-- NEVER use 2024, 2025, 2027 or any other year
-- Do NOT invent specific publication dates (no full dates like March 2026)
-- You may use:
+- The ONLY allowed year is 2026
+- If a year appears, it must be 2026
+- Never use any other year
+- You may write:
   "Updated for 2026"
-  "Latest 2026 Information"
   or equivalent in the target language
-- Only the standalone year 2026 is allowed
-- If any year other than 2026 appears in the output, regenerate the entire response
 
-GOAL:
-- Assume the reader already searched for this product
-- Confirm they are evaluating it seriously
-- Clarify key information before final purchase
-- Reduce hesitation with reassurance
-- Reinforce authenticity and official purchase channels
-- Encourage moving forward confidently
-- Do NOT create artificial urgency
+STRATEGIC CONTEXT:
+- This page targets bottom-of-funnel search intent
+- The user likely searched for:
+  buy, price, official website, order, availability, reviews
+- The goal is to confirm legitimacy and reduce hesitation
+- The page must feel informative and structured
+- It must NOT feel like a thin bridge page
+- It must contain meaningful content depth
 
-DECISION PSYCHOLOGY (IMPORTANT):
-- Speak to someone close to completing a purchase
-- Validate their research effort
-- Emphasize clarity, transparency, and informed choice
-- Position the product as a structured and legitimate option
-- Encourage accessing the official source naturally
-- Avoid hype or aggressive persuasion
+PRIMARY OBJECTIVES:
+- Reinforce that purchasing through the official website is safest
+- Mention availability and pricing in a neutral way
+- Emphasize secure checkout and manufacturer guarantee
+- Reduce fear of fake sellers or third-party platforms
+- Encourage proceeding confidently to the official source
 
-COMPLIANCE (Google Ads Search Safe):
-- DO NOT make absolute promises
-- DO NOT guarantee results
-- DO NOT claim medical cures or diagnoses
-- Avoid exaggerated or sensational language
-- Do NOT imply treatment, prevention, or medical outcomes
-- Keep claims factual and restrained
-- Use cautious language (e.g. "may support", "designed to help", "according to the manufacturer")
-- Avoid unrealistic performance claims
-- Do NOT reference limited-time offers or discounts
+IMPORTANT:
+- Do NOT create urgency
+- Do NOT mention discounts or limited offers
+- Do NOT exaggerate
+- Do NOT guarantee results
+- Avoid medical claims
+- Use cautious wording (e.g. "may support", "designed to help", "according to the manufacturer")
 
 TONE:
-- Direct
-- Confident (but not absolute)
+- Clear
+- Transaction-oriented
 - Structured
 - Reassuring
+- Trust-focused
 - Informative with subtle authority
 
-STYLE GUIDELINES:
-- You MAY include subtle emojis at the beginning of SHORT confirmation lines
-- Emojis must be subtle and informative (e.g. ✅ 📦 🔒 🧪)
-- Do NOT overuse emojis
-- Do NOT include emojis inside long paragraphs
-- Avoid sounding like a sales page
-- Maintain a review-style structure
-
 PERSUASION BALANCE:
-- Keep approximately 70–80% informational tone
-- Allow 20–30% subtle persuasion through reassurance and clarity
-- Focus on risk reduction rather than excitement
+- 70% informational
+- 30% subtle reassurance and direction toward official purchase
+
+STRUCTURE PRIORITY:
+The content should prioritize:
+1. Where to buy safely
+2. Price & availability
+3. Guarantee
+4. Scam prevention
+5. Key benefits
+6. Mechanism
+7. Who should use
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
-ALL keys below MUST exist.
-ALL values MUST be strings.
-If unsure, return an empty string "" — NEVER omit a key.
+All keys must exist.
+All values must be strings.
+If unsure, return "" but never omit keys.
 
 {
   "SITE_BRAND": "",
@@ -99,8 +93,17 @@ If unsure, return an empty string "" — NEVER omit a key.
   "DECISION_STAGE_LINE": "",
   "POSITIONING_STATEMENT": "",
 
-  "PRIMARY_PROBLEM_TITLE": "",
-  "PRIMARY_PROBLEM_TEXT": "",
+  "WHERE_TO_BUY_TITLE": "",
+  "WHERE_TO_BUY_TEXT": "",
+
+  "PRICE_AVAILABILITY_TITLE": "",
+  "PRICE_AVAILABILITY_TEXT": "",
+
+  "GUARANTEE_TITLE": "",
+  "GUARANTEE_TEXT": "",
+
+  "SCAM_ALERT_TITLE": "",
+  "SCAM_ALERT_TEXT": "",
 
   "WHY_DIFFERENT_TITLE": "",
   "WHY_DIFFERENT_1": "",
@@ -112,32 +115,12 @@ If unsure, return an empty string "" — NEVER omit a key.
   "MECHANISM_STEP_2": "",
   "MECHANISM_STEP_3": "",
 
-  "FORMULA_TEXT": "",
-  "INGREDIENT_IMAGES": "",
-
   "WHO_SHOULD_USE_TITLE": "",
   "WHO_SHOULD_1": "",
   "WHO_SHOULD_2": "",
   "WHO_SHOULD_3": "",
 
-  "WHO_SHOULD_NOT_TITLE": "",
-  "WHO_NOT_1": "",
-  "WHO_NOT_2": "",
-  "WHO_NOT_3": "",
-
-  "SCAM_ALERT_TITLE": "",
-  "SCAM_ALERT_TEXT": "",
-
-  "TESTIMONIAL_TITLE": "",
-  "TESTIMONIAL_NOTICE_TEXT": "",
-  "TESTIMONIAL_CTA_TEXT": "",
-
-  "BONUS_TITLE": "",
-  "BONUS_IMAGES": "",
-
-  "GUARANTEE_TITLE": "",
-  "GUARANTEE_TEXT": "",
-  "GUARANTEE_IMAGE": "",
+  "FINAL_CTA_TITLE": "",
 
   "DISCLAIMER_TEXT": "",
   "FOOTER_DISCLAIMER": "",
@@ -150,6 +133,7 @@ If unsure, return an empty string "" — NEVER omit a key.
 }
 
 Do not include HTML.
-Do not include explanations outside JSON.
+Do not include explanations.
+Return only valid JSON.
 `;
 };
