@@ -1,4 +1,4 @@
-function resolveLanguageName(lang) {
+ function resolveLanguageName(lang) {
   const map = {
     en: 'English',
     pt: 'Portuguese',
@@ -12,57 +12,50 @@ function resolveLanguageName(lang) {
   return map[lang] || 'English';
 }
 
+
 module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
   return `
-You are writing copy for a high-intent informational bridge page.
-
-The user already searched for the product by name and is close to purchasing.
-Your role is to confirm, reassure, and guide safely to the official source.
+You are writing copy for a ROBUSTA (pre-sell) page aimed at users who already know the product
+and are close to making a purchase.
 
 IMPORTANT:
-- Write ALL content strictly in ${languageName}
+- Write ALL content strictly in the following language: ${languageName}
 - Do NOT mix languages
-- Do NOT include English words if the language is not English
+- Do NOT include any English if the language is not English
 
-PRIMARY OBJECTIVE:
-- Validate the user’s buying decision
-- Reinforce that they are making a careful choice
-- Emphasize official access and purchase security
-- Reduce hesitation without pressure
+GOAL:
+- Confirm the user's decision
+- Reinforce why this product is a solid choice
+- Reduce last-minute hesitation
+- Encourage action without pressure
 
-STRICT GOOGLE ADS COMPLIANCE:
-- DO NOT mention diseases or medical conditions
-- DO NOT promise results
-- DO NOT imply guaranteed outcomes
+COMPLIANCE (Google Ads Search safe):
+- DO NOT make absolute promises
+- DO NOT guarantee results
+- DO NOT claim medical cures or diagnoses
 - Avoid exaggerated language
-- Keep descriptions neutral
-- Use cautious phrasing such as "according to the manufacturer"
-
-POSITIONING RULES:
-- The page must feel informational
-- Avoid dramatic storytelling
-- Avoid investigative tone
-- Avoid fake authority positioning
-- Avoid advertorial structure
+- Keep claims factual and restrained
+- Use cautious language (e.g. "may support", "designed to help", "according to the manufacturer")
 
 TONE:
-- Calm
-- Confident
-- Structured
+- Direct
+- Confident (but not absolute)
+- Transaction-oriented
 - Reassuring
-- Transaction-oriented but not aggressive
 
-You MAY include subtle emojis at the beginning of short lines (e.g., ✅ 🔒 📦).
-Do NOT overuse emojis.
+STYLE GUIDELINES:
+- You MAY include subtle emojis at the beginning of SHORT confirmation lines
+- Emojis must be subtle and informative (e.g. ✅ 📦 🔒 🧪)
+- Do NOT overuse emojis
+- Do NOT include emojis in long paragraphs
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
-ALL keys must exist.
-ALL values must be strings.
-If unsure, return an empty string "".
-Never omit a key.
+ALL keys below MUST exist.
+ALL values MUST be strings.
+If unsure, return an empty string "" — NEVER omit a key.
 
 {
   "SITE_BRAND": "",
@@ -73,18 +66,18 @@ Never omit a key.
   "DECISION_STAGE_LINE": "",
   "POSITIONING_STATEMENT": "",
 
-  "CONTEXT_TITLE": "",
-  "CONTEXT_TEXT": "",
+  "PRIMARY_PROBLEM_TITLE": "",
+  "PRIMARY_PROBLEM_TEXT": "",
 
   "WHY_DIFFERENT_TITLE": "",
   "WHY_DIFFERENT_1": "",
   "WHY_DIFFERENT_2": "",
   "WHY_DIFFERENT_3": "",
 
-  "HOW_POSITIONED_TITLE": "",
-  "HOW_POSITIONED_1": "",
-  "HOW_POSITIONED_2": "",
-  "HOW_POSITIONED_3": "",
+  "MECHANISM_TITLE": "",
+  "MECHANISM_STEP_1": "",
+  "MECHANISM_STEP_2": "",
+  "MECHANISM_STEP_3": "",
 
   "FORMULA_TEXT": "",
   "INGREDIENT_IMAGES": "",
@@ -99,8 +92,15 @@ Never omit a key.
   "WHO_NOT_2": "",
   "WHO_NOT_3": "",
 
-  "AUTHENTICITY_ALERT_TITLE": "",
-  "AUTHENTICITY_ALERT_TEXT": "",
+  "SCAM_ALERT_TITLE": "",
+  "SCAM_ALERT_TEXT": "",
+
+  "TESTIMONIAL_TITLE": "",
+  "TESTIMONIAL_NOTICE_TEXT": "",
+  "TESTIMONIAL_CTA_TEXT": "",
+
+  "BONUS_TITLE": "",
+  "BONUS_IMAGES": "",
 
   "GUARANTEE_TITLE": "",
   "GUARANTEE_TEXT": "",
