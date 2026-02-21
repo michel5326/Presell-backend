@@ -16,7 +16,7 @@ module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
   return `
-You are writing copy for a ROBUSTA pre-sell page designed for Google Search traffic.
+You are writing copy for a structured pre-sell page designed for Google Search BOFU traffic.
 Users have already searched for the product name and are close to making a purchase decision.
 
 IMPORTANT LANGUAGE RULE:
@@ -47,14 +47,13 @@ The goal is to:
 CRITICAL STRUCTURE RULE (ANTI-REPETITION):
 Each section must serve a DISTINCT psychological purpose.
 Do NOT repeat the same justification across sections.
-Do NOT restate “buy from official website” in multiple blocks.
 Avoid repeating phrases like:
 - official website
 - secure checkout
 - manufacturer guarantee
 - avoid third-party sellers
 
-If these concepts are used, they must appear in different contexts and with new information.
+If concepts reappear, they must provide new context or new detail.
 
 SECTION PURPOSES MUST BE:
 
@@ -68,24 +67,36 @@ Do NOT repeat scam or authenticity warnings.
 
 3. GUARANTEE
 Focus only on purchase protection and satisfaction policy.
-Do NOT repeat “official website” warnings.
+Do NOT restate distribution warnings.
 
 4. SCAM ALERT
 Focus only on identifying unauthorized listings.
-Do NOT restate pricing or guarantee information.
+Do NOT restate pricing or guarantee details.
 
 5. EDUCATIONAL DEPTH
-Include at least one neutral informational section that does not push the sale.
-For example:
+Include at least one neutral informational section.
+Examples:
 - What to review before ordering
 - How to evaluate a supplement
 - Understanding the formulation
-This reduces the appearance of a bridge page.
+This prevents the page from appearing as a redirect bridge.
 
 CONTENT DEPTH:
-- Minimum 800 words total
-- Provide meaningful informational value
-- Must not feel like a redirect page
+- Target 600–850 words total
+- Prioritize clarity over length
+- Do NOT write long essays
+
+WRITING FORMAT RULE:
+- Paragraphs must not exceed 3 lines
+- Prefer short, structured sentences
+- Break complex explanations into smaller paragraphs
+- Avoid dense text blocks
+- Favor clarity and spacing
+
+SCANNABILITY RULE:
+Write in a way that allows fast scanning.
+Avoid long continuous explanations.
+Favor structured phrasing over narrative style.
 
 COMPLIANCE RULES:
 - Do NOT guarantee results
@@ -106,8 +117,8 @@ TONE:
 - Calm and authoritative
 
 PERSUASION BALANCE:
-- 75% informational
-- 25% subtle direction toward official purchase
+- 70% informational
+- 30% subtle direction toward purchase clarity
 
 FINAL CTA RULE:
 Before the final CTA, include a calm confirmation sentence such as:
