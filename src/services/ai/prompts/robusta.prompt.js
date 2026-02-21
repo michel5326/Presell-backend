@@ -16,133 +16,128 @@ module.exports = (lang = 'en') => {
   const languageName = resolveLanguageName(lang);
 
   return `
-You are writing copy for a structured, premium pre-sell page designed for Google Search BOFU traffic.
-
-Users have already searched for the product name and are close to making a purchase decision.
+You are writing copy for a ROBUSTA (pre-sell) page aimed at users who already searched for the product
+and are close to making a purchase decision.
 
 IMPORTANT LANGUAGE RULE:
-- Write ALL content strictly in ${languageName}
+- Write ALL content strictly in the following language: ${languageName}
 - Do NOT mix languages
-- Do NOT include English words if the language is not English
+- Do NOT include any English if the language is not English
 
-STRICT DATE RULE:
-- The ONLY allowed year is 2026
-- NEVER use any other year
-- NEVER include months (January, March, etc.)
-- NEVER include full dates
-- If a date appears, it must be ONLY: 2026
-- The UPDATED_DATE field must contain ONLY: "2026"
+DATE RULE (CRITICAL):
+- The ONLY allowed numeric year is 2026
+- If a year is included anywhere in the output, it MUST be 2026
+- NEVER use 2024, 2025, 2027 or any other year
+- Do NOT invent specific publication dates (no full dates like March 2026)
+- You may use:
+  "Updated for 2026"
+  "Latest 2026 Information"
+  or equivalent in the target language
+- Only the standalone year 2026 is allowed
+- If any year other than 2026 appears in the output, regenerate the entire response
 
-STRATEGIC CONTEXT:
-This page targets bottom-of-funnel search intent.
+GOAL:
+- Assume the reader already searched for this product
+- Confirm they are evaluating it seriously
+- Clarify key information before final purchase
+- Reduce hesitation with reassurance
+- Reinforce authenticity and official purchase channels
+- Encourage moving forward confidently
+- Do NOT create artificial urgency
 
-The goal is to:
-- Confirm legitimacy
-- Reduce hesitation
-- Provide structured and useful information
-- Support an informed purchase decision
+DECISION PSYCHOLOGY (IMPORTANT):
+- Speak to someone close to completing a purchase
+- Validate their research effort
+- Emphasize clarity, transparency, and informed choice
+- Position the product as a structured and legitimate option
+- Encourage accessing the official source naturally
+- Avoid hype or aggressive persuasion
 
-HERO STRUCTURE REQUIREMENTS:
-- Authoritative and structured
-- One short neutral positioning sentence
-- 3 short transactional clarity bullets
-- No urgency
-- No aggressive language
-
-POSITIONING STATEMENT RULE:
-- 1 concise sentence
-- Neutral tone
-- Clarifies that the page provides structured purchase information
-- Do NOT repeat the headline
-- Do NOT include promotional claims
-- Do NOT push urgency
-
-CRITICAL STRUCTURE RULE:
-Each section must serve a DISTINCT psychological purpose.
-No conceptual repetition across sections.
-
-SECTION PURPOSES:
-
-WHERE TO BUY:
-Focus only on distribution channel and authenticity.
-No pricing discussion.
-
-PRICE & AVAILABILITY:
-Focus only on transparency and cost structure.
-No authenticity warnings.
-
-WHY DIFFERENT:
-Neutral evaluation guidance.
-No selling pressure.
-
-GUARANTEE:
-Refund / protection terms only.
-
-SCAM ALERT:
-Unauthorized sellers only.
-No exaggerated fear.
-
-CONTENT DEPTH:
-650–850 words
-Short paragraphs (max 3 lines)
-
-COMPLIANCE:
-- No guarantees
-- No urgency
-- No exaggeration
-- No medical claims
+COMPLIANCE (Google Ads Search Safe):
+- DO NOT make absolute promises
+- DO NOT guarantee results
+- DO NOT claim medical cures or diagnoses
+- Avoid exaggerated or sensational language
+- Do NOT imply treatment, prevention, or medical outcomes
+- Keep claims factual and restrained
+- Use cautious language (e.g. "may support", "designed to help", "according to the manufacturer")
+- Avoid unrealistic performance claims
+- Do NOT reference limited-time offers or discounts
 
 TONE:
-Professional
-Structured
-Calm
-Informational first
+- Direct
+- Confident (but not absolute)
+- Structured
+- Reassuring
+- Informative with subtle authority
+
+STYLE GUIDELINES:
+- You MAY include subtle emojis at the beginning of SHORT confirmation lines
+- Emojis must be subtle and informative (e.g. ✅ 📦 🔒 🧪)
+- Do NOT overuse emojis
+- Do NOT include emojis inside long paragraphs
+- Avoid sounding like a sales page
+- Maintain a review-style structure
 
 PERSUASION BALANCE:
-70% informational
-30% subtle clarity toward official purchase
-
-FINAL CTA RULE:
-Before the final CTA title, include one calm confirmation sentence.
+- Keep approximately 70–80% informational tone
+- Allow 20–30% subtle persuasion through reassurance and clarity
+- Focus on risk reduction rather than excitement
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
-All keys must exist.
-All values must be strings.
+ALL keys below MUST exist.
+ALL values MUST be strings.
+If unsure, return an empty string "" — NEVER omit a key.
 
 {
   "SITE_BRAND": "",
-  "UPDATED_DATE": "2026",
+  "UPDATED_DATE": "",
 
   "HEADLINE_MAIN": "",
   "SUBHEADLINE_MAIN": "",
   "DECISION_STAGE_LINE": "",
   "POSITIONING_STATEMENT": "",
 
-  "HERO_SUPPORT_LINE": "",
-  "HERO_BULLET_1": "",
-  "HERO_BULLET_2": "",
-  "HERO_BULLET_3": "",
-  "TRUST_LINE": "",
-
-  "WHERE_TO_BUY_TITLE": "",
-  "WHERE_TO_BUY_TEXT": "",
-
-  "PRICE_AVAILABILITY_TITLE": "",
-  "PRICE_AVAILABILITY_TEXT": "",
+  "PRIMARY_PROBLEM_TITLE": "",
+  "PRIMARY_PROBLEM_TEXT": "",
 
   "WHY_DIFFERENT_TITLE": "",
   "WHY_DIFFERENT_1": "",
   "WHY_DIFFERENT_2": "",
   "WHY_DIFFERENT_3": "",
 
-  "GUARANTEE_TITLE": "",
-  "GUARANTEE_TEXT": "",
+  "MECHANISM_TITLE": "",
+  "MECHANISM_STEP_1": "",
+  "MECHANISM_STEP_2": "",
+  "MECHANISM_STEP_3": "",
+
+  "FORMULA_TEXT": "",
+  "INGREDIENT_IMAGES": "",
+
+  "WHO_SHOULD_USE_TITLE": "",
+  "WHO_SHOULD_1": "",
+  "WHO_SHOULD_2": "",
+  "WHO_SHOULD_3": "",
+
+  "WHO_SHOULD_NOT_TITLE": "",
+  "WHO_NOT_1": "",
+  "WHO_NOT_2": "",
+  "WHO_NOT_3": "",
 
   "SCAM_ALERT_TITLE": "",
   "SCAM_ALERT_TEXT": "",
 
-  "FINAL_CTA_TITLE": "",
+  "TESTIMONIAL_TITLE": "",
+  "TESTIMONIAL_NOTICE_TEXT": "",
+  "TESTIMONIAL_CTA_TEXT": "",
+
+  "BONUS_TITLE": "",
+  "BONUS_IMAGES": "",
+
+  "GUARANTEE_TITLE": "",
+  "GUARANTEE_TEXT": "",
+  "GUARANTEE_IMAGE": "",
 
   "DISCLAIMER_TEXT": "",
   "FOOTER_DISCLAIMER": "",
@@ -155,7 +150,6 @@ All values must be strings.
 }
 
 Do not include HTML.
-Do not include explanations.
-Return only valid JSON.
+Do not include explanations outside JSON.
 `;
 };
