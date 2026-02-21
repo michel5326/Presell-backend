@@ -400,15 +400,10 @@
       const p = normalizeColor(computed.getPropertyValue('--primary'));
       const s = normalizeColor(computed.getPropertyValue('--secondary'));
 
-      // Se não tiver cor primária válida, força Laranja
-      if(!p) {
-        const orange = getComputedStyle(root).getPropertyValue('--primary-fallback').trim() || '#e67e22';
-        root.style.setProperty('--primary', orange);
-      }
-      
+      if(!p) root.style.setProperty('--primary', getComputedStyle(root).getPropertyValue('--primary-fallback').trim() || '#e67e22');
       if(!s) root.style.setProperty('--secondary', '#3b82f6');
 
-      // define hover dark com base em fallback fixo (mantém consistente laranja)
+      // define hover dark com base em fallback fixo (mantém consistente)
       root.style.setProperty('--primary-dark', '#d35400');
     })();
   </script>
@@ -579,7 +574,7 @@
     </div>
   </footer>
 
-  <!-- REDIRECT & CLEANUP SCRIPT -->
+  <!-- REDIRECT -->
   <script>
     const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
     let clicked = false;
@@ -609,37 +604,84 @@
       }
     });
 
-    // --- LIMPEZA DE BLOCOS VAZIOS (CORREÇÃO SOLICITADA) ---
-    (function cleanEmptyBlocks(){
-      const sections = document.querySelectorAll('.section');
+    // ---------------------------------------------------------
+    // LÓGICA DE LIMPEZA ATUALIZADA:
+    // Remove espaços em branco ocultando elementos vazios
+    // ---------------------------------------------------------
+    (function(){
+      
+      // Helper: verifica se elemento está vazio (apenas whitespace)
+      const isBlank = (el) => {
+        if(!el) return true;
+        return (el.innerText || "").trim().length === 0;
+      };
 
-      sections.forEach(section => {
-        // Clona para analisar sem quebrar o layout visual
-        const clone = section.cloneNode(true);
-        
-        // Remove elementos decorativos (Ícones SVG, Checks) da contagem de texto
-        clone.querySelectorAll('svg, .check, .badge').forEach(el => el.remove());
-        
-        // Pega o texto restante e remove espaços excessivos
-        const text = clone.innerText.replace(/\s+/g,'').trim();
-        
-        // Se o texto for muito curto (menos que 10 caracteres), considera vazio e esconde a seção
-        if(text.length < 10) {
-          section.style.display = 'none';
-        }
-      });
-
-      // Limpeza específica para os itens de lista (Hero e Mecanismos) caso venham vazios
-      const ids = ["hb1","hb2","hb3","ms1","ms2","ms3"];
-      ids.forEach(id => {
+      // 1. Esconde itens de lista vazios (Hero e Educational)
+      const listIds = ["hb1","hb2","hb3","ms1","ms2","ms3"];
+      listIds.forEach(id => {
         const el = document.getElementById(id);
-        if(!el) return;
-        const text = (el.innerText || "").replace(/\s+/g,' ').trim();
-        // se vier só o check ou vazio, esconde o item <li>
-        if(!text || text.length < 2){
-          el.setAttribute("data-empty","true");
+        if(el && isBlank(el)) el.setAttribute("data-empty","true");
+      });
+
+      // 2. Esconde Positioning Statement se vazio
+      const pos = document.querySelector('.positioning');
+      if(pos && isBlank(pos)) pos.setAttribute("data-empty","true");
+
+      // 3. Esconde Cards vazios (Who Should Use)
+      document.querySelectorAll('.card').forEach(card => {
+        // Se o parágrafo dentro do card estiver vazio, esconde o card todo
+        if(isBlank(card.querySelector('p'))) card.setAttribute("data-empty","true");
+      });
+
+      // 4. Esconde Títulos h2 vazios dentro de sections
+      document.querySelectorAll('.section h2').forEach(h2 => {
+        if(isBlank(h2)) h2.setAttribute("data-empty","true");
+      });
+
+      // 5. Esconde Parágrafos Lead vazios (Where to Buy / Price)
+      document.querySelectorAll('.lead').forEach(lead => {
+        if(isBlank(lead)) lead.setAttribute("data-empty","true");
+      });
+
+      // 6. Esconde Alerts vazios (Guarantee / Scam)
+      document.querySelectorAll('.alert').forEach(alert => {
+         if(isBlank(alert.querySelector('p'))) alert.setAttribute("data-empty","true");
+      });
+
+      // 7. Limpeza de Containers: Se todos os filhos forem vazios, esconde o container pai
+      
+      // Helper para checar containers
+      const hideIfAllChildrenEmpty = (parentSelector, childSelector) => {
+        document.querySelectorAll(parentSelector).forEach(parent => {
+          const children = parent.querySelectorAll(childSelector);
+          // Se houver filhos e TODOS estiverem marcados como data-empty
+          if(children.length > 0) {
+            const allEmpty = Array.from(children).every(c => c.getAttribute('data-empty') === 'true');
+            if(allEmpty) parent.setAttribute('data-empty', 'true');
+          }
+        });
+      };
+
+      // Esconde listas .hero-list se todos os li estiverem vazios
+      hideIfAllChildrenEmpty('.hero-list', 'li');
+      
+      // Esconde wrapper .cards se todos os cards estiverem vazios
+      hideIfAllChildrenEmpty('.cards', '.card');
+
+      // 8. Limpeza de Seções: Se o conteúdo principal da seção sumiu, esconde a seção inteira
+      document.querySelectorAll('.section').forEach(section => {
+        // Verifica se sobrou algum conteúdo visível principal
+        const hasVisibleLead = section.querySelector('.lead:not([data-empty])');
+        const hasVisibleList = section.querySelector('.hero-list:not([data-empty])');
+        const hasVisibleCards = section.querySelector('.cards:not([data-empty])');
+        const hasVisibleAlert = section.querySelector('.alert:not([data-empty])');
+        
+        // Se nenhum conteúdo principal for visível, esconde a section inteira
+        if(!hasVisibleLead && !hasVisibleList && !hasVisibleCards && !hasVisibleAlert) {
+          section.setAttribute('data-empty', 'true');
         }
       });
+
     })();
   </script>
 </body>
