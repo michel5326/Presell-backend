@@ -114,6 +114,21 @@ CONTENT LENGTH:
 650–850 words.
 Short paragraphs (max 3 lines).
 
+MANDATORY FIELDS RULE (CRITICAL):
+
+The following fields must NEVER be empty:
+
+- HERO_BULLET_1
+- HERO_BULLET_2
+- HERO_BULLET_3
+- PRODUCT_OVERVIEW_TITLE
+- PRODUCT_OVERVIEW_TEXT
+
+If any of these fields are empty, incomplete, or contain only whitespace,
+you MUST regenerate the entire response.
+
+Do NOT return empty strings for these fields under any circumstance.
+
 OUTPUT FORMAT:
 
 Return ONLY valid JSON.
