@@ -25,19 +25,16 @@ IMPORTANT LANGUAGE RULE:
 - Do NOT mix languages
 - Do NOT include English words if the language is not English
 
-DATE RULE:
-- The only allowed year is 2026
-- If a year appears, it must be 2026
-- Never use any other year
+STRICT DATE RULE:
+- The ONLY allowed year is 2026
+- NEVER use any other year
+- NEVER include months (January, March, etc.)
+- NEVER include full dates
+- If a date appears, it must be ONLY: 2026
+- The UPDATED_DATE field must contain ONLY: "2026"
 
 STRATEGIC CONTEXT:
 This page targets bottom-of-funnel search intent.
-The user likely searched:
-- buy [product]
-- [product] official website
-- [product] price
-- where to order [product]
-- [product] availability
 
 The goal is to:
 - Confirm legitimacy
@@ -46,12 +43,11 @@ The goal is to:
 - Support an informed purchase decision
 
 HERO STRUCTURE REQUIREMENTS:
-The hero section must:
-- Feel authoritative and structured
-- Include one short positioning sentence (neutral, contextual)
-- Include 3 short bullet points focused on transaction clarity
-- Avoid aggressive language
-- Avoid urgency
+- Authoritative and structured
+- One short neutral positioning sentence
+- 3 short transactional clarity bullets
+- No urgency
+- No aggressive language
 
 POSITIONING STATEMENT RULE:
 - 1 concise sentence
@@ -61,81 +57,68 @@ POSITIONING STATEMENT RULE:
 - Do NOT include promotional claims
 - Do NOT push urgency
 
-CRITICAL STRUCTURE RULE (ANTI-REPETITION):
+CRITICAL STRUCTURE RULE:
 Each section must serve a DISTINCT psychological purpose.
-Do NOT repeat the same justification across sections.
+No conceptual repetition across sections.
 
-DISTINCTION ENFORCEMENT:
+SECTION PURPOSES:
 
-1. WHERE TO BUY
-Focus on distribution channel and authenticity only.
-Do NOT mention pricing or scam warnings.
+WHERE TO BUY:
+Focus only on distribution channel and authenticity.
+No pricing discussion.
 
-2. PRICE & AVAILABILITY
-Focus only on transparency, cost structure, stock logic, or updates.
-Do NOT repeat authenticity warnings.
+PRICE & AVAILABILITY:
+Focus only on transparency and cost structure.
+No authenticity warnings.
 
-3. EDUCATIONAL SECTION (WHY DIFFERENT)
-Provide neutral evaluation guidance.
-Do not push purchase here.
+WHY DIFFERENT:
+Neutral evaluation guidance.
+No selling pressure.
 
-4. GUARANTEE
-Focus strictly on purchase protection terms.
+GUARANTEE:
+Refund / protection terms only.
 
-5. SCAM ALERT
-Focus only on identifying unauthorized sellers.
+SCAM ALERT:
+Unauthorized sellers only.
+No exaggerated fear.
 
 CONTENT DEPTH:
-- Target 650–850 words
-- Prioritize clarity over length
-- Do NOT write long essays
+650–850 words
+Short paragraphs (max 3 lines)
 
-WRITING FORMAT RULE:
-- Paragraphs must not exceed 3 lines
-- Prefer short sentences
-- Avoid dense text blocks
-- Favor scannable structure
-
-COMPLIANCE RULES:
-- Do NOT guarantee results
-- Do NOT create urgency
-- Do NOT exaggerate
-- Avoid medical claims
-- Use cautious phrasing such as:
-  "may support"
-  "designed to"
-  "according to the manufacturer"
+COMPLIANCE:
+- No guarantees
+- No urgency
+- No exaggeration
+- No medical claims
 
 TONE:
-- Informative first
-- Structured
-- Calm
-- Professional
-- Transaction-aware but not aggressive
+Professional
+Structured
+Calm
+Informational first
 
 PERSUASION BALANCE:
-- 70% informational
-- 30% subtle clarity toward official purchase
+70% informational
+30% subtle clarity toward official purchase
 
 FINAL CTA RULE:
-Before the final CTA title, include one calm confirmation sentence such as:
-"If you feel ready to proceed after reviewing the information above, you may access the official order page below."
-It must sound neutral and natural.
+Before the final CTA title, include one calm confirmation sentence.
 
 OUTPUT FORMAT:
 Return ONLY valid JSON.
 All keys must exist.
 All values must be strings.
-Never omit keys.
 
 {
   "SITE_BRAND": "",
-  "UPDATED_DATE": "",
+  "UPDATED_DATE": "2026",
 
   "HEADLINE_MAIN": "",
   "SUBHEADLINE_MAIN": "",
   "DECISION_STAGE_LINE": "",
   "POSITIONING_STATEMENT": "",
+
   "HERO_SUPPORT_LINE": "",
   "HERO_BULLET_1": "",
   "HERO_BULLET_2": "",
