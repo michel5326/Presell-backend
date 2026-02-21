@@ -1,14 +1,7 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-  <title>{{PAGE_TITLE}}</title>
+ <title>{{PAGE_TITLE}}</title>
   <meta name="description" content="{{META_DESCRIPTION}}" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
@@ -187,226 +180,176 @@
 </head>
 <body>
 
-  <div class="bg-glow"></div>
-  <div class="bg-glow-2"></div>
+<header>
+  <div class="logo">
+    <span class="dot"></span> {{SITE_BRAND}}
+  </div>
+  <div class="header-info">
+    <span class="updated-pill">Updated: {{UPDATED_DATE}}</span>
+    <a href="javascript:void(0)" onclick="doRedirect()">
+      {{CTA_BUTTON_TEXT}} →
+    </a>
+  </div>
+</header>
 
-  <!-- NAV -->
-  <header>
-    <div class="logo">
-      <span class="dot"></span> {{SITE_BRAND}}
-    </div>
-    <div class="header-info">
-      <span class="updated-pill">Updated: {{UPDATED_DATE}}</span>
-      <a href="javascript:void(0)" onclick="doRedirect()">
-        {{CTA_BUTTON_TEXT}} &rarr;
-      </a>
-    </div>
-  </header>
-
-  <!-- HERO SECTION -->
-  <section class="hero">
-    <div class="hero-part-top">
-      <span class="hero-label">{{DECISION_STAGE_LINE}}</span>
-      <h1>{{HEADLINE_MAIN}}</h1>
-    </div>
-
-    <div class="hero-img-wrapper">
-      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
-    </div>
-
-    <div class="hero-part-bottom">
-      <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
-      <div class="positioning-text">
-        {{POSITIONING_STATEMENT}}
-      </div>
-      <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
-        {{CTA_BUTTON_TEXT}}
-      </a>
-    </div>
-  </section>
-
-  <div class="container">
-    <main>
-      <!-- INTRO / PROBLEMA -->
-      <div class="content-block">
-        <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
-      </div>
-
-      <!-- DIFERENCIAL -->
-      <div class="content-block">
-        <h2 class="section-title">{{WHY_DIFFERENT_TITLE}}</h2>
-        <div class="grid-3">
-          <div class="feature-card">
-            <div class="icon-box"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg></div>
-            <p>{{WHY_DIFFERENT_1}}</p>
-          </div>
-          <div class="feature-card">
-            <div class="icon-box"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div>
-            <p>{{WHY_DIFFERENT_2}}</p>
-          </div>
-          <div class="feature-card">
-            <div class="icon-box"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
-            <p>{{WHY_DIFFERENT_3}}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- MECANISMO -->
-      <div class="content-block">
-        <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
-        <ul class="styled-list">
-          <li>{{MECHANISM_STEP_1}}</li>
-          <li>{{MECHANISM_STEP_2}}</li>
-          <li>{{MECHANISM_STEP_3}}</li>
-        </ul>
-      </div>
-
-      <!-- INGREDIENTES / FORMULA -->
-      <div class="content-block">
-        <h2 class="section-title">{{SECTION_4_TITLE}}</h2>
-        <div class="ingredients-visual">
-          {{SECTION_4_IMAGES_OR_CONTENT}}
-        </div>
-        <p style="color:var(--text-sec); font-size:16px; max-width:800px; margin-top:24px;">
-          {{SECTION_4_TEXT}}
-        </p>
-      </div>
-
-      <!-- CTA INTERMEDIÁRIO -->
-      <div class="content-block" style="text-align: center; padding: 20px 0;">
-         <h3 style="margin-bottom: 16px; color: var(--text-main);">Ready to secure your order?</h3>
-         <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 400px; margin: 0 auto;">
-           {{CTA_BUTTON_TEXT}} &rarr;
-         </a>
-         <p style="font-size: 13px; color: var(--text-sec); margin-top: 10px;">Secure checkout • Official Stock</p>
-      </div>
-
-      <!-- QUEM DEVE USAR -->
-      <div class="content-block">
-        <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
-        <div class="grid-3">
-          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_1}}</p></div>
-          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_2}}</p></div>
-          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_3}}</p></div>
-        </div>
-      </div>
-
-      <!-- QUEM NAO DEVE USAR -->
-      <div class="content-block">
-        <h2 class="section-title">{{WHO_SHOULD_NOT_TITLE}}</h2>
-        <div class="alert danger">
-          <ul class="styled-list" style="margin:0;">
-            <li>{{WHO_NOT_1}}</li>
-            <li>{{WHO_NOT_2}}</li>
-            <li>{{WHO_NOT_3}}</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- ALERTA DE GOLPE -->
-      <div class="content-block">
-        <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
-        <div class="alert warn">{{SCAM_ALERT_TEXT}}</div>
-      </div>
-
-      <!-- TESTEMUNHOS -->
-      <div class="content-block" style="margin-top:24px;">
-        <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
-        <div class="alert info" style="font-size:14px;">
-          {{TESTIMONIAL_NOTICE_TEXT}}
-          <br><br>
-          <a href="javascript:void(0)" onclick="doRedirect()" style="color:var(--primary-color, #10B981); font-weight:600;">
-            {{TESTIMONIAL_CTA_TEXT}} →
-          </a>
-        </div>
-      </div>
-
-      <!-- SIDEBAR MOBILE (Somente aparece no Mobile) -->
-      <div class="mobile-sidebar-group">
-        <div class="offer-box">
-          <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
-          <div class="offer-title">{{HEADLINE_MAIN}}</div>
-          <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
-          <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
-              <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.1);" loading="lazy">
-          </div>
-          <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
-          <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
-            <span>🔒 Secure Checkout</span><span>•</span><span>Official Site</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- GARANTIA -->
-      <div class="content-block">
-        <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
-        <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-          {{GUARANTEE_TEXT}}
-          <div style="margin-top:20px;">
-            <img src="{{GUARANTEE_IMAGE}}" alt="Guarantee Seal" style="max-width: 150px; margin: 0 auto; display: block;" onerror="this.style.display='none'">
-          </div>
-        </div>
-      </div>
-
-      <p style="font-size:11px; color:#64748B; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">{{DISCLAIMER_TEXT}}</p>
-    </main>
-
-    <!-- SIDEBAR DESKTOP (Somente aparece no Desktop) -->
-    <aside>
-      <div class="offer-box">
-        <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
-        <div class="offer-title">{{HEADLINE_MAIN}}</div>
-        <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
-        <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
-            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.1);" loading="lazy">
-        </div>
-        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
-        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
-          <span>🔒 Secure Checkout</span><span>•</span><span>Official Site</span>
-        </div>
-      </div>
-    </aside>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-part-top">
+    <span class="hero-label">{{DECISION_STAGE_LINE}}</span>
+    <h1>{{HEADLINE_MAIN}}</h1>
   </div>
 
-  <footer>
-    <div class="footer-content">
-      <div class="footer-brand">
-        <span class="footer-dot"></span> {{SITE_BRAND}}
-      </div>
-      <div class="footer-links">
-        <a href="{{PRIVACY_URL}}">Privacy Policy</a>
-        <a href="{{TERMS_URL}}">Terms of Service</a>
-        <a href="{{CONTACT_URL}}">Contact Us</a>
-      </div>
-      <div class="footer-disclaimer">{{FOOTER_DISCLAIMER}}</div>
-      <div style="margin-top: 20px; color: #94A3B8; font-size: 11px;">&copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.</div>
+  <div class="hero-img-wrapper">
+    <img src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" class="hero-img" loading="lazy">
+  </div>
+
+  <div class="hero-part-bottom">
+    <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
+    <div class="positioning-text">
+      {{POSITIONING_STATEMENT}}
     </div>
-  </footer>
+    <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
+      {{CTA_BUTTON_TEXT}}
+    </a>
+    <p style="margin-top:10px; font-size:13px; color:var(--text-sec);">
+      ✔ Secure Checkout • ✔ Official Website • ✔ Manufacturer Guarantee
+    </p>
+  </div>
+</section>
 
-  <script>
-    const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
-    let clicked = false;
+<div class="container">
+<main>
 
-    function doRedirect(){
-      if(clicked) return;
-      clicked = true;
-      const btns = document.querySelectorAll('.btn');
-      btns.forEach(btn => btn.innerHTML = 'Redirecting...');
-      if(typeof window.runTrackerRedirect === "function"){
-        window.runTrackerRedirect(AFFILIATE_LINK);
-      }else{
-        window.location.href = AFFILIATE_LINK;
-      }
+<!-- WHERE TO BUY SAFELY -->
+<div class="content-block">
+  <h2 class="section-title">{{WHERE_TO_BUY_TITLE}}</h2>
+  <p>{{WHERE_TO_BUY_TEXT}}</p>
+</div>
+
+<!-- PRICE & AVAILABILITY -->
+<div class="content-block">
+  <h2 class="section-title">{{PRICE_AVAILABILITY_TITLE}}</h2>
+  <p>{{PRICE_AVAILABILITY_TEXT}}</p>
+</div>
+
+<!-- GUARANTEE (SUBIU NA ESTRUTURA) -->
+<div class="content-block">
+  <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
+  <div class="alert info">
+    {{GUARANTEE_TEXT}}
+  </div>
+</div>
+
+<!-- SCAM ALERT (SUBIU) -->
+<div class="content-block">
+  <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
+  <div class="alert warn">
+    {{SCAM_ALERT_TEXT}}
+  </div>
+</div>
+
+<!-- KEY BENEFITS (RESUMIDO) -->
+<div class="content-block">
+  <h2 class="section-title">{{WHY_DIFFERENT_TITLE}}</h2>
+  <div class="grid-3">
+    <div class="feature-card"><p>{{WHY_DIFFERENT_1}}</p></div>
+    <div class="feature-card"><p>{{WHY_DIFFERENT_2}}</p></div>
+    <div class="feature-card"><p>{{WHY_DIFFERENT_3}}</p></div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS (MAIS CURTO) -->
+<div class="content-block">
+  <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
+  <ul class="styled-list">
+    <li>{{MECHANISM_STEP_1}}</li>
+    <li>{{MECHANISM_STEP_2}}</li>
+    <li>{{MECHANISM_STEP_3}}</li>
+  </ul>
+</div>
+
+<!-- WHO SHOULD USE -->
+<div class="content-block">
+  <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
+  <div class="grid-3">
+    <div class="feature-card"><p>{{WHO_SHOULD_1}}</p></div>
+    <div class="feature-card"><p>{{WHO_SHOULD_2}}</p></div>
+    <div class="feature-card"><p>{{WHO_SHOULD_3}}</p></div>
+  </div>
+</div>
+
+<!-- CTA FINAL MAIS FORTE -->
+<div class="content-block" style="text-align:center; padding:30px 0;">
+  <h3 style="margin-bottom:16px;">{{FINAL_CTA_TITLE}}</h3>
+  <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width:400px; margin:0 auto;">
+    {{CTA_BUTTON_TEXT}} →
+  </a>
+  <p style="font-size:13px; color:var(--text-sec); margin-top:10px;">
+    Secure checkout • Official distribution • Updated {{CURRENT_YEAR}}
+  </p>
+</div>
+
+<p style="font-size:11px; color:#64748B; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
+  {{DISCLAIMER_TEXT}}
+</p>
+
+</main>
+
+<!-- SIDEBAR MANTIDA IGUAL -->
+<aside>
+  <div class="offer-box">
+    <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
+    <div class="offer-title">{{HEADLINE_MAIN}}</div>
+    <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
+    <img src="{{PRODUCT_IMAGE}}" alt="{{SITE_BRAND}}" style="width:70%; max-width:200px; margin-bottom:20px;">
+    <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
+    <div style="margin-top:10px; font-size:12px; color:var(--text-sec);">
+      🔒 Secure Checkout • Official Site
+    </div>
+  </div>
+</aside>
+
+</div>
+
+<footer>
+  <div class="footer-content">
+    <div class="footer-brand">
+      <span class="footer-dot"></span> {{SITE_BRAND}}
+    </div>
+    <div class="footer-links">
+      <a href="{{PRIVACY_URL}}">Privacy Policy</a>
+      <a href="{{TERMS_URL}}">Terms of Service</a>
+      <a href="{{CONTACT_URL}}">Contact Us</a>
+    </div>
+    <div class="footer-disclaimer">{{FOOTER_DISCLAIMER}}</div>
+    <div style="margin-top:20px; font-size:11px;">
+      &copy; {{CURRENT_YEAR}} {{SITE_BRAND}}
+    </div>
+  </div>
+</footer>
+
+<script>
+  const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+  let clicked = false;
+
+  function doRedirect(){
+    if(clicked) return;
+    clicked = true;
+    document.querySelectorAll('.btn').forEach(btn => btn.innerHTML = 'Redirecting...');
+    if(typeof window.runTrackerRedirect === "function"){
+      window.runTrackerRedirect(AFFILIATE_LINK);
+    }else{
+      window.location.href = AFFILIATE_LINK;
     }
+  }
 
-    window.addEventListener('pageshow', (event) => {
-      if (event.persisted) {
-        clicked = false;
-        const btns = document.querySelectorAll('.btn');
-        btns.forEach(btn => { btn.innerHTML = '{{CTA_BUTTON_TEXT}}'; });
-      }
-    });
-  </script>
+  window.addEventListener('pageshow', function(event){
+    if(event.persisted){
+      clicked = false;
+      document.querySelectorAll('.btn').forEach(btn => btn.innerHTML = '{{CTA_BUTTON_TEXT}}');
+    }
+  });
+</script>
+
 </body>
 </html>
