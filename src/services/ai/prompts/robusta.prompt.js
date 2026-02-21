@@ -1,15 +1,49 @@
 function resolveLanguageName(lang) {
+  if (!lang || typeof lang !== 'string') return 'English';
+
+  // aceita "pt-BR", "en_US", etc.
+  const code = lang.toLowerCase().replace('_', '-').slice(0, 2);
+
+  // se vier lixo, cai em English
+  if (!/^[a-z]{2}$/.test(code)) return 'English';
+
+  // nomes mais comuns (melhor para o modelo)
   const map = {
     en: 'English',
     pt: 'Portuguese',
     es: 'Spanish',
     fr: 'French',
+    de: 'German',
+    it: 'Italian',
+    nl: 'Dutch',
+    sv: 'Swedish',
+    no: 'Norwegian',
+    da: 'Danish',
+    fi: 'Finnish',
     pl: 'Polish',
     tr: 'Turkish',
-    de: 'German',
+    ro: 'Romanian',
+    cs: 'Czech',
+    hu: 'Hungarian',
+    el: 'Greek',
+    bg: 'Bulgarian',
+    uk: 'Ukrainian',
+    ru: 'Russian',
+    ar: 'Arabic',
+    he: 'Hebrew',
+    hi: 'Hindi',
+    id: 'Indonesian',
+    ms: 'Malay',
+    th: 'Thai',
+    vi: 'Vietnamese',
+    ja: 'Japanese',
+    ko: 'Korean',
+    zh: 'Chinese (Simplified)',
   };
 
-  return map[lang] || 'English';
+  // fallback inteligente: se não estiver no map, usa o próprio código
+  // (o modelo entende "Write in xx" bem)
+  return map[code] || `the language with code "${code}"`;
 }
 
 module.exports = (lang = 'en') => {
@@ -20,10 +54,10 @@ You are writing copy for a structured BOFU (bottom-of-funnel) pre-sell page.
 
 The reader has already searched for the product name and is close to making a purchase decision.
 
-IMPORTANT LANGUAGE RULE:
+IMPORTANT LANGUAGE RULE (STRICT):
 - Write ALL content strictly in ${languageName}
 - Do NOT mix languages
-- Do NOT include English words if the language is not English
+- If you cannot comply, return the JSON with empty strings for all fields (do not add extra text)
 
 STRICT DATE RULE:
 - The ONLY allowed year is 2026

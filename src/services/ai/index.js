@@ -6,11 +6,15 @@ const editorialPrompt = require("./prompts/editorial.prompt");
 const editorialScientificPrompt = require("./prompts/editorial-scientific.prompt");
 
 /**
- * Normaliza idioma suportado
+ * Normaliza idioma (aceita qualquer código ISO de 2 letras)
+ * Ex: en, pt-BR, en_US → en / pt
  */
 function normalizeLang(lang) {
-  const supported = ["en", "pt", "es", "fr", "pl", "tr", "de"];
-  return supported.includes(lang) ? lang : "en";
+  if (!lang || typeof lang !== "string") return "en";
+
+  const clean = lang.toLowerCase().replace("_", "-").slice(0, 2);
+
+  return /^[a-z]{2}$/.test(clean) ? clean : "en";
 }
 
 /**

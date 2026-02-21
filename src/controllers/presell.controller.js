@@ -2,8 +2,9 @@ const reviewEngine = require('../engines/review');
 const robustaEngine = require('../engines/robusta');
 
 function normalizeLang(lang) {
-  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr', 'de'];
-  return supported.includes(lang) ? lang : 'en';
+  if (!lang || typeof lang !== 'string') return 'en';
+  const clean = lang.toLowerCase().slice(0, 2);
+  return /^[a-z]{2}$/.test(clean) ? clean : 'en';
 }
 
 async function generatePresellData(req, res) {
