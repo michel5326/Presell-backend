@@ -1,23 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{LANG_CODE}}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <title>{{PAGE_TITLE}}</title>
-  <meta name="description" content="{{META_DESCRIPTION}}" />
+  <title>{{HEADLINE_MAIN}}</title>
+  <meta name="description" content="{{SUBHEADLINE_MAIN}}" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
   {{TRACKING_SCRIPT}}
 
-<style>
-  :root {
-      /* VARIÁVEIS DINÂMICAS */
+  <style>
+    :root {
+      /* --- PRIMARY COLORS --- */
       --primary-color: {{PRIMARY_COLOR}};
       --secondary-color: {{SECONDARY_COLOR}};
       
@@ -27,9 +27,11 @@
       --glass-border: rgba(255, 255, 255, 0.08);
       --text-main: #ffffff;
       --text-sec: #94a3b8;
+      --text-muted: #64748b;
       
       --shadow-glow: 0 10px 30px rgba(0, 0, 0, 0.5);
       --radius: 16px;
+      --radius-lg: 24px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,32 +46,13 @@
       overflow-x: hidden;
     }
 
-    /* --- VISIBILITY FIX (AJUSTADO) --- */
-    /* Removido 'main div' e 'main' para não afetar badges e containers */
-    main p, main span, main li, 
-    main .text-muted, main .alert, 
-    .feature-card, .feature-card p, 
-    .content-block p {
-        color: var(--text-sec) !important;
-    }
-
-    main h1, main h2, main h3, main h4, main h5, 
-    .section-title, .offer-title, .alert, 
-    .feature-card h3, .feature-card h4,
-    .guarantee-text {
-        color: var(--text-main) !important;
-        font-weight: 700;
-    }
-
     h1, h2, h3, h4, .btn { font-family: 'Outfit', sans-serif; }
     a { text-decoration: none; transition: all 0.3s ease; }
     p { margin-bottom: 1rem; }
 
-    /* --- AUTO-CLEANUP --- */
-    h2:empty, h3:empty, h4:empty, p:empty, 
-    .tech-specs-visual:empty, .bonus-section:empty {
-        display: none !important;
-    }
+    /* --- CLEANUP --- */
+    [data-empty="true"] { display: none !important; }
+    h2:empty, h3:empty, p:empty { display: none !important; }
 
     /* --- BACKGROUND FX --- */
     .bg-glow {
@@ -85,7 +68,8 @@
 
     /* --- HEADER --- */
     header {
-      padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 5%;
+      display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--glass-border);
       backdrop-filter: blur(16px);
       background: rgba(2,4,10,0.85);
@@ -95,12 +79,44 @@
     .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; color: var(--text-main) !important; }
     .dot { width: 8px; height: 8px; background: var(--primary-color, #00e676); border-radius: 50%; box-shadow: 0 0 10px var(--primary-color, #00e676); }
     
-    .header-info { display: flex; align-items: center; gap: 10px; }
-    .header-info a { color: var(--primary-color, #00e676) !important; font-weight: 600; }
+    .header-info { display: flex; align-items: center; gap: 12px; }
+    .updated-pill { 
+      font-size: 11px; 
+      color: var(--text-sec);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .updated-pill::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--primary-color, #00e676);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .header-cta {
+      background: var(--primary-color, #00e676);
+      color: #000 !important;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+    }
+    .header-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(0, 230, 118, 0.6);
+    }
 
-    /* --- HERO SECTION --- */
+    /* --- HERO --- */
     .hero {
-      max-width: 1300px; margin: 40px auto; padding: 0 24px;
+      max-width: 1300px; margin: 0 auto; padding: 50px 24px;
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       grid-template-rows: auto auto;
@@ -115,69 +131,203 @@
       grid-column: 2; grid-row: 1 / span 2;
       position: relative;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100%;
     }
 
     .hero-part-top h1 {
-      font-size: clamp(32px, 5vw, 52px);
-      line-height: 1.1;
-      margin-bottom: 0;
-      font-weight: 800;
-      text-transform: uppercase;
+      font-size: clamp(38px, 5vw, 60px);
+      line-height: 1.08;
+      margin-bottom: 12px;
+      font-weight: 900;
+      color: var(--text-main);
+      letter-spacing: -1px;
       background: -webkit-linear-gradient(#fff, #94a3b8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    /* CORREÇÃO: Forçar cor visível */
     .hero-label {
-      color: #00e676 !important; 
-      font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 13px; margin-bottom: 12px; display: block;
+      color: var(--primary-color, #00e676) !important; 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+      text-transform: uppercase; 
+      font-size: 12px; 
+      margin-bottom: 12px; 
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 230, 118, 0.1);
+      padding: 6px 14px;
+      border-radius: 100px;
+    }
+    .hero-label svg {
+      width: 14px;
+      height: 14px;
     }
 
-    .hero-sub { font-size: 18px; color: var(--text-sec); margin-bottom: 20px; }
+    .hero-sub { font-size: 19px; color: var(--text-sec); margin-bottom: 16px; line-height: 1.6; }
     
     .positioning-text {
-      font-size: 16px; color: var(--text-sec); margin-bottom: 32px; font-weight: 500; border-left: 3px solid var(--primary-color, #00e676); padding-left: 20px; background: rgba(0,230,118,0.05); padding: 16px; border-radius: 0 8px 8px 0;
+      font-size: 16px; color: var(--text-sec); margin-bottom: 24px; font-weight: 500; 
+      border-left: 3px solid var(--primary-color, #00e676); padding-left: 20px;
+      background: rgba(0, 230, 118, 0.05);
+      padding: 16px 20px;
+      border-radius: 0 12px 12px 0;
     }
 
     .hero-img-wrapper::before {
-      content: ''; position: absolute; inset: -15px;
-      background: linear-gradient(135deg, var(--primary-color, #00e676), var(--secondary-color, #00b0ff)); filter: blur(80px); opacity: 0.2; z-index: -1;
+      content: ''; position: absolute; inset: -20px;
+      background: linear-gradient(135deg, var(--primary-color, #00e676), var(--secondary-color, #00b0ff)); 
+      filter: blur(80px); opacity: 0.2; z-index: -1;
       border-radius: 50%;
     }
 
     .hero-img {
-      width: 100%; max-width: 500px; max-height: 600px; height: auto; width: auto;
-      object-fit: contain; display: block; margin: 0 auto;
-      border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.6);
-      border: 1px solid var(--glass-border); transition: 0.5s;
+      width: 100%; max-width: 420px; height: auto; display: block; margin: 0 auto;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+      border: 1px solid var(--glass-border);
+      transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .hero-img:hover { transform: scale(1.02); border-color: var(--primary-color, #00e676); }
+    .hero-img:hover { transform: scale(1.03); border-color: var(--primary-color, #00e676); }
 
-    /* --- BUTTONS (NEON VERDE) --- */
-    .btn {
-      display: inline-block; width: 100%; padding: 18px; border-radius: 50px;
-      background-color: #00e676; 
-      background-image: linear-gradient(135deg, var(--primary-color, #00e676), #000);
-      color: #fff; font-weight: 800; font-size: 16px;
-      text-align: center; border: none; cursor: pointer; position: relative; overflow: hidden;
-      box-shadow: 0 0 20px var(--primary-color, #00e676);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      text-transform: uppercase; letter-spacing: 1px;
+    /* --- RATING --- */
+    .rating-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 10px 18px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      backdrop-filter: blur(12px);
     }
-    
-    .btn::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, #fff, var(--secondary-color, #00b0ff));
-      opacity: 0; transition: opacity 0.3s ease; z-index: -1;
+    .rating-stars {
+      color: #FBBF24;
+      letter-spacing: 2px;
+      font-size: 16px;
     }
-    
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 230, 118, 0.6); color: #fff !important; }
-    .btn:hover::before { opacity: 0.2; }
-    .btn:active { transform: translateY(1px); }
+    .rating-score {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .rating-count {
+      color: var(--text-sec);
+      font-size: 13px;
+    }
+
+    /* --- LISTS & CARDS --- */
+    ul.styled-list { list-style: none; margin: 20px 0 28px; }
+    ul.styled-list li {
+      position: relative; padding-left: 32px; margin-bottom: 14px; color: var(--text-sec);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    ul.styled-list li::before {
+      content: ''; 
+      position: absolute; 
+      left: 0; 
+      top: 4px;
+      width: 20px;
+      height: 20px;
+      background: rgba(0, 230, 118, 0.15);
+      border-radius: 50%;
+    }
+    ul.styled-list li::after {
+      content: '✓'; 
+      position: absolute; 
+      left: 4px; 
+      top: 2px;
+      color: var(--primary-color, #00e676); 
+      font-weight: 800; 
+      font-size: 12px;
+    }
+
+    .grid-3 {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 30px;
+    }
+
+    .feature-card {
+      background: var(--glass-bg); 
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      padding: 26px; border-radius: var(--radius);
+      transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-glow);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-color, #00e676), var(--secondary-color, #00b0ff));
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+    .feature-card:hover { 
+      transform: translateY(-8px); 
+      border-color: var(--primary-color, #00e676); 
+      background: rgba(15, 21, 37, 0.9);
+    }
+    .feature-card:hover::before {
+      transform: scaleX(1);
+    }
+    .feature-card p { font-size: 15px; color: var(--text-sec) !important; margin: 0; line-height: 1.6; }
+
+    .icon-box {
+      width: 48px; height: 48px; 
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; 
+      margin-bottom: 18px; 
+      color: var(--primary-color, #00e676);
+      transition: 0.3s ease;
+    }
+    .feature-card:hover .icon-box {
+      background: linear-gradient(135deg, var(--primary-color, #00e676), var(--secondary-color, #00b0ff));
+      color: #000;
+      transform: scale(1.1);
+    }
+
+    /* --- TRUST BADGES --- */
+    .trust-badges {
+      display: flex;
+      gap: 16px;
+      margin: 24px 0;
+      flex-wrap: wrap;
+    }
+    .trust-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--text-sec);
+      font-weight: 500;
+      transition: 0.3s ease;
+    }
+    .trust-badge svg {
+      width: 18px;
+      height: 18px;
+      color: var(--primary-color, #00e676);
+    }
+    .trust-badge:hover {
+      border-color: var(--primary-color, #00e676);
+      color: var(--text-main);
+    }
 
     /* --- MAIN LAYOUT --- */
     .container {
@@ -185,116 +335,238 @@
       display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
     }
 
-    .content-block { margin-bottom: 60px; }
-    
+    .content-block { margin-bottom: 56px; }
+    .cta-center { text-align: center; padding: 24px 0; }
+
     .section-title {
-      font-size: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
-      color: #fff !important; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;
+      font-size: 26px; margin-bottom: 24px; 
+      display: flex; align-items: center; gap: 14px; 
+      color: var(--text-main) !important;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--glass-border), transparent); }
-
-    /* --- CARDS --- */
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
-
-    .feature-card {
-      background: var(--glass-bg); backdrop-filter: blur(12px);
-      border: 1px solid var(--glass-border);
-      padding: 24px; border-radius: var(--radius);
-      transition: 0.3s; box-shadow: var(--shadow-glow);
-    }
-    .feature-card:hover { transform: translateY(-5px); border-color: var(--primary-color, #00e676); background: rgba(15, 21, 37, 0.9); }
-    .feature-card p { color: var(--text-sec) !important; font-size: 15px; line-height: 1.6; }
-
-    .icon-box {
-      width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 10px;
-      display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary-color, #00e676);
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 28px;
+      background: linear-gradient(180deg, var(--primary-color, #00e676), var(--secondary-color, #00b0ff));
+      border-radius: 4px;
     }
 
-    ul.styled-list { list-style: none; }
-    ul.styled-list li { position: relative; padding-left: 30px; margin-bottom: 16px; color: var(--text-sec); }
-    ul.styled-list li::before { content: '✓'; position: absolute; left: 0; top: 2px; color: var(--primary-color, #00e676); font-weight: 800; font-size: 18px; }
-
-    /* --- STICKY SIDEBAR --- */
-    aside { position: sticky; top: 100px; height: fit-content; }
-
-    .offer-box {
-      background: linear-gradient(180deg, rgba(15,21,37,0.9), rgba(0,0,0,0.8));
-      border: 1px solid var(--glass-border); border-radius: 20px;
-      padding: 30px; text-align: center;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      position: relative; overflow: hidden;
-    }
-    .offer-box::after {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: radial-gradient(circle, var(--primary-color, #00e676) 0%, transparent 60%);
-      opacity: 0.1; pointer-events: none; z-index: 0;
-    }
-    .offer-box > * { position: relative; z-index: 1; }
-
-    /* CORREÇÃO: Forçar cores da Badge */
-    .offer-badge {
-      background: #00e676 !important; 
+    /* --- BUTTONS --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%; 
+      padding: 20px 32px; 
+      border-radius: 50px;
+      background: var(--primary-color, #00e676);
       color: #000 !important; 
-      font-weight: 800; font-size: 11px;
-      padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 16px;
-      text-transform: uppercase; letter-spacing: 1px;
+      font-weight: 800; 
+      font-size: 17px;
+      text-align: center; 
+      border: none; 
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-
-    .offer-title { font-size: 20px; font-weight: 800; margin-bottom: 10px; color: #fff !important; line-height: 1.2; }
-    .offer-sub { color: var(--text-sec); font-size: 13px; margin-bottom: 24px; }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s ease;
+    }
+    .btn:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 10px 30px rgba(0, 230, 118, 0.6); 
+    }
+    .btn:hover::before {
+      left: 100%;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn svg {
+      width: 20px;
+      height: 20px;
+    }
 
     /* --- ALERTS --- */
     .alert {
-      padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid; font-size: 15px;
-      background: rgba(15, 21, 37, 0.6); backdrop-filter: blur(5px);
+      padding: 22px 24px; 
+      border-radius: 14px; 
+      margin-bottom: 24px; 
+      font-size: 15px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      line-height: 1.7;
+      background: rgba(15, 21, 37, 0.6);
+      backdrop-filter: blur(5px);
     }
-    .alert.warn { border-color: #f59e0b; color: #fcd34d !important; }
-    .alert.danger { border-color: #ef4444; color: #fca5a5 !important; }
-    .alert.info { border-color: #2979ff; color: #93c5fd !important; }
+    .alert svg {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .alert.warn { 
+      border-left: 4px solid #f59e0b;
+      color: #fcd34d !important; 
+    }
+    .alert.warn svg { color: #f59e0b; }
+    .alert.danger { 
+      border-left: 4px solid #ef4444;
+      color: #fca5a5 !important; 
+    }
+    .alert.danger svg { color: #ef4444; }
+    .alert.info { 
+      border-left: 4px solid #2979ff;
+      color: #93c5fd !important; 
+    }
+    .alert.info svg { color: #2979ff; }
+    .alert.success { 
+      border-left: 4px solid #00e676;
+      color: #6ee7b7 !important; 
+    }
+    .alert.success svg { color: #00e676; }
 
-    /* --- TECH SPECS --- */
-    .tech-specs-visual {
-      padding: 24px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius);
-      display: flex; flex-direction: column; align-items: center;
+    .guarantee-icon {
+      width: 72px; height: 72px; margin-bottom: 20px;
+      color: var(--primary-color, #00e676);
+      filter: drop-shadow(0 4px 12px rgba(0, 230, 118, 0.3));
     }
-    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; width: 100%; }
-    .image-grid img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--glass-border); background: #000; transition: 0.3s; object-fit: cover; aspect-ratio: 1/1; }
-    .image-grid img:hover { border-color: var(--primary-color, #00e676); transform: scale(1.05); }
+
+    /* --- SIDEBAR --- */
+    aside { position: sticky; top: 100px; height: fit-content; }
+    .offer-box {
+      background: linear-gradient(180deg, rgba(15,21,37,0.9), rgba(0,0,0,0.8));
+      border: 1px solid var(--glass-border); 
+      border-radius: var(--radius-lg);
+      padding: 32px; 
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    .offer-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color, #00e676), var(--secondary-color, #00b0ff));
+    }
+    .offer-box::after {
+      content: ''; 
+      position: absolute; 
+      top: -50%; 
+      left: -50%; 
+      width: 200%; 
+      height: 200%;
+      background: radial-gradient(circle, var(--primary-color, #00e676) 0%, transparent 60%);
+      opacity: 0.1; 
+      pointer-events: none; 
+      z-index: 0;
+    }
+    .offer-box > * { position: relative; z-index: 1; }
+    .offer-badge {
+      background: var(--primary-color, #00e676) !important;
+      color: #000 !important; 
+      font-weight: 800; 
+      font-size: 11px;
+      padding: 6px 16px; 
+      border-radius: 100px; 
+      display: inline-block; 
+      margin-bottom: 18px;
+      text-transform: uppercase; 
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+    }
+    .offer-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: var(--text-main) !important; line-height: 1.3; }
+    .offer-sub { color: var(--text-sec); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+    .offer-image {
+      margin-bottom: 24px;
+    }
+    .offer-image img {
+      width: 65%; 
+      max-width: 180px; 
+      height: auto; 
+      border-radius: 16px; 
+      border: 1px solid var(--glass-border); 
+      box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+    }
+    .offer-image:hover img {
+      transform: scale(1.05);
+    }
+    .offer-trust {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .offer-trust span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .offer-trust svg {
+      width: 14px;
+      height: 14px;
+      color: var(--primary-color, #00e676);
+    }
 
     /* --- FOOTER --- */
     footer {
-      border-top: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border); 
       background: rgba(2, 4, 10, 0.9); 
-      padding: 60px 20px; margin-top: 80px;
-      font-family: 'Inter', sans-serif;
+      padding: 56px 20px; 
+      margin-top: 80px;
     }
     .footer-content { max-width: 800px; margin: 0 auto; text-align: center; }
-    .footer-brand { font-weight: 800; font-size: 16px; color: #fff !important; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .footer-brand { font-weight: 800; font-size: 16px; color: var(--text-main) !important; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .footer-dot { width: 6px; height: 6px; background: var(--primary-color, #00e676); border-radius: 50%; box-shadow: 0 0 8px var(--primary-color, #00e676); }
-    .footer-links { margin-bottom: 24px; display: flex; justify-content: center; gap: 24px; font-size: 13px; }
-    .footer-links a { color: var(--text-sec); transition: 0.3s ease; }
+    .footer-links { margin-bottom: 24px; display: flex; justify-content: center; gap: 32px; font-size: 14px; }
+    .footer-links a { color: var(--text-sec); text-decoration: none; transition: 0.3s ease; font-weight: 500; }
     .footer-links a:hover { color: var(--primary-color, #00e676); }
-    .footer-disclaimer { color: #64748b; font-size: 12px; line-height: 1.7; opacity: 0.8; }
-
-    /* MOBILE SIDEBAR - OCULTO NO DESKTOP */
-    .mobile-sidebar-group { display: none; }
+    .footer-disclaimer { color: var(--text-muted); font-size: 12px; line-height: 1.8; max-width: 600px; margin: 0 auto; }
+    .footer-copyright { margin-top: 24px; color: var(--text-muted); font-size: 12px; }
 
     /* RESPONSIVE */
     @media (max-width: 900px) {
       .hero { display: flex; flex-direction: column; text-align: center; padding-top: 30px; }
-      .hero-img { margin: 20px 0; max-width: 320px; max-height: 450px; }
-      .positioning-text { border-left: none; border-top: 2px solid var(--primary-color, #00e676); padding-left: 0; padding-top: 16px; text-align: left;}
+      .hero-img { margin: 24px 0; max-width: 320px; }
+      .hero-img-wrapper { order: -1; }
+      .positioning-text { border-left: none; border-top: 3px solid var(--primary-color, #00e676); padding-left: 0; padding-top: 16px; border-radius: 12px 0 0 0; }
+      .trust-badges { justify-content: center; }
       .container { grid-template-columns: 1fr; }
-      aside { display: none; }
-      .mobile-sidebar-group { display: block; margin-bottom: 40px; }
+      aside { display: block; margin-top: 40px; }
+      .offer-box { max-width: 400px; margin: 0 auto; }
       .footer-links { flex-direction: column; gap: 12px; }
+      .rating-box { margin: 0 auto 20px; }
+      ul.styled-list { text-align: left; }
     }
     @media (max-width: 600px) {
-      .hero { padding: 30px 16px; }
+      .hero { padding: 24px 16px; } 
       h1 { font-size: 32px !important; line-height: 1.15 !important; } 
-      .grid-3 { grid-template-columns: 1fr !important; }
       .logo { font-size: 16px; }
-      .image-grid { grid-template-columns: 1fr 1fr; }
+      .header-cta { padding: 8px 16px; font-size: 13px; }
+      .section-title { font-size: 22px; }
+      .feature-card { padding: 20px; }
+      .offer-box { padding: 24px; }
     }
   </style>
 </head>
@@ -309,9 +581,9 @@
       <span class="dot"></span> {{SITE_BRAND}}
     </div>
     <div class="header-info">
-      <span class="updated-pill" style="font-size:11px; color:var(--text-sec);">Updated: {{UPDATED_DATE}}</span>
-      <a href="javascript:void(0)" onclick="doRedirect()">
-        {{CTA_BUTTON_TEXT}} &rarr;
+      <span class="updated-pill">{{UPDATED_LABEL}}: {{UPDATED_DATE}}</span>
+      <a href="javascript:void(0)" class="header-cta" onclick="doRedirect()">
+        {{CTA_BUTTON_TEXT}}
       </a>
     </div>
   </header>
@@ -319,163 +591,214 @@
   <!-- HERO SECTION -->
   <section class="hero">
     <div class="hero-part-top">
-      <span class="hero-label">{{DECISION_STAGE_LINE}}</span>
+      <span class="hero-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        {{DECISION_STAGE_LINE}}
+      </span>
       <h1>{{HEADLINE_MAIN}}</h1>
-    </div>
-
-    <div class="hero-img-wrapper">
-      <img src="{{PRODUCT_IMAGE}}" alt="Product" class="hero-img" loading="lazy">
-    </div>
-
-    <div class="hero-part-bottom">
+      
+      <!-- RATING -->
+      <div class="rating-box">
+        <span class="rating-stars">{{RATING_STARS}}</span>
+        <span class="rating-score">{{RATING_SCORE}}</span>
+        <span class="rating-count">{{RATING_COUNT}}</span>
+      </div>
+      
       <p class="hero-sub">{{SUBHEADLINE_MAIN}}</p>
       <div class="positioning-text">
         {{POSITIONING_STATEMENT}}
       </div>
+    </div>
+
+    <div class="hero-img-wrapper">
+      <img src="{{PRODUCT_IMAGE}}" alt="{{PRODUCT_NAME}}" class="hero-img" loading="lazy">
+    </div>
+
+    <div class="hero-part-bottom">
+      <!-- HERO BULLETS -->
+      <ul class="styled-list">
+        <li>{{HERO_BULLET_1}}</li>
+        <li>{{HERO_BULLET_2}}</li>
+        <li>{{HERO_BULLET_3}}</li>
+      </ul>
+
+      <!-- TRUST BADGES -->
+      <div class="trust-badges">
+        <div class="trust-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          {{TRUST_BADGE_1}}
+        </div>
+        <div class="trust-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          {{TRUST_BADGE_2}}
+        </div>
+        <div class="trust-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          {{TRUST_BADGE_3}}
+        </div>
+      </div>
+
       <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
         {{CTA_BUTTON_TEXT}}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
       </a>
     </div>
   </section>
 
   <div class="container">
     <main>
+      <!-- 1. PRODUCT OVERVIEW -->
       <div class="content-block">
-        <h2 class="section-title">{{PRIMARY_PROBLEM_TITLE}}</h2>
-        <p style="color:var(--text-sec); font-size: 16px;">{{PRIMARY_PROBLEM_TEXT}}</p>
+        <h2 class="section-title">{{PRODUCT_OVERVIEW_TITLE}}</h2>
+        <p style="color:var(--text-sec); font-size: 16px; line-height: 1.8;">{{PRODUCT_OVERVIEW_TEXT}}</p>
       </div>
 
-      <!-- CARDS COM ÍCONES SVG -->
+      <!-- 2. WHERE TO BUY (Grid + Text) -->
       <div class="content-block">
-        <h2 class="section-title">{{WHY_DIFFERENT_TITLE}}</h2>
+        <h2 class="section-title">{{WHERE_TO_BUY_TITLE}}</h2>
+        
+        <!-- Grid -->
         <div class="grid-3">
           <div class="feature-card">
             <div class="icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
             </div>
-            <p>{{WHY_DIFFERENT_1}}</p>
+            <p>{{HERO_BULLET_1}}</p>
           </div>
           <div class="feature-card">
             <div class="icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
             </div>
-            <p>{{WHY_DIFFERENT_2}}</p>
+            <p>{{HERO_BULLET_2}}</p>
           </div>
           <div class="feature-card">
             <div class="icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
             </div>
-            <p>{{WHY_DIFFERENT_3}}</p>
+            <p>{{HERO_BULLET_3}}</p>
           </div>
         </div>
+
+        <p style="color:var(--text-sec); font-size: 16px; line-height: 1.8;">{{WHERE_TO_BUY_TEXT}}</p>
       </div>
 
+      <!-- 3. PRICE & AVAILABILITY -->
       <div class="content-block">
-        <h2 class="section-title">{{MECHANISM_TITLE}}</h2>
-        <ul class="styled-list">
-          <li>{{MECHANISM_STEP_1}}</li>
-          <li>{{MECHANISM_STEP_2}}</li>
-          <li>{{MECHANISM_STEP_3}}</li>
-        </ul>
+        <h2 class="section-title">{{PRICE_AVAILABILITY_TITLE}}</h2>
+        <p style="color:var(--text-sec); font-size: 16px; line-height: 1.8;">{{PRICE_AVAILABILITY_TEXT}}</p>
       </div>
 
-      <!-- SEÇÃO DINÂMICA -->
-      <div class="content-block">
-        <h2 class="section-title">{{SECTION_4_TITLE}}</h2>
-        <div class="tech-specs-visual">
-          {{SECTION_4_IMAGES_OR_CONTENT}}
-        </div>
-        <p style="color:var(--text-sec); font-size:16px; max-width:800px; margin-top:24px;">
-          {{SECTION_4_TEXT}}
-        </p>
-      </div>
-
-      <div class="content-block" style="text-align: center; padding: 20px 0;">
-         <h3 style="margin-bottom: 16px; color: #fff !important;">{{MID_PAGE_CTA_TITLE}}</h3>
-         <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 400px; margin: 0 auto;">
-           {{CTA_BUTTON_TEXT}} &rarr;
-         </a>
-         <p style="font-size: 13px; color: var(--text-sec); margin-top: 10px;">Secure checkout • Official Stock</p>
-      </div>
-
-      <div class="content-block">
-        <h2 class="section-title">{{WHO_SHOULD_USE_TITLE}}</h2>
-        <div class="grid-3">
-          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_1}}</p></div>
-          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_2}}</p></div>
-          <div class="feature-card" style="padding:16px;"><p>{{WHO_SHOULD_3}}</p></div>
-        </div>
-      </div>
-
-      <div class="content-block">
-        <h2 class="section-title">{{WHO_SHOULD_NOT_TITLE}}</h2>
-        <div class="alert danger">
-          <ul class="styled-list" style="margin:0;">
-            <li>{{WHO_NOT_1}}</li>
-            <li>{{WHO_NOT_2}}</li>
-            <li>{{WHO_NOT_3}}</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="content-block">
-        <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
-        <div class="alert warn">{{SCAM_ALERT_TEXT}}</div>
-      </div>
-
-      <div class="content-block" style="margin-top:24px;">
-        <h4 class="section-title">{{TESTIMONIAL_TITLE}}</h4>
-        <div class="alert info" style="font-size:14px;">
-          {{TESTIMONIAL_NOTICE_TEXT}}
-          <br><br>
-          <a href="javascript:void(0)" onclick="doRedirect()" style="color:#00e676; font-weight:600;">
-            {{TESTIMONIAL_CTA_TEXT}} →
-          </a>
-        </div>
-      </div>
-
-      <!-- SIDEBAR MOBILE -->
-      <div class="mobile-sidebar-group">
-        <div class="offer-box">
-          <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
-          <div class="offer-title">{{HEADLINE_MAIN}}</div>
-          <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
-          <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
-              <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--glass-border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
-          </div>
-          <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
-          <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
-            <span>🔒 Secure Checkout</span><span>•</span><span>Official Site</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- GARANTIA -->
+      <!-- 4. GUARANTEE -->
       <div class="content-block">
         <h2 class="section-title">{{GUARANTEE_TITLE}}</h2>
-        <div class="alert info" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-          {{GUARANTEE_TEXT}}
-          <div style="margin-top:20px;">
-             <img src="{{GUARANTEE_IMAGE}}" alt="Guarantee Seal" style="max-width: 150px; margin: 0 auto; display: block;" onerror="this.style.display='none'">
+        <div class="alert success" style="flex-direction: column; align-items: center; text-align: center;">
+          <svg class="guarantee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <span>{{GUARANTEE_TEXT}}</span>
+        </div>
+      </div>
+
+      <!-- 5. SCAM ALERT -->
+      <div class="content-block">
+        <h2 class="section-title">{{SCAM_ALERT_TITLE}}</h2>
+        <div class="alert warn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>{{SCAM_ALERT_TEXT}}</span>
+        </div>
+      </div>
+
+      <!-- 6. FINAL CTA -->
+      <div class="content-block cta-center">
+        <h3 style="font-size: 28px; margin-bottom: 20px; color: var(--text-main); font-weight: 800;">{{FINAL_CTA_TITLE}}</h3>
+        <a href="javascript:void(0)" class="btn" onclick="doRedirect()" style="max-width: 420px;">
+          {{CTA_BUTTON_TEXT}}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <div class="trust-badges" style="justify-content: center; margin-top: 20px;">
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            {{TRUST_BADGE_4}}
+          </div>
+          <div class="trust-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            {{TRUST_BADGE_5}}
           </div>
         </div>
       </div>
 
-      <p style="font-size:11px; color:#475569; margin-top:40px; border-top:1px solid var(--glass-border); padding-top:20px;">{{DISCLAIMER_TEXT}}</p>
+      <p style="font-size:12px; color:var(--text-muted); margin-top:40px; border-top:1px solid var(--glass-border); padding-top:24px; line-height: 1.8;">{{DISCLAIMER_TEXT}}</p>
     </main>
 
-    <!-- SIDEBAR DESKTOP -->
     <aside>
       <div class="offer-box">
         <div class="offer-badge">{{DECISION_STAGE_LINE}}</div>
         <div class="offer-title">{{HEADLINE_MAIN}}</div>
         <div class="offer-sub">{{SUBHEADLINE_MAIN}}</div>
-        <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:center; background:transparent;">
-            <img src="{{PRODUCT_IMAGE}}" alt="Product" style="width: 70%; max-width: 200px; height: auto; border-radius:12px; border:1px solid var(--glass-border); display:block; box-shadow: 0 10px 20px rgba(0,0,0,0.3);" loading="lazy">
+        <div class="offer-image">
+          <img src="{{PRODUCT_IMAGE}}" alt="{{PRODUCT_NAME}}" loading="lazy">
         </div>
-        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">{{CTA_BUTTON_TEXT}}</a>
-        <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; font-size:11px; color:var(--text-sec);">
-          <span>🔒 Secure Checkout</span><span>•</span><span>Official Site</span>
+        <a href="javascript:void(0)" class="btn" onclick="doRedirect()">
+          {{CTA_BUTTON_TEXT}}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <div class="offer-trust">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            {{TRUST_SMALL_1}}
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            {{TRUST_SMALL_2}}
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            {{TRUST_SMALL_3}}
+          </span>
         </div>
       </div>
     </aside>
@@ -487,12 +810,12 @@
         <span class="footer-dot"></span> {{SITE_BRAND}}
       </div>
       <div class="footer-links">
-        <a href="{{PRIVACY_URL}}">Privacy Policy</a>
-        <a href="{{TERMS_URL}}">Terms of Service</a>
-        <a href="{{CONTACT_URL}}">Contact Us</a>
+        <a href="{{PRIVACY_URL}}">{{FOOTER_LINK_PRIVACY_TEXT}}</a>
+        <a href="{{TERMS_URL}}">{{FOOTER_LINK_TERMS_TEXT}}</a>
+        <a href="{{CONTACT_URL}}">{{FOOTER_LINK_CONTACT_TEXT}}</a>
       </div>
       <div class="footer-disclaimer">{{FOOTER_DISCLAIMER}}</div>
-      <div style="margin-top: 20px; color: #334155; font-size: 11px;">&copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. All rights reserved.</div>
+      <div class="footer-copyright">&copy; {{CURRENT_YEAR}} {{SITE_BRAND}}. {{COPYRIGHT_TEXT}}</div>
     </div>
   </footer>
 
@@ -504,7 +827,7 @@
       if(clicked) return;
       clicked = true;
       const btns = document.querySelectorAll('.btn');
-      btns.forEach(btn => btn.innerHTML = 'Redirecting...');
+      btns.forEach(btn => btn.innerHTML = '{{REDIRECTING_TEXT}}');
       if(typeof window.runTrackerRedirect === "function"){
         window.runTrackerRedirect(AFFILIATE_LINK);
       }else{
@@ -516,7 +839,7 @@
       if (event.persisted) {
         clicked = false;
         const btns = document.querySelectorAll('.btn');
-        btns.forEach(btn => { btn.innerHTML = '{{CTA_BUTTON_TEXT}}'; });
+        btns.forEach(btn => { btn.innerHTML = '{{CTA_BUTTON_TEXT}}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'; });
       }
     });
   </script>
