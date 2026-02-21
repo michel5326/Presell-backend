@@ -16,6 +16,7 @@
 <style>
 :root{
   --primary: {{PRIMARY_COLOR}};
+  --primary-fallback: #10b981;
   --bg:#f8fafc;
   --card:#ffffff;
   --text:#0f172a;
@@ -23,26 +24,77 @@
   --border:rgba(15,23,42,.08);
   --radius:14px;
 }
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-h1,h2,h3,.btn{font-family:Outfit,sans-serif}
-.container{max-width:1100px;margin:0 auto;padding:40px 20px}
-.section{margin-bottom:60px}
-.section h2{font-size:22px;margin-bottom:18px}
-p{margin-bottom:14px;color:var(--muted)}
-ul{list-style:none}
-ul li{margin-bottom:12px;padding-left:24px;position:relative;color:var(--muted)}
-ul li:before{content:"✓";position:absolute;left:0;color:var(--primary);font-weight:700}
+
+body{
+  font-family:Inter,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+
+h1,h2,h3,.btn{
+  font-family:Outfit,sans-serif
+}
+
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:40px 20px
+}
+
+.section{
+  margin-bottom:60px
+}
+
+.section h2{
+  font-size:22px;
+  margin-bottom:18px
+}
+
+p{
+  margin-bottom:14px;
+  color:var(--muted)
+}
+
+ul{
+  list-style:none
+}
+
+ul li{
+  margin-bottom:12px;
+  padding-left:24px;
+  position:relative;
+  color:var(--muted)
+}
+
+ul li:before{
+  content:"✓";
+  position:absolute;
+  left:0;
+  color:var(--primary, var(--primary-fallback));
+  font-weight:700
+}
+
+/* BUTTON SAFE */
 .btn{
   display:inline-block;
-  background:var(--primary);
-  color:#fff;
+  background:var(--primary, var(--primary-fallback));
+  color:#fff !important;
   padding:16px 28px;
   border-radius:50px;
   font-weight:700;
   text-align:center;
   text-decoration:none;
+  transition:0.3s ease;
 }
+
+.btn:hover{
+  opacity:.9
+}
+
+/* HERO */
 .hero{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -52,41 +104,51 @@ ul li:before{content:"✓";position:absolute;left:0;color:var(--primary);font-we
   max-width:1100px;
   margin:0 auto;
 }
+
 .hero img{
   max-width:100%;
   border-radius:20px;
   border:1px solid var(--border);
 }
+
 .hero-content h1{
   font-size:42px;
   margin-bottom:16px;
 }
+
 .badge{
   font-size:12px;
   font-weight:700;
   text-transform:uppercase;
-  color:var(--primary);
+  color:var(--primary, var(--primary-fallback));
   margin-bottom:10px;
   display:block;
 }
+
+/* CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
   gap:20px;
 }
+
 .card{
   background:var(--card);
   padding:20px;
   border-radius:var(--radius);
   border:1px solid var(--border);
 }
+
+/* ALERT */
 .alert{
   padding:18px;
   border-radius:12px;
   background:#f1f5f9;
-  border-left:4px solid var(--primary);
+  border-left:4px solid var(--primary, var(--primary-fallback));
   color:var(--muted);
 }
+
+/* FOOTER */
 .footer{
   text-align:center;
   padding:40px 20px;
@@ -94,10 +156,27 @@ ul li:before{content:"✓";position:absolute;left:0;color:var(--primary);font-we
   color:var(--muted);
   border-top:1px solid var(--border);
 }
+
+/* MOBILE */
 @media(max-width:900px){
-  .hero{grid-template-columns:1fr;text-align:center}
+  .hero{
+    grid-template-columns:1fr;
+    text-align:center
+  }
 }
 </style>
+
+<!-- AUTO COLOR FALLBACK SCRIPT -->
+<script>
+(function(){
+  const root=document.documentElement;
+  let p=getComputedStyle(root).getPropertyValue('--primary').trim();
+  if(!p){
+    root.style.setProperty('--primary','#10b981');
+  }
+})();
+</script>
+
 </head>
 <body>
 
@@ -187,14 +266,22 @@ ul li:before{content:"✓";position:absolute;left:0;color:var(--primary);font-we
 </footer>
 
 <script>
-const AFFILIATE_LINK = "{{AFFILIATE_LINK}}";
+const AFFILIATE_LINK="{{AFFILIATE_LINK}}";
 let clicked=false;
+
 function doRedirect(){
   if(clicked)return;
   clicked=true;
   document.querySelectorAll('.btn').forEach(b=>b.innerHTML='Redirecting...');
   window.location.href=AFFILIATE_LINK;
 }
+
+window.addEventListener('pageshow',function(event){
+  if(event.persisted){
+    clicked=false;
+    document.querySelectorAll('.btn').forEach(b=>b.innerHTML='{{CTA_BUTTON_TEXT}}');
+  }
+});
 </script>
 
 </body>
