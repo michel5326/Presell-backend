@@ -1,5 +1,7 @@
 const aiService = require('../../services/ai');
-const searchCampaignPrompt = require('../prompts/searchCampaign.prompt');
+const reviewPrompt = require('../prompts/review.prompt');
+const officialPrompt = require('../prompts/official.prompt');
+const hybridPrompt = require('../prompts/hybrid.prompt');
 const schema = require('../schemas/searchCampaign.schema.json');
 const Ajv = require('ajv');
 
@@ -29,7 +31,6 @@ function normalizeStructuredSnippet(snippet) {
   return null;
 }
 
-// 🔒 garante tamanho mínimo SEM inventar copy
 function padArray(arr, min, filler = null) {
   const out = Array.isArray(arr) ? [...arr] : [];
   while (out.length < min) out.push(filler);
@@ -40,18 +41,38 @@ async function generateSearchCampaign({
   keyword,
   language,
   baseUrl,
-  intentMode = 'hybrid' // novo parâmetro com fallback seguro
+  intentMode = 'hybrid'
 }) {
   if (!keyword) throw new Error('Keyword is required');
 
   const normalizedUrl = normalizeBaseUrl(baseUrl);
 
-  const prompt = searchCampaignPrompt({
-    keyword,
-    language,
-    baseUrl: normalizedUrl,
-    intentMode
-  });
+  let prompt;
+
+  switch (intentMode) {
+    case 'review':
+      prompt = reviewPrompt({
+        keyword,
+        language,
+        baseUrl: normalizedUrl
+      });
+      break;
+
+    case 'official':
+      prompt = officialPrompt({
+        keyword,
+        language,
+        baseUrl: normalizedUrl
+      });
+      break;
+
+    default:
+      prompt = hybridPrompt({
+        keyword,
+        language,
+        baseUrl: normalizedUrl
+      });
+  }
 
   const aiResponse = await aiService.generateCopy({
     type: 'google_ads_search',
@@ -83,7 +104,7 @@ async function generateSearchCampaign({
     .slice(0, 4)
     .map(c => clampText(c, 25));
 
-  /* ========= SITELINKS (COM DESCRIÇÃO) ========= */
+  /* ========= SITELINKS ========= */
   if (normalizedUrl) {
     const fallbackTitles = [
       'How It Works',
