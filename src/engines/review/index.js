@@ -96,8 +96,13 @@ function renderTestimonials(list) {
 /* ---------- MAIN ---------- */
 
 function normalizeLang(lang) {
-  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr', 'de'];
-  return supported.includes(lang) ? lang : 'en';
+  const supported = ['en', 'pt', 'es', 'fr', 'pl', 'tr', 'de', 'nl'];
+
+  if (!lang || typeof lang !== 'string') return 'en';
+
+  const clean = lang.toLowerCase().slice(0, 2);
+
+  return supported.includes(clean) ? clean : 'en';
 }
 
 async function generate({

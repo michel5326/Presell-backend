@@ -7,9 +7,10 @@ function resolveLanguageName(lang) {
     pl: 'Polish',
     tr: 'Turkish',
     de: 'German',
+    nl: 'Dutch'
   };
 
-   return map[lang] || 'English';
+  return map[lang] || 'English';
 }
 
 module.exports = (lang = 'en') => {
