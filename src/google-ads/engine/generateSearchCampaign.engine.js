@@ -41,7 +41,8 @@ async function generateSearchCampaign({
   keyword,
   language,
   baseUrl,
-  intentMode = 'hybrid'
+  intentMode = 'hybrid',
+  intensityLevel = 'balanced' // novo parâmetro
 }) {
   if (!keyword) throw new Error('Keyword is required');
 
@@ -54,7 +55,8 @@ async function generateSearchCampaign({
       prompt = reviewPrompt({
         keyword,
         language,
-        baseUrl: normalizedUrl
+        baseUrl: normalizedUrl,
+        intensityLevel
       });
       break;
 
@@ -62,7 +64,8 @@ async function generateSearchCampaign({
       prompt = officialPrompt({
         keyword,
         language,
-        baseUrl: normalizedUrl
+        baseUrl: normalizedUrl,
+        intensityLevel
       });
       break;
 
@@ -70,7 +73,8 @@ async function generateSearchCampaign({
       prompt = hybridPrompt({
         keyword,
         language,
-        baseUrl: normalizedUrl
+        baseUrl: normalizedUrl,
+        intensityLevel
       });
   }
 

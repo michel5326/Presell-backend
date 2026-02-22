@@ -6,7 +6,8 @@ async function generateGoogleAdsController(req, res) {
       keyword,
       language = 'en-US',
       baseUrl,
-      intentMode = 'hybrid' // novo campo com default seguro
+      intentMode = 'hybrid',
+      intensityLevel = 'balanced' // novo campo estratégico
     } = req.body;
 
     if (!keyword) {
@@ -15,17 +16,24 @@ async function generateGoogleAdsController(req, res) {
       });
     }
 
-    // validação simples opcional (proteção extra)
+    // 🔒 validação segura de intent
     const allowedModes = ['review', 'official', 'hybrid'];
     const safeIntentMode = allowedModes.includes(intentMode)
       ? intentMode
       : 'hybrid';
 
+    // 🔥 validação segura de intensidade
+    const allowedIntensity = ['safe', 'balanced', 'aggressive'];
+    const safeIntensityLevel = allowedIntensity.includes(intensityLevel)
+      ? intensityLevel
+      : 'balanced';
+
     const result = await generateSearchCampaign({
       keyword,
       language,
       baseUrl,
-      intentMode: safeIntentMode
+      intentMode: safeIntentMode,
+      intensityLevel: safeIntensityLevel
     });
 
     return res.json({

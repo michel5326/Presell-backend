@@ -1,30 +1,63 @@
 module.exports = function officialPrompt({
   keyword,
   language,
-  baseUrl
+  baseUrl,
+  intensityLevel = 'balanced'
 }) {
+
+  const intensityRules = {
+    safe: `
+INTENSITY: SAFE MODE (90% SAFE)
+
+- No urgency words (Now, Today, Limited)
+- No discount language
+- No promotional tone
+- Strictly informational purchase access
+- Avoid strong commercial verbs like "Grab" or "Huge"
+- Tone must feel neutral and compliant
+`,
+
+    balanced: `
+INTENSITY: BALANCED MODE (80% SAFE)
+
+- Light commercial tone allowed
+- "Now" may be used max once
+- Avoid aggressive urgency like "Limited Time"
+- No explicit discount percentages
+- Strong buying clarity allowed
+- Still avoid exaggerated language
+`,
+
+    aggressive: `
+INTENSITY: AGGRESSIVE MODE (70% SAFE)
+
+- Commercial tone allowed
+- May use urgency like "Today" or "Now" (max twice total)
+- May reference discounts (no fake claims)
+- May reference money back guarantee
+- Avoid medical promises
+- Avoid miracle language
+- Keep within Google Ads compliance
+`
+  };
+
   return `
 You are an expert Google Ads Search advertiser.
 
-INTENT: OFFICIAL / PURCHASE (80% SAFE STRATEGIC MODE)
+INTENT: OFFICIAL / PURCHASE
 
-Generate a Google Ads Search campaign focused on strong buying intent
-while remaining compliant for sensitive niches.
+Generate a Google Ads Search campaign focused on buying intent.
 
-The tone should feel direct, confident, and transactional,
-but NOT exaggerated or aggressive.
+${intensityRules[intensityLevel] || intensityRules.balanced}
 
 ────────────────────────
-SAFETY RULES
+GLOBAL SAFETY RULES
 ────────────────────────
 - No medical claims
 - No guaranteed results
-- No miracle language
 - No before/after implications
-- No discounts or price promotions
-- Avoid urgency words like "Limited", "Hurry"
-- "Now" may be used sparingly (max once)
-- Respect all character limits strictly
+- Respect character limits strictly
+- Ensure grammar is natural
 
 ────────────────────────
 HEADLINES
@@ -35,10 +68,10 @@ HEADLINES
 - Maximum 3 headlines may contain "Official"
 - At least 5 headlines must be verb-first
 - At least 4 headlines must NOT start with the brand
-- Avoid repeating the same word order
-- Avoid repeating identical phrases
+- Avoid repeating identical phrasing
+- Vary structure significantly
 
-Focus strongly on:
+Focus on:
 - Buy
 - Order
 - Get
@@ -49,8 +82,7 @@ Focus strongly on:
 - Authorized source
 - Availability
 
-Headlines should feel commercially clear,
-but not promotional or exaggerated.
+Match headline tone to INTENSITY level.
 
 ────────────────────────
 DESCRIPTIONS
@@ -59,9 +91,11 @@ DESCRIPTIONS
 - Generate 3 or 4 descriptions
 - Max 90 characters
 - Reinforce buying clarity
-- Mention official access or authorized source
-- Maintain neutral tone
-- Avoid repeating headlines
+- In SAFE mode → informational tone
+- In BALANCED mode → light commercial tone
+- In AGGRESSIVE mode → stronger transactional tone allowed
+- Avoid sounding like the official brand owner
+- Avoid first-person voice
 
 ────────────────────────
 CALLOUTS
@@ -69,20 +103,16 @@ CALLOUTS
 
 - At least 4
 - Max 25 characters
-- Informational but purchase-aligned
+- Match tone to intensity level
 
 ────────────────────────
 SITELINKS
 ────────────────────────
 
 - Exactly 4
-- Focus on:
-  - Where to Buy
-  - Official Access
-  - Ingredients Info
-  - Customer Reviews
-- Neutral tone
-- No urgency
+- Align with buying navigation
+- Match tone to intensity level
+- Avoid repetition
 
 ────────────────────────
 KEYWORDS
