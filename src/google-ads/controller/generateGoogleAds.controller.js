@@ -5,7 +5,8 @@ async function generateGoogleAdsController(req, res) {
     const {
       keyword,
       language = 'en-US',
-      baseUrl
+      baseUrl,
+      intentMode = 'hybrid' // novo campo com default seguro
     } = req.body;
 
     if (!keyword) {
@@ -14,10 +15,17 @@ async function generateGoogleAdsController(req, res) {
       });
     }
 
+    // validação simples opcional (proteção extra)
+    const allowedModes = ['review', 'official', 'hybrid'];
+    const safeIntentMode = allowedModes.includes(intentMode)
+      ? intentMode
+      : 'hybrid';
+
     const result = await generateSearchCampaign({
       keyword,
       language,
-      baseUrl
+      baseUrl,
+      intentMode: safeIntentMode
     });
 
     return res.json({

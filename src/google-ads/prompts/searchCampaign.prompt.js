@@ -1,13 +1,62 @@
 module.exports = function searchCampaignPrompt({
   keyword,
   language,
-  baseUrl
+  baseUrl,
+  intentMode = 'hybrid'
 }) {
+
+  const intentInstructions = {
+    review: `
+INTENT MODE: REVIEW
+Focus primarily on research and analytical intent.
+
+Headlines must emphasize:
+- Review
+- Analysis
+- Breakdown
+- Ingredient insights
+- Evaluation
+- Findings
+- User feedback
+
+Buy intent must be minimal and soft.
+Tone should feel like independent research content.
+`,
+
+    official: `
+INTENT MODE: OFFICIAL
+Focus primarily on purchase and navigation intent.
+
+Headlines must emphasize:
+- Official site
+- Where to buy
+- Order online
+- Access official page
+- Purchase options
+
+Research headlines should be limited and supportive.
+Tone should feel like official product access.
+`,
+
+    hybrid: `
+INTENT MODE: HYBRID
+Balance buyer and research intent.
+
+Include:
+- Official site / where to buy
+- Review / ingredients / breakdown
+- Trust and authority elements
+
+Tone must remain neutral and safe.
+`
+  };
+
   return `
 You are an expert Google Ads Search advertiser specialized in sensitive niches.
 
-Your task is to generate a COMPLETE Google Ads Search campaign
-using a CONTROLLED BUYER-RESEARCH HYBRID MODEL.
+Your task is to generate a COMPLETE Google Ads Search campaign.
+
+${intentInstructions[intentMode] || intentInstructions.hybrid}
 
 This campaign may run on new or sensitive accounts.
 Content MUST be compliant, neutral, and safe.
@@ -23,12 +72,12 @@ GENERAL SAFETY RULES
 - No discounts or price references
 - No "limited time", "risk free", "miracle", "instant"
 - No before/after implications
-- Neutral, informational, research-style tone
+- Neutral, informational tone
 - Strictly respect character limits
 - Content must be SAFE for Google Ads approval
 
 ────────────────────────
-HEADLINES STRUCTURE (MANDATORY)
+HEADLINES RULES
 ────────────────────────
 
 Generate EXACTLY 15 headlines.
@@ -40,42 +89,23 @@ The brand name "${keyword}" should appear naturally in most headlines.
 
 IMPORTANT:
 - Avoid repeating the same structural pattern.
-- Avoid repeating words like: Product, Information, Overview, Details in multiple headlines.
-- Vary sentence structure.
-- Mix brand-first and brand-middle structures.
-- Do NOT use identical phrasing patterns across categories.
+- Avoid repeating words like Product, Information, Overview, Details excessively.
+- Vary structure and phrasing.
+- Avoid mechanical repetition.
 
-Distribute headlines EXACTLY as follows:
+Distribution logic depends on INTENT MODE:
 
-1) BUY INTENT (3 headlines)
-- Soft purchase intent
-- Examples: Official Site, Where to Buy, Order Online
-- Neutral and informational tone only
+If REVIEW:
+- Majority research/analysis headlines
+- Limited soft buy headlines
 
-2) RESEARCH INTENT (5 headlines)
-- Reviews, Ingredients, Guide, Analysis, Breakdown
-- Must feel like real product research
-- Use varied wording (do not repeat "Product Information" style phrases)
+If OFFICIAL:
+- Majority purchase/navigation headlines
+- Supportive research headlines
 
-3) AUTHORITY / TRUST (3 headlines)
-- Independent Review
-- User Feedback
-- Unbiased Overview
-- Must sound objective and neutral
+If HYBRID:
+- Balanced mix of buy, research, authority, and feature
 
-4) FEATURE / MECHANISM (2 headlines)
-- How It Works
-- Formula Insights
-- Key Components
-- Avoid repeating similar structure
-
-5) NAVIGATION / SOFT CTA (2 headlines)
-- Learn More
-- Visit Official Site
-- Explore Details
-- Keep tone informational
-
-Do NOT merge categories.
 Do NOT make promotional claims.
 Do NOT promise outcomes.
 
@@ -85,18 +115,21 @@ DESCRIPTIONS RULES
 
 Generate 3 or 4 descriptions.
 
-Structure them as:
-
-1) Informational overview
-2) Research reinforcement
-3) Neutral call to action
-4) Optional trust reinforcement
-
 Descriptions must:
 - Respect the 90 character limit
+- Match the INTENT MODE
 - Avoid repetitive wording
-- Avoid repeating headline phrasing
-- Maintain neutral compliance tone
+- Avoid headline duplication
+- Maintain compliance
+
+If REVIEW:
+- Emphasize analysis, ingredients, evaluation
+
+If OFFICIAL:
+- Emphasize official access and purchase clarity
+
+If HYBRID:
+- Blend research and navigation intent
 
 ────────────────────────
 CALLOUT RULES
@@ -104,11 +137,11 @@ CALLOUT RULES
 
 Generate at least 4 callouts.
 Each callout MUST respect the 25 character limit.
-Callouts must be informational and varied in wording.
-Avoid repeating identical terms.
+Callouts must align with INTENT MODE.
+No claims, no urgency.
 
 ────────────────────────
-SITELINKS RULES (CRITICAL)
+SITELINKS RULES
 ────────────────────────
 
 Generate EXACTLY 4 sitelinks.
@@ -119,11 +152,10 @@ Each sitelink MUST include:
 - description_2 (max 35 characters)
 
 Sitelinks must:
-- Feel like helpful navigation
+- Align with INTENT MODE
 - Be neutral and informational
-- Not include promises or urgency
-- Not reference pricing or discounts
-- Use varied wording across all sitelinks
+- Not include pricing, urgency, or claims
+- Use varied wording
 
 ────────────────────────
 KEYWORDS RULES
@@ -134,14 +166,18 @@ Generate relevant keywords grouped into:
 - phrase
 - broad
 
-Focus on:
-- Brand + review
-- Brand + official site
-- Brand + ingredients
-- Brand + where to buy
-- Brand + product guide
+Match keywords with INTENT MODE.
 
-Avoid exaggerated or outcome-driven variations.
+If REVIEW:
+- Focus on review, analysis, ingredients, breakdown
+
+If OFFICIAL:
+- Focus on official site, buy, where to buy, order
+
+If HYBRID:
+- Mix both safely
+
+Avoid exaggerated variations.
 
 ────────────────────────
 CAMPAIGN CONTEXT
@@ -150,6 +186,7 @@ CAMPAIGN CONTEXT
 Main keyword: "${keyword}"
 Language: "${language}"
 Base URL (optional): "${baseUrl || 'N/A'}"
+Intent Mode: "${intentMode}"
 
 Return ONLY valid JSON with this structure:
 

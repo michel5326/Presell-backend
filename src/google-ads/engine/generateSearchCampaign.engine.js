@@ -36,7 +36,12 @@ function padArray(arr, min, filler = null) {
   return out;
 }
 
-async function generateSearchCampaign({ keyword, language, baseUrl }) {
+async function generateSearchCampaign({
+  keyword,
+  language,
+  baseUrl,
+  intentMode = 'hybrid' // novo parâmetro com fallback seguro
+}) {
   if (!keyword) throw new Error('Keyword is required');
 
   const normalizedUrl = normalizeBaseUrl(baseUrl);
@@ -44,7 +49,8 @@ async function generateSearchCampaign({ keyword, language, baseUrl }) {
   const prompt = searchCampaignPrompt({
     keyword,
     language,
-    baseUrl: normalizedUrl
+    baseUrl: normalizedUrl,
+    intentMode
   });
 
   const aiResponse = await aiService.generateCopy({
