@@ -109,39 +109,45 @@ async function generateSearchCampaign({
     .map(c => clampText(c, 25));
 
   /* ========= SITELINKS ========= */
-  if (normalizedUrl) {
-    const fallbackTitles = [
-      'How It Works',
-      'Ingredients Overview',
-      'Real User Reviews',
-      'Official Website'
-    ];
+if (normalizedUrl) {
 
-    const fallbackDesc1 = [
-      'Learn the basic process',
-      'See what the formula uses',
-      'Read user experiences',
-      'Visit the official page'
-    ];
+  const fallbackTitles = [
+    'Official Website',
+    'Product Details',
+    'Customer Reviews',
+    'Ingredients Info'
+  ];
 
-    const fallbackDesc2 = [
-      'Simple overview explained',
-      'Key elements explained',
-      'Feedback from real users',
-      'More product information'
-    ];
+  const fallbackDesc1 = [
+    'Visit the official product page',
+    'Learn more about the product',
+    'Read customer experiences',
+    'View formula information'
+  ];
 
-    parsed.sitelinks = padArray(parsed.sitelinks, 4, {})
-      .slice(0, 4)
-      .map((sl, i) => ({
-        title: clampText(sl?.title || fallbackTitles[i], 25),
-        description_1: clampText(sl?.description_1 || fallbackDesc1[i], 35),
-        description_2: clampText(sl?.description_2 || fallbackDesc2[i], 35),
-        url: `${normalizedUrl}?sl=${i + 1}`
-      }));
-  } else {
-    parsed.sitelinks = [];
-  }
+  const fallbackDesc2 = [
+    'Secure online access',
+    'Detailed product overview',
+    'Independent feedback',
+    'Complete ingredient breakdown'
+  ];
+
+  const safeSitelinks = Array.isArray(parsed.sitelinks)
+    ? parsed.sitelinks
+    : [];
+
+  parsed.sitelinks = padArray(safeSitelinks, 4, {})
+    .slice(0, 4)
+    .map((sl, i) => ({
+      title: clampText(sl?.title || fallbackTitles[i], 25),
+      description_1: clampText(sl?.description_1 || fallbackDesc1[i], 35),
+      description_2: clampText(sl?.description_2 || fallbackDesc2[i], 35),
+      url: `${normalizedUrl}?sl=${i + 1}`
+    }));
+
+} else {
+  parsed.sitelinks = [];
+}
 
   /* ========= STRUCTURED SNIPPETS ========= */
   parsed.structured_snippets = Array.isArray(parsed.structured_snippets)
