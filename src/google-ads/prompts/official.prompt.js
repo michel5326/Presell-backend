@@ -28,16 +28,19 @@ INTENSITY: BALANCED MODE (80% SAFE)
 - Still avoid exaggerated language
 `,
 
-    aggressive: `
-INTENSITY: AGGRESSIVE MODE (70% SAFE)
+   aggressive: `
+INTENSITY: AGGRESSIVE MODE (CONTROLLED 70–75% SAFE)
 
-- Commercial tone allowed
-- May use urgency like "Today" or "Now" (max twice total)
-- May reference discounts (no fake claims)
-- May reference money back guarantee
-- Avoid medical promises
-- Avoid miracle language
-- Keep within Google Ads compliance
+- Strong commercial tone allowed
+- "Now" may appear ONCE maximum
+- "Today" may appear ONCE maximum
+- Discount language allowed ONCE maximum
+- Money Back reference allowed ONCE maximum
+- Do NOT combine urgency + discount + guarantee in the same headline
+- Avoid stacking multiple triggers in a single line
+- No fake claims
+- No medical promises
+- Maintain natural grammar
 `
   };
 
