@@ -56,6 +56,25 @@ Focus on:
 - ${keyword} breakdown
 - ${keyword} research
 
-Return ONLY valid JSON.
+Return ONLY valid JSON with this structure:
+
+{
+  "headlines": [],
+  "descriptions": [],
+  "keywords": {
+    "exact": [],
+    "phrase": [],
+    "broad": []
+  },
+  "structured_snippets": [],
+  "sitelinks": [
+    {
+      "title": "",
+      "description_1": "",
+      "description_2": ""
+    }
+  ],
+  "callouts": []
+}
 `;
 };

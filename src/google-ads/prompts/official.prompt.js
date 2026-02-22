@@ -57,6 +57,25 @@ Focus on:
 - ${keyword} where to buy
 - ${keyword} official
 
-Return ONLY valid JSON.
+Return ONLY valid JSON with this structure:
+
+{
+  "headlines": [],
+  "descriptions": [],
+  "keywords": {
+    "exact": [],
+    "phrase": [],
+    "broad": []
+  },
+  "structured_snippets": [],
+  "sitelinks": [
+    {
+      "title": "",
+      "description_1": "",
+      "description_2": ""
+    }
+  ],
+  "callouts": []
+}
 `;
 };
