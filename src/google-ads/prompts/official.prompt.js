@@ -6,56 +6,99 @@ module.exports = function officialPrompt({
   return `
 You are an expert Google Ads Search advertiser.
 
-INTENT: OFFICIAL / PURCHASE
+INTENT: OFFICIAL / PURCHASE (80% SAFE STRATEGIC MODE)
 
-Generate a Google Ads Search campaign focused on official access and buying intent.
-Tone must remain neutral and compliant.
+Generate a Google Ads Search campaign focused on strong buying intent
+while remaining compliant for sensitive niches.
 
-GENERAL RULES:
+The tone should feel direct, confident, and transactional,
+but NOT exaggerated or aggressive.
+
+────────────────────────
+SAFETY RULES
+────────────────────────
 - No medical claims
-- No exaggerated promises
-- No urgency
-- No discounts or pricing
-- Safe for sensitive niches
-- Respect all character limits
+- No guaranteed results
+- No miracle language
+- No before/after implications
+- No discounts or price promotions
+- Avoid urgency words like "Limited", "Hurry"
+- "Now" may be used sparingly (max once)
+- Respect all character limits strictly
 
-HEADLINES:
+────────────────────────
+HEADLINES
+────────────────────────
+
 - Generate EXACTLY 15 headlines
 - Max 30 characters each
-- Max 3 headlines may contain the word "Official"
+- Maximum 3 headlines may contain "Official"
+- At least 5 headlines must be verb-first
 - At least 4 headlines must NOT start with the brand
-- Include at least 3 verb-first headlines (Buy, Order, Access, Get)
-- Avoid repeating the same structural pattern
-- Focus on:
-  - Buy
-  - Order
-  - Where to buy
-  - Access
-  - Availability
-  - Authorized source
+- Avoid repeating the same word order
+- Avoid repeating identical phrases
 
-DESCRIPTIONS:
-- 3 or 4 descriptions
+Focus strongly on:
+- Buy
+- Order
+- Get
+- Shop
+- Secure
+- Direct access
+- Online purchase
+- Authorized source
+- Availability
+
+Headlines should feel commercially clear,
+but not promotional or exaggerated.
+
+────────────────────────
+DESCRIPTIONS
+────────────────────────
+
+- Generate 3 or 4 descriptions
 - Max 90 characters
-- Emphasize official access and purchase clarity
-- Remain neutral and informational
+- Reinforce buying clarity
+- Mention official access or authorized source
+- Maintain neutral tone
+- Avoid repeating headlines
 
-CALLOUTS:
+────────────────────────
+CALLOUTS
+────────────────────────
+
 - At least 4
 - Max 25 characters
-- Informational only
+- Informational but purchase-aligned
 
-SITELINKS:
+────────────────────────
+SITELINKS
+────────────────────────
+
 - Exactly 4
-- Navigation and purchase focused
+- Focus on:
+  - Where to Buy
+  - Official Access
+  - Ingredients Info
+  - Customer Reviews
+- Neutral tone
+- No urgency
 
-KEYWORDS:
-Focus on:
-- ${keyword} official site
+────────────────────────
+KEYWORDS
+────────────────────────
+
+Focus on high-intent variations:
 - buy ${keyword}
 - order ${keyword}
+- ${keyword} official site
 - ${keyword} where to buy
-- ${keyword} official
+- ${keyword} authorized source
+- ${keyword} online purchase
+
+────────────────────────
+OUTPUT FORMAT
+────────────────────────
 
 Return ONLY valid JSON with this structure:
 
