@@ -27,20 +27,38 @@ async function getBrowser() {
 }
 
 /* =========================
+   SPEED OPTIMIZATION
+========================= */
+async function optimizeRequests(page) {
+  await page.route("**/*", route => {
+    const type = route.request().resourceType();
+
+    if (
+      type === "image" ||
+      type === "media" ||
+      type === "font"
+    ) {
+      return route.abort();
+    }
+
+    route.continue();
+  });
+}
+
+/* =========================
    PREPARE PAGE
 ========================= */
 async function preparePageForScreenshot(page) {
-  // espera inicial
+
   await page.waitForTimeout(1500);
 
-  // interação mínima humana
   await page.mouse.move(200, 200);
   await page.waitForTimeout(200);
   await page.mouse.move(400, 350);
   await page.waitForTimeout(300);
 
-  // remove overlays / cookies
   await page.evaluate(() => {
+
     const selectors = [
       '[id*="cookie"]',
       '[class*="cookie"]',
@@ -57,23 +75,25 @@ async function preparePageForScreenshot(page) {
     });
 
     document.body.style.overflow = "auto";
+
   });
 
-  // scroll leve (ativa lazy load)
   await page.evaluate(() => {
     window.scrollTo(0, window.innerHeight / 2);
   });
+
   await page.waitForTimeout(800);
 
-  // volta para topo
   await page.evaluate(() => {
     window.scrollTo(0, 0);
   });
+
   await page.waitForTimeout(300);
 
-  // detectar bloqueio explícito
   const isBlocked = await page.evaluate(() => {
+
     const t = document.body.innerText.toLowerCase();
+
     return (
       t.includes("access denied") ||
       t.includes("blocked") ||
@@ -81,11 +101,13 @@ async function preparePageForScreenshot(page) {
       t.includes("verify you are human") ||
       t.includes("captcha")
     );
+
   });
 
   if (isBlocked) {
     throw new Error("anti_bot_detected");
   }
+
 }
 
 /* =========================
@@ -100,29 +122,35 @@ async function generateLegacyPage({
   flatBody,
   userEmail
 }) {
+
   console.log("🔄 Executando fluxo Legacy");
 
   const finalLegacyData = { ...legacyData, ...flatBody };
+
   delete finalLegacyData.templateId;
   delete finalLegacyData.productUrl;
   delete finalLegacyData.affiliateUrl;
   delete finalLegacyData.language;
 
   const templatePath = findTemplate(templateId);
+
   if (!templatePath) {
     throw new Error("Template legacy não encontrado");
   }
 
   const id = uuid();
+
   const d = `desktop-${id}.png`;
   const m = `mobile-${id}.png`;
 
   const browser = await getBrowser();
 
   try {
+
     /* =========================
        DESKTOP
     ========================= */
+
     const contextDesktop = await browser.newContext({
       viewport: { width: 1366, height: 768 },
       locale: "en-US",
@@ -132,13 +160,21 @@ async function generateLegacyPage({
 
     const p = await contextDesktop.newPage();
 
+    await optimizeRequests(p);
+
     await p.goto(productUrl, {
-      waitUntil: "networkidle",
-      timeout: 60000
+      waitUntil: "domcontentloaded",
+      timeout: 45000
     });
 
+    await p.waitForTimeout(2500);
+
     await preparePageForScreenshot(p);
-    await p.screenshot({ path: d, fullPage: false });
+
+    await p.screenshot({
+      path: d,
+      fullPage: false
+    });
 
     await p.close();
     await contextDesktop.close();
@@ -146,6 +182,7 @@ async function generateLegacyPage({
     /* =========================
        MOBILE
     ========================= */
+
     const contextMobile = await browser.newContext({
       ...devices["iPhone 12"],
       deviceScaleFactor: 1
@@ -153,13 +190,21 @@ async function generateLegacyPage({
 
     const p2 = await contextMobile.newPage();
 
+    await optimizeRequests(p2);
+
     await p2.goto(productUrl, {
-      waitUntil: "networkidle",
-      timeout: 60000
+      waitUntil: "domcontentloaded",
+      timeout: 45000
     });
 
+    await p2.waitForTimeout(2500);
+
     await preparePageForScreenshot(p2);
-    await p2.screenshot({ path: m, fullPage: false });
+
+    await p2.screenshot({
+      path: m,
+      fullPage: false
+    });
 
     await p2.close();
     await contextMobile.close();
@@ -167,6 +212,7 @@ async function generateLegacyPage({
     /* =========================
        UPLOAD
     ========================= */
+
     const du = await uploadToR2(d, `desktop/${d}`);
     const mu = await uploadToR2(m, `mobile/${m}`);
 
@@ -181,13 +227,18 @@ async function generateLegacyPage({
     }
 
     html = applyGlobals(html);
+
     return html;
 
   } finally {
+
     safeUnlink(d);
     safeUnlink(m);
-    // ⚠️ NÃO fechamos o browser aqui
+
+    // NÃO fechamos o browser para manter singleton
+
   }
+
 }
 
 module.exports = { generateLegacyPage };
