@@ -27,17 +27,14 @@ async function getBrowser() {
 }
 
 /* =========================
-   SPEED OPTIMIZATION
+   REQUEST OPTIMIZATION
 ========================= */
 async function optimizeRequests(page) {
   await page.route("**/*", route => {
     const type = route.request().resourceType();
 
-    if (
-      type === "image" ||
-      type === "media" ||
-      type === "font"
-    ) {
+    // bloqueia apenas vídeos pesados
+    if (type === "media") {
       return route.abort();
     }
 
@@ -52,11 +49,13 @@ async function preparePageForScreenshot(page) {
 
   await page.waitForTimeout(1500);
 
+  // simulação leve de interação humana
   await page.mouse.move(200, 200);
   await page.waitForTimeout(200);
   await page.mouse.move(400, 350);
   await page.waitForTimeout(300);
 
+  // remover cookies / modais
   await page.evaluate(() => {
 
     const selectors = [
@@ -78,6 +77,7 @@ async function preparePageForScreenshot(page) {
 
   });
 
+  // scroll leve para ativar lazy load
   await page.evaluate(() => {
     window.scrollTo(0, window.innerHeight / 2);
   });
@@ -90,6 +90,7 @@ async function preparePageForScreenshot(page) {
 
   await page.waitForTimeout(300);
 
+  // detectar bloqueio
   const isBlocked = await page.evaluate(() => {
 
     const t = document.body.innerText.toLowerCase();
@@ -235,8 +236,7 @@ async function generateLegacyPage({
     safeUnlink(d);
     safeUnlink(m);
 
-    // NÃO fechamos o browser para manter singleton
-
+    // browser permanece aberto (singleton)
   }
 
 }
